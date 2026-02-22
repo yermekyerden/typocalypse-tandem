@@ -287,16 +287,41 @@ export type CheckFileContentMatches = MissionCheckBase & {
   expected: RegexSpec;
 };
 
+export type OutputStream = "stdout" | "stderr" | "both";
+
+export type TextNormalization = {
+  // Optional: additive, mission authors can ignore for MVP.
+  trim?: boolean;
+  collapseWhitespace?: boolean;
+  normalizeNewlines?: boolean; // recommended default true
+};
+
+export type CheckFileContentEquals = MissionCheckBase & {
+  type: "file_content_equals";
+  path: PosixPath;
+  expectedText: string;
+  normalize?: TextNormalization;
+};
+
+export type CheckFileContentMatches = MissionCheckBase & {
+  type: "file_content_matches";
+  path: PosixPath;
+  expected: RegexSpec;
+  normalize?: TextNormalization;
+};
+
 export type CheckOutputContains = MissionCheckBase & {
   type: "output_contains";
-  stream: "stdout" | "stderr";
+  stream: OutputStream;
   text: string;
+  normalize?: TextNormalization;
 };
 
 export type CheckOutputMatches = MissionCheckBase & {
   type: "output_matches";
-  stream: "stdout" | "stderr";
+  stream: OutputStream;
   expected: RegexSpec;
+  normalize?: TextNormalization;
 };
 ```
 
