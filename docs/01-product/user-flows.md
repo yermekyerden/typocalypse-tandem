@@ -124,7 +124,7 @@ When user submits a command:
 - local: append step log, attempt summary, progress summary
 - backend:
   - `POST /api/attempts/:userId` (attempt summary; step log optional)
-  - `POST /api/progress/:userId` (idempotent update)
+  - `PUT /api/progress/:userId` (idempotent update)
 
 #### States to support
 - **Ready** (mission loaded, awaiting input)

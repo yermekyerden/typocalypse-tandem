@@ -106,7 +106,7 @@ Minimum endpoints (names can change, contracts must exist):
 - `GET /api/missions`
 - `GET /api/missions/:id`
 - `GET /api/progress/:userId`
-- `POST /api/progress/:userId`
+- `PUT /api/progress/:userId`
 - `POST /api/attempts/:userId`
 - optional: `GET /api/health`, `GET /api/version`
 

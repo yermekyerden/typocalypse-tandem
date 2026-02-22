@@ -107,7 +107,7 @@ Progress and attempts are real, replay works, help is useful.
   - Attempts (summary; optionally step log)
 - Endpoints:
   - `GET /api/progress/:userId`
-  - `POST /api/progress/:userId`
+  - `PUT /api/progress/:userId`
   - `POST /api/attempts/:userId`
 - Idempotency strategy:
   - progress updates overwrite by mission id + updatedAt
