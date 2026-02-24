@@ -39,11 +39,13 @@ The app validates results (**state/output**), explains mistakes, and helps build
 ## Tech stack (planned) 🛠️
 
 ### Frontend 🎨
+
 - ⚛️ React + TypeScript (**strict**)
 - 🌬️ Tailwind CSS
 - 🧱 shadcn/ui (Tailwind-based components)
 
 ### Backend 🧰
+
 - 🪺 NestJS (Node.js)
 
 ---
@@ -70,6 +72,7 @@ The app validates results (**state/output**), explains mistakes, and helps build
 - 📌 Project board: TBD
 - 🚀 Deploy: TBD
 - 📚 Docs: TBD
+- 🎨 Design (Figma): [Terminal Dojo Layout](https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1)
 
 ---
 
