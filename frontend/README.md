@@ -71,3 +71,35 @@ export default defineConfig([
   },
 ]);
 ```
+
+
+# State Management
+
+## Zustand Integration
+
+In this branch, **Zustand** has been added as the client-side state management solution for the frontend application.
+
+---
+
+## Why Zustand?
+
+We selected Zustand because it:
+
+- Provides minimal boilerplate
+- Has a simple and scalable API
+- Avoids unnecessary re-renders via selectors
+- Fits well for UI and client-side state
+- Keeps the codebase lightweight
+
+---
+
+## Scope of Responsibility
+
+Zustand will be used for:
+
+- UI state (modals, sidebars, tabs, toggles)
+- Local application state
+- Client-side context (selected items, temporary data)
+- WebSocket/UI-related status if needed
+
+Server data (API fetching, caching, synchronization) is **not handled by Zustand** and may be managed separately if required.
