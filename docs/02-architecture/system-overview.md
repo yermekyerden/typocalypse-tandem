@@ -127,10 +127,10 @@ When the user submits a command line:
   - command steps
   - validation steps
 
-6) **Persist (Application responsibility)**
+6) **After pipeline (Application responsibility)**
 - append step to attempt log
-- save progress/attempt summary
-- optionally sync to backend
+- persist local-first
+- sync to backend (does not block the core loop)
 
 This pipeline must be **stable** and the only way commands are executed.
 

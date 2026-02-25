@@ -3,6 +3,15 @@
 This folder is the **source of truth** for product scope, architecture, and team process.
 If something is unclear in the codebase, the first question is: **what do the docs say?**
 
+## Quick Summary (Start here)
+Read these first (10 minutes):
+- `00-quick-summary/README.md`
+
+Rule: Quick Summary is the entry point. SSOT docs are the reference.
+If they conflict, we update SSOT to match Quick Summary (and add ADR if needed).
+
+---
+
 ## How to read (recommended order)
 
 1) **Overview**
