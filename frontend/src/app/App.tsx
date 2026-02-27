@@ -1,7 +1,14 @@
+import { RouterProvider } from 'react-router-dom';
+
+import { AppProviders } from './providers/AppProviders';
+import { createAppRouter } from './compositionRoot';
+
 export default function App() {
+  const router = createAppRouter();
+
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-semibold">Typocalypse</h1>
-    </div>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
   );
 }
