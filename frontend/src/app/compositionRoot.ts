@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createHashRouter } from 'react-router-dom';
 
 import { AppShell } from '../ui/components/AppShell';
 import { LibraryScreen } from '../ui/screens/library/LibraryScreen';
@@ -7,8 +7,7 @@ import { ReplayScreen } from '../ui/screens/replay/ReplayScreen';
 import { NotFoundScreen } from '../ui/screens/not-found/NotFoundScreen';
 
 export function createAppRouter() {
-  // Composition root: DI wiring + router bootstrap.
-  return createBrowserRouter([
+  return createHashRouter([
     {
       path: '/',
       Component: AppShell,
