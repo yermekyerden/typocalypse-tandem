@@ -1,105 +1,54 @@
-# React + TypeScript + Vite
+# Frontend (Typocalypse — Terminal Dojo)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This folder contains the web client for Typocalypse.
 
-Currently, two official plugins are available:
+The frontend is built as a React + TypeScript app with a minimal scaffold that will evolve as features land (game screen, mission selection UI, account menu, etc.).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech stack
 
-## React Compiler
+- React 19 + TypeScript
+- Vite
+- Tailwind CSS v4 + shadcn/ui
+- Radix UI primitives (via shadcn/ui)
+- React Router (navigation)
+- Zustand (planned for client/UI state)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Requirements
 
-## Expanding the ESLint configuration
+- Node.js: `22` (see root `.nvmrc`)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Getting started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+cd frontend
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the local URL printed by Vite.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+## Commands
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+- `npm run dev` — start dev server
+- `npm run build` — type-check + production build
+- `npm run preview` — preview production build locally
+- `npm run lint` — run ESLint
+- `npm run format` — format all files with Prettier
+- `npm run format:check` — check formatting (CI-friendly)
 
+## Code quality workflow
 
-# State Management
+- Husky + lint-staged run formatting/lint fixes on staged files before commit (local guardrails).
+- For PR validation, run:
+  - `npm run lint`
+  - `npm run build`
+  - `npm run format:check`
 
-## Zustand Integration
+## Testing
 
-In this branch, **Zustand** has been added as the client-side state management solution for the frontend application.
+Automated unit/integration tests are not configured yet.
+For now, treat these as the baseline checks:
 
----
-
-## Why Zustand?
-
-We selected Zustand because it:
-
-- Provides minimal boilerplate
-- Has a simple and scalable API
-- Avoids unnecessary re-renders via selectors
-- Fits well for UI and client-side state
-- Keeps the codebase lightweight
-
----
-
-## Scope of Responsibility
-
-Zustand will be used for:
-
-- UI state (modals, sidebars, tabs, toggles)
-- Local application state
-- Client-side context (selected items, temporary data)
-- WebSocket/UI-related status if needed
-
-Server data (API fetching, caching, synchronization) is **not handled by Zustand** and may be managed separately if required.
+- `npm run build` (type-check + bundling)
+- `npm run lint`
+- manual smoke check in `npm run dev` (navigation + basic rendering)
