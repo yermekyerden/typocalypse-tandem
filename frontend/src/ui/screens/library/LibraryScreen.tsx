@@ -1,16 +1,64 @@
-import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
+// import { Link } from 'react-router-dom';
+
+import { modules } from '@/mocks/modules';
+import { useLessonSelection } from '@/store/lessonSelection';
+import { TerminalPlaceholder } from '@/ui/components/TerminalPlaceholder';
 
 export function LibraryScreen() {
-  return (
-    <div className="space-y-3">
-      <h1 className="text-2xl font-semibold">Mission Library</h1>
-      <p className="text-sm text-muted-foreground">
-        Scaffold is ready. Next: real mission data + engine wiring.
-      </p>
+  const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
+  const selectLesson = useLessonSelection((s) => s.selectLesson);
 
-      <div className="text-sm">
-        <Link to="/missions/demo">Open demo mission</Link>
-      </div>
+  const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
+  const currentLessonId = selectedLessonId ?? firstLessonId;
+
+  const { currentLesson, currentModule } = useMemo(() => {
+    for (const module of modules) {
+      const lesson = module.lessons.find((l) => l.id === currentLessonId);
+      if (lesson) return { currentLesson: lesson, currentModule: module };
+    }
+    return { currentLesson: null, currentModule: null };
+  }, [currentLessonId]);
+
+  if (!selectedLessonId && firstLessonId) {
+    selectLesson(firstLessonId);
+  }
+
+  return (
+    <div className="space-y-4">
+
+      <section className="rounded-lg border bg-card p-3 shadow-sm">
+        <TerminalPlaceholder />
+      </section>
+
+      {currentLesson && currentModule && (
+        <section className="rounded-lg border bg-card p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase font-semibold text-muted-foreground">
+                {currentModule.title}
+              </p>
+              <h2 className="text-xl font-semibold">{currentLesson.title}</h2>
+            </div>
+            {/* <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+              {currentLesson.expectedCommand}
+            </span> */}
+          </div>
+
+          <div className="mt-3 space-y-3 text-sm leading-relaxed">
+            <div>
+              <p className="font-semibold">📘 Теория</p>
+              <p className="text-muted-foreground">{currentLesson.theory || '—'}</p>
+            </div>
+            <div>
+              <p className="font-semibold">🧠 Задание</p>
+              <p className="text-muted-foreground whitespace-pre-wrap">
+                {currentLesson.task || '—'}
+              </p>
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
