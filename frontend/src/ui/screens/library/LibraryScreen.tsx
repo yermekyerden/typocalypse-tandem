@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { modules } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
-import { TerminalPlaceholder } from '@/ui/components/TerminalPlaceholder';
+// import { TerminalPlaceholder } from '@/ui/components/TerminalPlaceholder';
 
 export function LibraryScreen() {
   const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
@@ -28,7 +28,7 @@ export function LibraryScreen() {
     <div className="space-y-4">
 
       <section className="rounded-lg border bg-card p-3 shadow-sm">
-        <TerminalPlaceholder />
+        {/* <TerminalPlaceholder />  */}
       </section>
 
       {currentLesson && currentModule && (
