@@ -39,13 +39,11 @@ The app validates results (**state/output**), explains mistakes, and helps build
 ## Tech stack (planned) 🛠️
 
 ### Frontend 🎨
-
 - ⚛️ React + TypeScript (**strict**)
 - 🌬️ Tailwind CSS
 - 🧱 shadcn/ui (Tailwind-based components)
 
 ### Backend 🧰
-
 - 🪺 NestJS (Node.js)
 
 ---
