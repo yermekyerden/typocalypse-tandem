@@ -4,8 +4,14 @@ import { cn } from '@/lib/utils';
 
 const Accordion = AccordionPrimitive.Root;
 
-const AccordionItem = ({ className, ...props }: AccordionPrimitive.AccordionItemProps) => (
-  <AccordionPrimitive.Item className={cn('border-b last:border-b-0', className)} {...props} />
+const AccordionItem = ({
+  className,
+  ...props
+}: AccordionPrimitive.AccordionItemProps) => (
+  <AccordionPrimitive.Item
+    className={cn('border-b last:border-b-0', className)}
+    {...props}
+  />
 );
 AccordionItem.displayName = 'AccordionItem';
 
