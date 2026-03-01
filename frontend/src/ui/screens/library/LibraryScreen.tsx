@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 
 import { modules } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
@@ -10,13 +10,16 @@ export function LibraryScreen() {
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
   const currentLessonId = selectedLessonId ?? firstLessonId;
 
-  const { currentLesson, currentModule } = useMemo(() => {
-    for (const module of modules) {
-      const lesson = module.lessons.find((l) => l.id === currentLessonId);
-      if (lesson) return { currentLesson: lesson, currentModule: module };
+  let currentLesson = null;
+  let currentModule = null;
+  for (const module of modules) {
+    const lesson = module.lessons.find((l) => l.id === currentLessonId);
+    if (lesson) {
+      currentLesson = lesson;
+      currentModule = module;
+      break;
     }
-    return { currentLesson: null, currentModule: null };
-  }, [currentLessonId]);
+  }
 
   useEffect(() => {
     if (!selectedLessonId && firstLessonId) {
