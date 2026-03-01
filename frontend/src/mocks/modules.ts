@@ -144,9 +144,9 @@ export const modules: Module[] = [
         title: 'Step 3 — Relative path to stage1',
         order: 3,
         status: 'locked',
-        theory: 'Relative paths are built from the current directory and do not start with /.',
-        task:
-          'Change to stage1 using a relative path, then display intro.txt.',
+        theory:
+          'Relative paths are built from the current directory and do not start with /.',
+        task: 'Change to stage1 using a relative path, then display intro.txt.',
         expectedCommand: 'cd stage1 && cat intro.txt',
       },
       {
@@ -164,8 +164,7 @@ export const modules: Module[] = [
         order: 5,
         status: 'locked',
         theory: 'Using ../ repeatedly lets you climb multiple levels.',
-        task:
-          'From /var/tmp/rsschool/stage2, go to /var/tmp using a relative path.',
+        task: 'From /var/tmp/rsschool/stage2, go to /var/tmp using a relative path.',
         expectedCommand: 'cd ../../',
       },
       {

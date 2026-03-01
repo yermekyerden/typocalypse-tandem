@@ -26,9 +26,7 @@ export function LibraryScreen() {
 
   return (
     <div className="space-y-4">
-
-      <section className="rounded-lg border bg-card p-3 shadow-sm">
-      </section>
+      <section className="rounded-lg border bg-card p-3 shadow-sm"></section>
 
       {currentLesson && currentModule && (
         <section className="rounded-lg border bg-card p-4 shadow-sm">

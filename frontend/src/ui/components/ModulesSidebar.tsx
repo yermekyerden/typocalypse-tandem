@@ -34,7 +34,9 @@ export function ModulesSidebar() {
                   <p className="text-sm font-semibold">{module.title}</p>
                   <p className="text-xs text-muted-foreground">{module.description}</p>
                 </div>
-                <span className="text-xs text-muted-foreground">{isOpen ? '−' : '+'}</span>
+                <span className="text-xs text-muted-foreground">
+                  {isOpen ? '−' : '+'}
+                </span>
               </button>
 
               {isOpen && (
@@ -45,11 +47,15 @@ export function ModulesSidebar() {
                       <li
                         key={lesson.id}
                         className={`flex items-center justify-between gap-2 rounded border px-2 py-1 ${
-                          isActive ? 'border-primary/60 bg-primary/5' : 'border-transparent'
+                          isActive
+                            ? 'border-primary/60 bg-primary/5'
+                            : 'border-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-2 truncate">
-                          <span className="text-xs text-muted-foreground">{lesson.order}.</span>
+                          <span className="text-xs text-muted-foreground">
+                            {lesson.order}.
+                          </span>
                           <button
                             type="button"
                             onClick={() => selectLesson(lesson.id)}
