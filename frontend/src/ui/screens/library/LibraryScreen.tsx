@@ -41,11 +41,11 @@ export function LibraryScreen() {
 
           <div className="mt-3 space-y-3 text-sm leading-relaxed">
             <div>
-              <p className="font-semibold">📘 Теория</p>
+              <p className="font-semibold">Theory</p>
               <p className="text-muted-foreground">{currentLesson.theory || '—'}</p>
             </div>
             <div>
-              <p className="font-semibold">🧠 Задание</p>
+              <p className="font-semibold">Task</p>
               <p className="text-muted-foreground whitespace-pre-wrap">
                 {currentLesson.task || '—'}
               </p>
