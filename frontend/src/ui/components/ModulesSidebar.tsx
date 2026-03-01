@@ -1,6 +1,4 @@
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
-
 import { modules, type LessonStatus } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
 
@@ -12,8 +10,8 @@ const statusStyles: Record<LessonStatus, string> = {
 
 export function ModulesSidebar() {
   const [openId, setOpenId] = useState<string | null>('cmd-basics');
-  const location = useLocation();
   const selectLesson = useLessonSelection((s) => s.selectLesson);
+  const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
 
   return (
     <aside className="space-y-3 rounded-lg border bg-card p-3 shadow-sm h-full min-h-[calc(100vh-200px)]">
@@ -42,12 +40,12 @@ export function ModulesSidebar() {
               {isOpen && (
                 <ul className="space-y-1 border-t bg-muted/40 px-2 py-2 text-sm">
                   {module.lessons.map((lesson) => {
-                    const isActiveRoute = location.pathname.includes(lesson.id);
+                    const isActive = selectedLessonId === lesson.id;
                     return (
                       <li
                         key={lesson.id}
                         className={`flex items-center justify-between gap-2 rounded border px-2 py-1 ${
-                          isActiveRoute ? 'border-primary/60 bg-primary/5' : 'border-transparent'
+                          isActive ? 'border-primary/60 bg-primary/5' : 'border-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-2 truncate">
