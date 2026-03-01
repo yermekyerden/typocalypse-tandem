@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import { modules } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
@@ -18,9 +18,11 @@ export function LibraryScreen() {
     return { currentLesson: null, currentModule: null };
   }, [currentLessonId]);
 
-  if (!selectedLessonId && firstLessonId) {
-    selectLesson(firstLessonId);
-  }
+  useEffect(() => {
+    if (!selectedLessonId && firstLessonId) {
+      selectLesson(firstLessonId);
+    }
+  }, [selectedLessonId, firstLessonId, selectLesson]);
 
   return (
     <div className="space-y-4">
