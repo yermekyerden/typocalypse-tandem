@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom';
 
 export function AppShell() {
   return (
-    <div className="min-h-dvh">
+    <div className="min-h-dvh flex flex-col">
       <header className="border-b">
         <div className="mx-auto flex max-w-5xl items-center gap-4 px-4 py-3">
           <Link to="/" className="font-semibold">
@@ -11,7 +11,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main className="flex-1 w-full flex flex-col">
         <Outlet />
       </main>
     </div>
