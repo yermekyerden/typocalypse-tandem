@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@types/node": "^25.3.3"
+  },
+  "dependencies": {
+    "build": "^0.1.4",
+    "vite": "^7.3.1"
+  }
+}
