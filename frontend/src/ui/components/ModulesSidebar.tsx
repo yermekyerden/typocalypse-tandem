@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import { modules, type LessonStatus } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
@@ -52,16 +52,13 @@ export function ModulesSidebar() {
                       >
                         <div className="flex items-center gap-2 truncate">
                           <span className="text-xs text-muted-foreground">{lesson.order}.</span>
-                          <Link
-                            to="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              selectLesson(lesson.id);
-                            }}
-                            className="truncate text-primary hover:underline"
+                          <button
+                            type="button"
+                            onClick={() => selectLesson(lesson.id)}
+                            className="truncate text-left text-primary hover:underline"
                           >
                             {lesson.title}
-                          </Link>
+                          </button>
                         </div>
                         <span
                           className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
