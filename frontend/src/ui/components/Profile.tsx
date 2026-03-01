@@ -17,7 +17,7 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
+    <div className="px-4 py-6 bg-gradient-to-b from-gray-900 to-gray-800 flex-1">
       <div className="mx-auto max-w-4xl px-6 py-12">
         <div className="rounded-2xl bg-gray-800/80 p-8 shadow-xl backdrop-blur-sm">
           <h1 className="mb-8 text-4xl font-bold text-yellow-400">
