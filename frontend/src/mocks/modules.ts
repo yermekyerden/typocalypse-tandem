@@ -19,7 +19,6 @@ export type Module = {
   lessons: Lesson[];
 };
 
-// Temporary static catalog; replace with API-backed data when backend is ready.
 export const modules: Module[] = [
   {
     id: 'cmd-basics',

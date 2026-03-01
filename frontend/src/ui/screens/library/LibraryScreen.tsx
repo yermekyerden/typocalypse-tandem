@@ -1,9 +1,7 @@
 import { useMemo } from 'react';
-// import { Link } from 'react-router-dom';
 
 import { modules } from '@/mocks/modules';
 import { useLessonSelection } from '@/store/lessonSelection';
-// import { TerminalPlaceholder } from '@/ui/components/TerminalPlaceholder';
 
 export function LibraryScreen() {
   const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
@@ -28,7 +26,6 @@ export function LibraryScreen() {
     <div className="space-y-4">
 
       <section className="rounded-lg border bg-card p-3 shadow-sm">
-        {/* <TerminalPlaceholder />  */}
       </section>
 
       {currentLesson && currentModule && (
@@ -40,9 +37,6 @@ export function LibraryScreen() {
               </p>
               <h2 className="text-xl font-semibold">{currentLesson.title}</h2>
             </div>
-            {/* <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-              {currentLesson.expectedCommand}
-            </span> */}
           </div>
 
           <div className="mt-3 space-y-3 text-sm leading-relaxed">
