@@ -1,9 +1,11 @@
 import { cn } from '@/lib/utils';
 
 export function Avatar({ initials = 'JD' }: { initials?: string }) {
-  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50">
-    {initials}
-  </div>;
+  return (
+    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50">
+      {initials}
+    </div>
+  );
 }
 
 export function ProfilePage() {
