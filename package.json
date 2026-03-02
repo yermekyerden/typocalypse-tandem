@@ -3,7 +3,8 @@
         "prepare": "husky install",
         "lint-staged": "npm run lint:backend && npm run lint:frontend",
         "lint:backend": "cd backend && npx lint-staged",
-        "lint:frontend": "cd frontend && npx lint-staged"
+        "lint:frontend": "cd frontend && npx lint-staged",
+        "build:frontend": "cd frontend && npm run build"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.4.2",
