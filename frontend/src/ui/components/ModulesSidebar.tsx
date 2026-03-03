@@ -61,7 +61,9 @@ export function ModulesSidebar() {
                       }`}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <span className="text-xs text-yellow-200/80">{lesson.order}.</span>
+                        <span className="text-xs text-yellow-200/80">
+                          {lesson.order}.
+                        </span>
                         <button
                           type="button"
                           onClick={() => selectLesson(lesson.id)}

@@ -38,7 +38,8 @@ export function LibraryScreen() {
             Песочница для выполнения заданий
           </h2>
           <p className="text-sm text-yellow-100/80">
-            Здесь будет полноценный терминал. Сейчас — заглушка, чтобы не оставить пустой экран.
+            Здесь будет полноценный терминал. Сейчас — заглушка, чтобы не оставить пустой
+            экран.
           </p>
         </div>
 
@@ -49,15 +50,18 @@ export function LibraryScreen() {
           </div>
           <div className="space-y-1">
             <p>
-              <span className="text-amber-300">user@dojo</span>:<span className="text-sky-300">~</span>$ ls
+              <span className="text-amber-300">user@dojo</span>:
+              <span className="text-sky-300">~</span>$ ls
             </p>
             <p>readme.md modules tasks</p>
             <p>
-              <span className="text-amber-300">user@dojo</span>:<span className="text-sky-300">~/modules</span>$ cat lesson.txt
+              <span className="text-amber-300">user@dojo</span>:
+              <span className="text-sky-300">~/modules</span>$ cat lesson.txt
             </p>
             <p>Task: Print the list of files in your home directory.</p>
             <p>
-              <span className="text-amber-300">user@dojo</span>:<span className="text-sky-300">~</span>$ █
+              <span className="text-amber-300">user@dojo</span>:
+              <span className="text-sky-300">~</span>$ █
             </p>
           </div>
         </div>
@@ -70,7 +74,9 @@ export function LibraryScreen() {
               <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">
                 {currentModule.title}
               </p>
-              <h2 className="text-2xl font-semibold text-yellow-50">{currentLesson.title}</h2>
+              <h2 className="text-2xl font-semibold text-yellow-50">
+                {currentLesson.title}
+              </h2>
             </div>
           </div>
 
