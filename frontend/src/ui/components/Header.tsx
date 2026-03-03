@@ -5,7 +5,7 @@ import { Avatar } from './Profile';
 export function Header() {
   return (
     <div>
-      <header className="border-b bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-400 p-1">
+      <header className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-400 p-1">
         <div className="mx-auto flex items-center justify-between max-w-8xl px-4 py-1">
           <Link to="/" className="flex items-center gap-2">
             <img src={Logo} alt="Terminal Dojo" className="h-8 w-8" />
