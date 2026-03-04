@@ -25,8 +25,8 @@ export function LibraryScreen() {
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div className="flex flex-col gap-4 text-yellow-50 flex-1 min-h-0 bg-mist-950">
-      <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col gap-4 text-yellow-50 flex-1 min-h-0 h-full bg-mist-950 overflow-hidden">
+      <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="space-y-1">
           <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">
             Terminal
@@ -39,13 +39,13 @@ export function LibraryScreen() {
           </p>
         </div>
 
-        <div className="mt-4 flex-1 min-h-0">
-          <TerminalWindow className="h-full" height="100%" />
+        <div className="mt-4 flex-1 min-h-0 flex overflow-hidden">
+          <TerminalWindow className="flex-1 min-h-0 h-full" />
         </div>
       </section>
 
       {currentLesson && currentModule && (
-        <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg min-h-[220px] max-h-[320px] flex flex-col shrink-0">
+        <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg min-h-[220px] max-h-[320px] flex flex-col shrink-0 overflow-auto">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
               <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">

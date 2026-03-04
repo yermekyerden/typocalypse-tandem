@@ -64,7 +64,7 @@ export function TerminalWindow({ height, className }: Props) {
 
   return (
     <div
-      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm ${className ?? ''}`}
+      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
       style={height ? { height } : undefined}
       ref={containerRef}
     >
@@ -73,7 +73,7 @@ export function TerminalWindow({ height, className }: Props) {
         terminal dojo
       </div>
 
-      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-1 font-mono text-sm text-yellow-100">
+      <div className="flex-1 min-h-0 max-h-full overflow-y-auto px-3 py-3 space-y-1 font-mono text-sm text-yellow-100">
         {output.map((line) => (
           <div
             key={line.id}
