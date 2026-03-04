@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 
-import { modules as modulesSource, type Module } from '@/mocks/modules';
+import { modules as modulesSource, type Lesson, type Module } from '@/mocks/modules';
+import {
+  createInitialFs,
+  DEFAULT_CWD,
+  type VirtualFileSystem,
+} from '@/lib/virtualFs';
 
 export type OutputKind = 'stdout' | 'stderr' | 'system';
 
@@ -11,23 +16,6 @@ export type OutputLine = {
   lessonId?: string;
   timestamp: number;
 };
-
-export type FileNode = {
-  type: 'file';
-  name: string;
-  content: string;
-  permissions?: string;
-  hidden?: boolean;
-};
-
-export type DirectoryNode = {
-  type: 'dir';
-  name: string;
-  children: Record<string, FileNode | DirectoryNode>;
-  permissions?: string;
-};
-
-export type VirtualFileSystem = DirectoryNode;
 
 type TerminalState = {
   modules: Module[];
@@ -61,8 +49,8 @@ function normalizeModules(modules: Module[]): {
   let activeModuleId: string | null = null;
   let activeLessonId: string | null = null;
 
-  const normalized = modules.map((module) => {
-    const lessons = module.lessons.map((lesson) => {
+  const normalized: Module[] = modules.map((module) => {
+    const lessons: Lesson[] = module.lessons.map((lesson) => {
       if (lesson.status === 'active') {
         if (activeFound) {
           return { ...lesson, status: 'locked' };
@@ -88,14 +76,6 @@ function normalizeModules(modules: Module[]): {
   }
 
   return { modules: normalized, activeModuleId, activeLessonId };
-}
-
-function createInitialFs(): VirtualFileSystem {
-  return {
-    type: 'dir',
-    name: '/',
-    children: {},
-  };
 }
 
 function createOutputLine(
@@ -140,7 +120,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     modules,
     activeModuleId,
     activeLessonId,
-    cwd: '/home/student',
+    cwd: DEFAULT_CWD,
     fs: createInitialFs(),
     history: [],
     output: [],
@@ -150,9 +130,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     ...initialData,
     setActiveLesson: (lessonId: string) =>
       set((state) => {
-        const updatedModules = state.modules.map((module) => ({
+        const updatedModules: Module[] = state.modules.map((module) => ({
           ...module,
-          lessons: module.lessons.map((lesson) => {
+          lessons: module.lessons.map<Lesson>((lesson) => {
             if (lesson.id === lessonId) {
               return { ...lesson, status: lesson.status === 'completed' ? 'completed' : 'active' };
             }
@@ -178,8 +158,8 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       set((state) => {
         let nextLessonId: string | null = null;
         let nextModuleId: string | null = null;
-        const updatedModules = state.modules.map((module) => {
-          const lessons = module.lessons.map((lesson, index) => {
+        const updatedModules: Module[] = state.modules.map((module) => {
+          const lessons: Lesson[] = module.lessons.map((lesson, index) => {
             if (lesson.id === lessonId) {
               nextLessonId = module.lessons[index + 1]?.id ?? null;
               nextModuleId = nextLessonId ? module.id : null;
@@ -217,7 +197,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       set((state) => {
         let activatedNext: string | null = null;
         let activatedModule: string | null = null;
-        const updatedModules = state.modules.map((module) => {
+        const updatedModules: Module[] = state.modules.map((module) => {
           const currentIdx = module.lessons.findIndex((lesson) => lesson.id === lessonId);
           const next = currentIdx >= 0 ? module.lessons[currentIdx + 1] : null;
 
@@ -226,7 +206,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
             activatedModule = module.id;
             return {
               ...module,
-              lessons: module.lessons.map((lesson) =>
+              lessons: module.lessons.map<Lesson>((lesson) =>
                 lesson.id === next.id ? { ...lesson, status: 'active' } : lesson,
               ),
             };
@@ -265,7 +245,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         modules: fresh.modules,
         activeLessonId: fresh.activeLessonId,
         activeModuleId: fresh.activeModuleId,
-        cwd: '/home/student',
+        cwd: DEFAULT_CWD,
         fs: createInitialFs(),
         history: [],
         output: [],
