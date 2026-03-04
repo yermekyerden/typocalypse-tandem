@@ -21,7 +21,7 @@ export function ModulesSidebar() {
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
 
   return (
-    <aside className="w-94 shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-200px)]">
+    <aside className="w-[320px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-140px)]">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
           Learning

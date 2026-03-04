@@ -25,7 +25,7 @@ export function LibraryScreen() {
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div className="space-y-4 text-yellow-50">
+    <div className="space-y-4 text-yellow-50 flex-1">
       <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg min-h-[420px] flex flex-col">
         <div className="space-y-1">
           <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">
