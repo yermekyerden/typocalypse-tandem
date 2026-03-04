@@ -2,8 +2,13 @@ import { create } from 'zustand';
 
 import { modules as modulesSource, type Lesson, type Module } from '@/mocks/modules';
 import {
+  changeDirectory,
   createInitialFs,
   DEFAULT_CWD,
+  listDirectory,
+  makeDirectory,
+  readFile,
+  touchFile,
   type VirtualFileSystem,
 } from '@/lib/virtualFs';
 
@@ -109,6 +114,131 @@ function getNextLesson(
     }
   }
   return null;
+}
+
+function normalizeCommand(value: string) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+function splitByAnd(value: string): string[] {
+  return value
+    .split('&&')
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+}
+
+function parseArgs(command: string): string[] {
+  return command.split(' ').filter(Boolean);
+}
+
+function hasReadPermission(node: { permissions?: string }) {
+  if (!node.permissions) return true;
+  return /r/.test(node.permissions);
+}
+
+function executeCommand(
+  args: string[],
+  fs: VirtualFileSystem,
+  cwd: string,
+): { lines: OutputLine[]; fs?: VirtualFileSystem; cwd?: string } {
+  const [command, ...rest] = args;
+  const lines: OutputLine[] = [];
+
+  const makeLine = (text: string, kind: OutputKind = 'stdout') =>
+    createOutputLine(text, kind);
+
+  switch (command) {
+    case 'pwd': {
+      lines.push(makeLine(cwd));
+      return { lines };
+    }
+
+    case 'ls': {
+      const includeHidden = rest.includes('-a');
+      const target = rest.filter((part) => part !== '-a')[0] ?? '.';
+      const result = listDirectory(fs, cwd, target, includeHidden);
+      if (!result.ok) {
+        lines.push(makeLine(result.error.message, 'stderr'));
+        return { lines };
+      }
+      lines.push(makeLine(result.entries.join('  ')));
+      return { lines };
+    }
+
+    case 'cd': {
+      const target = rest[0] ?? '.';
+      const result = changeDirectory(fs, cwd, target);
+      if (!result.ok) {
+        lines.push(makeLine(result.error.message, 'stderr'));
+        return { lines };
+      }
+      return { lines, cwd: result.cwd };
+    }
+
+    case 'cat': {
+      const target = rest[0];
+      if (!target) {
+        lines.push(makeLine('cat: missing file operand', 'stderr'));
+        return { lines };
+      }
+      const result = readFile(fs, cwd, target);
+      if (!result.ok) {
+        if (result.error.kind === 'not-a-directory') {
+          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
+        } else if (result.error.kind === 'not-found') {
+          lines.push(makeLine(`${target}: No such file or directory`, 'stderr'));
+        } else if (result.error.kind === 'permission-denied') {
+          lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
+        } else {
+          lines.push(makeLine(result.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+      if (!hasReadPermission(result)) {
+        lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
+        return { lines };
+      }
+      lines.push(...result.content.split('\n').map((line) => makeLine(line)));
+      return { lines };
+    }
+
+    case 'mkdir': {
+      const target = rest[0];
+      if (!target) {
+        lines.push(makeLine('mkdir: missing operand', 'stderr'));
+        return { lines };
+      }
+      const result = makeDirectory(fs, cwd, target);
+      if (!result.ok) {
+        if (result.error.kind === 'already-exists') {
+          lines.push(makeLine(`mkdir: cannot create directory '${target}': File exists`, 'stderr'));
+        } else {
+          lines.push(makeLine(result.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+      return { lines, fs: result.fs };
+    }
+
+    case 'touch': {
+      const target = rest[0];
+      if (!target) {
+        lines.push(makeLine('touch: missing file operand', 'stderr'));
+        return { lines };
+      }
+      const result = touchFile(fs, cwd, target);
+      if (!result.ok) {
+        lines.push(makeLine(result.error.message, 'stderr'));
+        return { lines };
+      }
+      return { lines, fs: result.fs };
+    }
+
+    default: {
+      lines.push(makeLine(`${command}: command not found`, 'stderr'));
+      return { lines };
+    }
+  }
 }
 
 export const useTerminalSession = create<TerminalState>((set, get) => {
@@ -228,13 +358,48 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       })),
 
     runCommand: (input: string) => {
-      const pushOutput = get().pushOutput;
+      const state = get();
+      const lines: OutputLine[] = [];
+      const history = [...state.history, input];
 
-      pushOutput(`$ ${input}`, 'stdout');
-      pushOutput('Command interpreter is not implemented yet.', 'system');
+      const normalizedInput = normalizeCommand(input);
+      const activeLesson =
+        state.modules
+          .flatMap((module) => module.lessons)
+          .find((lesson) => lesson.id === state.activeLessonId) ?? null;
 
-      set((state) => ({
-        history: [...state.history, input],
+      const shouldComplete =
+        activeLesson &&
+        normalizeCommand(activeLesson.expectedCommand) === normalizedInput;
+
+      const commandChunks = splitByAnd(normalizedInput);
+
+      let nextFs = state.fs;
+      let nextCwd = state.cwd;
+
+      lines.push(createOutputLine(`$ ${input}`, 'stdout', state.activeLessonId));
+
+      for (const chunk of commandChunks) {
+        const parsed = parseArgs(chunk);
+        if (parsed.length === 0) continue;
+        const execResult = executeCommand(parsed, nextFs, nextCwd);
+        nextFs = execResult.fs ?? nextFs;
+        nextCwd = execResult.cwd ?? nextCwd;
+        lines.push(...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })));
+      }
+
+      if (shouldComplete) {
+        get().completeLesson(activeLesson!.id);
+        if (activeLesson?.sampleOutput) {
+          lines.push(createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id));
+        }
+      }
+
+      set((prev) => ({
+        history,
+        fs: nextFs,
+        cwd: nextCwd,
+        output: [...prev.output, ...lines],
       }));
     },
 
