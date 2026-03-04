@@ -7,7 +7,7 @@ export function AppShell() {
     <div className="min-h-dvh flex flex-col">
       <Header></Header>
 
-      <main className="flex-1 w-full">
+      <main className="flex-1 w-full flex flex-col">
         <Outlet />
       </main>
 
