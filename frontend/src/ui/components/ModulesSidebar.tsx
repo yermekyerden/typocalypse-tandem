@@ -9,9 +9,9 @@ import {
 } from '@/ui/components/ui/accordion';
 
 const statusStyles: Record<LessonStatus, string> = {
-  completed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  active: 'bg-amber-100 text-amber-700 border-amber-200',
-  locked: 'bg-slate-100 text-slate-600 border-slate-200',
+  completed: 'bg-emerald-400/10 text-emerald-200 border-emerald-400/30',
+  active: 'bg-amber-400/10 text-amber-200 border-amber-400/30',
+  locked: 'bg-slate-200/5 text-slate-200 border-slate-200/20',
 };
 
 export function ModulesSidebar() {
@@ -20,10 +20,12 @@ export function ModulesSidebar() {
   const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
 
   return (
-    <aside className="space-y-3 rounded-lg border bg-card p-3 shadow-sm h-full min-h-[calc(100vh-200px)]">
-      <div>
-        <p className="text-xs font-semibold uppercase text-muted-foreground">Learning</p>
-        <h2 className="text-lg font-semibold">Modules</h2>
+    <aside className="w-94 shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-200px)]">
+      <div className="space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
+          Learning
+        </p>
+        <h2 className="text-xl font-semibold text-yellow-100">Modules</h2>
       </div>
 
       <Accordion
@@ -31,45 +33,47 @@ export function ModulesSidebar() {
         collapsible
         value={openId ?? undefined}
         onValueChange={(val) => setOpenId(val || null)}
-        className="space-y-2"
+        className="space-y-3"
       >
         {modules.map((module) => (
           <AccordionItem
             key={module.id}
             value={module.id}
-            className="overflow-hidden rounded-md border"
+            className="overflow-hidden border border-yellow-400/20 bg-white/5 backdrop-blur-sm"
           >
-            <AccordionTrigger className="px-3 py-2 hover:bg-muted/60">
-              <div className="space-y-0.5 pr-3 text-left">
+            <AccordionTrigger className="px-3 py-2 text-left text-yellow-50 hover:bg-yellow-400/10 data-[state=open]:bg-yellow-400/15">
+              <div className="space-y-0.5 pr-3">
                 <p className="text-sm font-semibold">{module.title}</p>
-                <p className="text-xs text-muted-foreground">{module.description}</p>
+                <p className="text-xs text-yellow-100/80">{module.description}</p>
               </div>
             </AccordionTrigger>
-            <AccordionContent className="bg-muted/40 px-2 py-2">
+            <AccordionContent className="border-t border-yellow-400/15 bg-mist-900/60 px-3 py-2">
               <ul className="space-y-1 text-sm">
                 {module.lessons.map((lesson) => {
                   const isActive = selectedLessonId === lesson.id;
                   return (
                     <li
                       key={lesson.id}
-                      className={`flex items-center justify-between gap-2 rounded border px-2 py-1 ${
-                        isActive ? 'border-primary/60 bg-primary/5' : 'border-transparent'
+                      className={`flex items-center justify-between gap-2 border px-2 py-1 transition ${
+                        isActive
+                          ? 'border-yellow-400/60 bg-yellow-400/10 shadow-[0_0_0_1px_rgba(250,204,21,0.15)]'
+                          : 'border-yellow-400/10 hover:border-yellow-400/30 hover:bg-yellow-400/5'
                       }`}
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-yellow-200/80">
                           {lesson.order}.
                         </span>
                         <button
                           type="button"
                           onClick={() => selectLesson(lesson.id)}
-                          className="truncate text-left text-primary hover:underline"
+                          className="truncate text-left text-yellow-50 hover:underline"
                         >
                           {lesson.title}
                         </button>
                       </div>
                       <span
-                        className={`rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
+                        className={`border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
                       >
                         {lesson.status}
                       </span>
