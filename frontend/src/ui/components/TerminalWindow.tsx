@@ -4,9 +4,10 @@ import { useTerminalSession } from '@/store/terminalSession';
 
 type Props = {
   height?: number | string;
+  className?: string;
 };
 
-export function TerminalWindow({ height = 420 }: Props) {
+export function TerminalWindow({ height, className }: Props) {
   const output = useTerminalSession((s) => s.output);
   const cwd = useTerminalSession((s) => s.cwd);
   const runCommand = useTerminalSession((s) => s.runCommand);
@@ -63,8 +64,8 @@ export function TerminalWindow({ height = 420 }: Props) {
 
   return (
     <div
-      className="flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm"
-      style={{ height }}
+      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm ${className ?? ''}`}
+      style={height ? { height } : undefined}
       ref={containerRef}
     >
       <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80">
