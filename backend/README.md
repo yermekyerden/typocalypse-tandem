@@ -24,6 +24,13 @@ curl http://localhost:3000/health
 # {"status":"ok","info":{},"error":{},"details":{}}
 ```
 
+## API docs (Swagger)
+
+When the backend is running, open:
+
+- UI: `http://localhost:3000/api-docs`
+- JSON: `http://localhost:3000/api-docs-json`
+
 ## Scripts
 
 | Command | Description |
