@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { useTerminalSession } from '@/store/terminalSession';
+import { TerminalWindow } from '@/ui/components/TerminalWindow';
 
 export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
@@ -28,38 +29,18 @@ export function LibraryScreen() {
       <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg min-h-[420px] flex flex-col">
         <div className="space-y-1">
           <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">
-            Terminal (mock)
+            Terminal
           </p>
           <h2 className="text-2xl font-semibold text-yellow-50">
             Песочница для выполнения заданий
           </h2>
           <p className="text-sm text-yellow-100/80">
-            Здесь будет полноценный терминал. Сейчас — заглушка, чтобы не оставить пустой
-            экран.
+            Вводи команды, прогресс синхронизируется с модулями.
           </p>
         </div>
 
-        <div className="mt-4 border border-yellow-400/30 bg-mist-950/70 p-4 font-mono text-sm text-yellow-100 shadow-inner flex-1">
-          <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-[0.08em] text-yellow-300/80">
-            <span className="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
-            placeholder mock terminal
-          </div>
-          <div className="space-y-1">
-            <p>
-              <span className="text-amber-300">user@dojo</span>:
-              <span className="text-sky-300">~</span>$ ls
-            </p>
-            <p>readme.md modules tasks</p>
-            <p>
-              <span className="text-amber-300">user@dojo</span>:
-              <span className="text-sky-300">~/modules</span>$ cat lesson.txt
-            </p>
-            <p>Task: Print the list of files in your home directory.</p>
-            <p>
-              <span className="text-amber-300">user@dojo</span>:
-              <span className="text-sky-300">~</span>$ █
-            </p>
-          </div>
+        <div className="mt-4 flex-1">
+          <TerminalWindow height="100%" />
         </div>
       </section>
 
