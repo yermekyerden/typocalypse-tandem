@@ -1,31 +1,27 @@
 import { useEffect } from 'react';
 
-import { modules } from '@/mocks/modules';
-import { useLessonSelection } from '@/store/lessonSelection';
+import { useTerminalSession } from '@/store/terminalSession';
 
 export function LibraryScreen() {
-  const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
-  const selectLesson = useLessonSelection((s) => s.selectLesson);
+  const modules = useTerminalSession((s) => s.modules);
+  const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
 
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
-  const currentLessonId = selectedLessonId ?? firstLessonId;
+  const currentLessonId = activeLessonId ?? firstLessonId;
 
-  let currentLesson = null;
-  let currentModule = null;
-  for (const module of modules) {
-    const lesson = module.lessons.find((l) => l.id === currentLessonId);
-    if (lesson) {
-      currentLesson = lesson;
-      currentModule = module;
-      break;
-    }
-  }
+  const currentModule = modules.find((module) =>
+    module.lessons.some((lesson) => lesson.id === currentLessonId),
+  );
+  const currentLesson = currentModule?.lessons.find(
+    (lesson) => lesson.id === currentLessonId,
+  );
 
   useEffect(() => {
-    if (!selectedLessonId && firstLessonId) {
-      selectLesson(firstLessonId);
+    if (!activeLessonId && firstLessonId) {
+      setActiveLesson(firstLessonId);
     }
-  }, [selectedLessonId, firstLessonId, selectLesson]);
+  }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
     <div className="space-y-4 text-yellow-50">

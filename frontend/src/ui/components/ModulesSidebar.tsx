@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { modules, type LessonStatus } from '@/mocks/modules';
-import { useLessonSelection } from '@/store/lessonSelection';
+import { type LessonStatus } from '@/mocks/modules';
+import { useTerminalSession } from '@/store/terminalSession';
 import {
   Accordion,
   AccordionContent,
@@ -16,8 +16,9 @@ const statusStyles: Record<LessonStatus, string> = {
 
 export function ModulesSidebar() {
   const [openId, setOpenId] = useState<string | null>('cmd-basics');
-  const selectLesson = useLessonSelection((s) => s.selectLesson);
-  const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
+  const modules = useTerminalSession((s) => s.modules);
+  const selectedLessonId = useTerminalSession((s) => s.activeLessonId);
+  const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
 
   return (
     <aside className="w-94 shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-200px)]">
@@ -66,7 +67,7 @@ export function ModulesSidebar() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => selectLesson(lesson.id)}
+                          onClick={() => setActiveLesson(lesson.id)}
                           className="truncate text-left text-yellow-50 hover:underline"
                         >
                           {lesson.title}
