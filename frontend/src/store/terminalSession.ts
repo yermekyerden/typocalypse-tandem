@@ -8,6 +8,8 @@ import {
   listDirectory,
   makeDirectory,
   readFile,
+  resolvePath,
+  setPermissions,
   touchFile,
   type VirtualFileSystem,
 } from '@/lib/virtualFs';
@@ -133,6 +135,13 @@ function parseArgs(command: string): string[] {
   return command.split(' ').filter(Boolean);
 }
 
+function toPermissionString(octal: string, isDir: boolean): string | null {
+  if (!/^[0-7]{3}$/.test(octal)) return null;
+  const perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
+  const chunks = octal.split('').map((d) => perms[Number(d)]);
+  return `${isDir ? 'd' : '-'}${chunks.join('')}`;
+}
+
 function commandsMatch(
   expected: string | null,
   actual: string,
@@ -180,8 +189,9 @@ function executeCommand(
     }
 
     case 'ls': {
-      const includeHidden = rest.includes('-a');
-      const target = rest.filter((part) => part !== '-a')[0] ?? '.';
+      const flags = rest.filter((part) => part.startsWith('-'));
+      const includeHidden = flags.some((flag) => flag.includes('a'));
+      const target = rest.find((part) => !part.startsWith('-')) ?? '.';
       const result = listDirectory(fs, cwd, target, includeHidden);
       if (!result.ok) {
         lines.push(makeLine(result.error.message, 'stderr'));
@@ -241,6 +251,34 @@ function executeCommand(
         } else {
           lines.push(makeLine(result.error.message, 'stderr'));
         }
+        return { lines };
+      }
+      return { lines, fs: result.fs };
+    }
+
+    case 'chmod': {
+      const mode = rest[0];
+      const target = rest[1];
+      if (!mode || !target) {
+        lines.push(makeLine('chmod: missing operand', 'stderr'));
+        return { lines };
+      }
+
+      const resolved = resolvePath(fs, cwd, target);
+      if (!resolved.ok) {
+        lines.push(makeLine(resolved.error.message, 'stderr'));
+        return { lines };
+      }
+
+      const permString = toPermissionString(mode, resolved.node.type === 'dir');
+      if (!permString) {
+        lines.push(makeLine(`chmod: invalid mode: ${mode}`, 'stderr'));
+        return { lines };
+      }
+
+      const result = setPermissions(fs, cwd, target, permString);
+      if (!result.ok) {
+        lines.push(makeLine(result.error.message, 'stderr'));
         return { lines };
       }
       return { lines, fs: result.fs };

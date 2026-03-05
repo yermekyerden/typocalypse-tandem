@@ -43,7 +43,7 @@ function splitPath(path: string): string[] {
   return path.split('/').filter(Boolean);
 }
 
-function resolvePath(
+export function resolvePath(
   fs: VirtualFileSystem,
   cwd: string,
   rawPath: string,
@@ -203,6 +203,25 @@ export function touchFile(
   return { ok: true, fs: clone };
 }
 
+export function setPermissions(
+  fs: VirtualFileSystem,
+  cwd: string,
+  path: string,
+  permissions: string,
+): { ok: true; fs: VirtualFileSystem } | { ok: false; error: FsError } {
+  const resolved = resolvePath(fs, cwd, path);
+  if (!resolved.ok) return resolved;
+  if (!resolved.parent) {
+    return { ok: false, error: { kind: 'invalid-path', message: 'Cannot change root permissions' } };
+  }
+
+  const clone = deepClone(fs);
+  const target = resolvePath(clone, cwd, path);
+  if (!target.ok || !target.parent) return target as Extract<PathResolution, { ok: false }>;
+  target.node.permissions = permissions;
+  return { ok: true, fs: clone };
+}
+
 function file(name: string, content: string, opts: Partial<FileNode> = {}): FileNode {
   return { type: 'file', name, content, ...opts };
 }
@@ -245,6 +264,22 @@ Think before typing.
 Good luck, trainee.`,
         ),
         file('notes.md', '# Notes\n- draft\n'),
+        file(
+          'rsstage1.txt',
+          `RS School Stage 1 Log
+
+Access to knowledge is controlled.
+Understanding permissions means
+understanding system security.
+
+Every secure system starts
+with correct access control.`,
+          { permissions: '----------' },
+        ),
+        file('HELP', 'Run chmod to adjust permissions.'),
+        file('deploy.sh', '#!/bin/bash\necho \"deploy\"\n', { permissions: '-rwxr-xr-x' }),
+        file('notes.txt', 'Permissions practice notes.'),
+        dir('reports', []),
         file('.secret_note', 'The real skill is paying attention.', { hidden: true }),
         file('.bashrc', '# bash config', { hidden: true }),
         file('.profile', '# profile config', { hidden: true }),
@@ -321,24 +356,5 @@ Understanding structure matters even more.`,
     ]),
   ]);
 
-  const permissionsLab = dir('permissions_lab', [
-    file(
-      'rsstage1.txt',
-      `RS School Stage 1 Log
-
-Access to knowledge is controlled.
-Understanding permissions means
-understanding system security.
-
-Every secure system starts
-with correct access control.`,
-      { permissions: '----------' },
-    ),
-    file('HELP', 'Run chmod to adjust permissions.'),
-    file('deploy.sh', '#!/bin/bash\necho "deploy"\n', { permissions: '-rwxr-xr-x' }),
-    file('notes.txt', 'Permissions practice notes.'),
-    dir('reports', []),
-  ]);
-
-  return dir('/', [home, varTmp, permissionsLab]);
+  return dir('/', [home, varTmp]);
 }

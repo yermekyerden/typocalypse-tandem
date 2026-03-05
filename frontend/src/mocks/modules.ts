@@ -198,7 +198,7 @@ export const modules: Module[] = [
         status: 'active',
         theory:
           'ls -l shows permissions, links, owner, and group. Key columns: perms, links, owner, group, size, date, name.',
-        task: 'Find the owner of rsstage1.txt in permissions_lab.',
+        task: 'Find the owner of rsstage1.txt.',
         expectedCommand: 'ls -l',
       },
       {
