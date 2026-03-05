@@ -362,6 +362,8 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       const lines: OutputLine[] = [];
       const history = [...state.history, input];
 
+      const prevModuleId = state.activeModuleId;
+
       const normalizedInput = normalizeCommand(input);
       const activeLesson =
         state.modules
@@ -395,11 +397,14 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         }
       }
 
+      const nextModuleId = get().activeModuleId;
+      const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
+
       set((prev) => ({
-        history,
+        history: moduleSwitched ? [] : history,
         fs: nextFs,
         cwd: nextCwd,
-        output: [...prev.output, ...lines],
+        output: [...(moduleSwitched ? [] : prev.output), ...lines],
       }));
     },
 

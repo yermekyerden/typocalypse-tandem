@@ -29,7 +29,7 @@ export const modules: Module[] = [
     lessons: [
       {
         id: 'ls-home',
-        title: 'Step 1 — List home directory',
+        title: 'List home directory',
         order: 1,
         status: 'active',
         theory:
@@ -39,7 +39,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-mission',
-        title: 'Step 2 — Read mission.txt',
+        title: 'Read mission.txt',
         order: 2,
         status: 'locked',
         theory: 'cat prints the contents of a file.',
@@ -48,7 +48,7 @@ export const modules: Module[] = [
       },
       {
         id: 'ls-hidden',
-        title: 'Step 3 — Hidden files (ls -a)',
+        title: 'Hidden files',
         order: 3,
         status: 'locked',
         theory:
@@ -58,7 +58,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-hidden',
-        title: 'Step 4 — Read hidden file .secret_note',
+        title: 'Read hidden file .secret_note',
         order: 4,
         status: 'locked',
         theory: 'A hidden file opens the same way as a regular one.',
@@ -67,7 +67,7 @@ export const modules: Module[] = [
       },
       {
         id: 'pwd',
-        title: 'Step 5 — Find current directory',
+        title: 'Find current directory',
         order: 5,
         status: 'locked',
         theory: 'pwd prints the absolute path of the current directory.',
@@ -76,7 +76,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cd-training',
-        title: 'Step 6 — Change to training_zone',
+        title: 'Change to training_zone',
         order: 6,
         status: 'locked',
         theory: 'cd changes the current working directory.',
@@ -85,7 +85,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-history',
-        title: 'Step 7 — Read history.txt',
+        title: 'Read history.txt',
         order: 7,
         status: 'locked',
         theory:
@@ -95,7 +95,7 @@ export const modules: Module[] = [
       },
       {
         id: 'mkdir-practice',
-        title: 'Step 8 — Create directory practice_arena',
+        title: 'Create directory practice_arena',
         order: 8,
         status: 'locked',
         theory: 'mkdir creates a new directory.',
@@ -104,7 +104,7 @@ export const modules: Module[] = [
       },
       {
         id: 'touch-first-task',
-        title: 'Step 9 — Create file first_task.txt',
+        title: 'Create file first_task.txt',
         order: 9,
         status: 'locked',
         theory: 'touch creates an empty file if it does not exist.',
