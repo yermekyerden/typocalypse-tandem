@@ -18,7 +18,7 @@ export type OutputLine = {
   id: string;
   text: string;
   kind: OutputKind;
-  lessonId?: string;
+  lessonId?: string | null;
   timestamp: number;
 };
 
@@ -26,6 +26,7 @@ type TerminalState = {
   modules: Module[];
   activeModuleId: string | null;
   activeLessonId: string | null;
+  completedModuleId: string | null;
   cwd: string;
   fs: VirtualFileSystem;
   history: string[];
@@ -35,6 +36,7 @@ type TerminalState = {
   unlockNextLesson: (lessonId: string) => void;
   pushOutput: (text: string, kind?: OutputKind, lessonId?: string) => void;
   runCommand: (input: string) => void;
+  acknowledgeModuleCompletion: () => void;
   resetSession: () => void;
 };
 
@@ -131,7 +133,17 @@ function parseArgs(command: string): string[] {
   return command.split(' ').filter(Boolean);
 }
 
-function hasReadPermission(node: { permissions?: string }) {
+function isLastLessonInModule(modules: Module[], lessonId: string | null): boolean {
+  if (!lessonId) return false;
+  const ownerModule = modules.find((module) =>
+    module.lessons.some((lesson) => lesson.id === lessonId),
+  );
+  if (!ownerModule) return false;
+  const idx = ownerModule.lessons.findIndex((lesson) => lesson.id === lessonId);
+  return idx === ownerModule.lessons.length - 1;
+}
+
+function hasReadPermission(node: { permissions?: string | null }) {
   if (!node.permissions) return true;
   return /r/.test(node.permissions);
 }
@@ -250,6 +262,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     modules,
     activeModuleId,
     activeLessonId,
+    completedModuleId: null,
     cwd: DEFAULT_CWD,
     fs: createInitialFs(),
     history: [],
@@ -373,6 +386,8 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       const shouldComplete =
         activeLesson &&
         normalizeCommand(activeLesson.expectedCommand) === normalizedInput;
+      const moduleCompleted =
+        shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
 
       const commandChunks = splitByAnd(normalizedInput);
 
@@ -399,14 +414,22 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
       const nextModuleId = get().activeModuleId;
       const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
+      const shouldResetTerminal = moduleCompleted || moduleSwitched;
 
       set((prev) => ({
-        history: moduleSwitched ? [] : history,
+        history: shouldResetTerminal ? [] : history,
         fs: nextFs,
         cwd: nextCwd,
-        output: [...(moduleSwitched ? [] : prev.output), ...lines],
+        output: shouldResetTerminal ? [] : [...prev.output, ...lines],
+        completedModuleId: moduleCompleted ? prevModuleId : prev.completedModuleId,
       }));
     },
+
+    acknowledgeModuleCompletion: () =>
+      set((state) => ({
+        completedModuleId: null,
+        output: state.output,
+      })),
 
     resetSession: () => {
       const fresh = normalizeModules(cloneModules());
@@ -415,6 +438,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         modules: fresh.modules,
         activeLessonId: fresh.activeLessonId,
         activeModuleId: fresh.activeModuleId,
+        completedModuleId: null,
         cwd: DEFAULT_CWD,
         fs: createInitialFs(),
         history: [],

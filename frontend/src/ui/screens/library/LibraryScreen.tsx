@@ -7,6 +7,8 @@ export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
+  const completedModuleId = useTerminalSession((s) => s.completedModuleId);
+  const acknowledgeModuleCompletion = useTerminalSession((s) => s.acknowledgeModuleCompletion);
 
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
   const currentLessonId = activeLessonId ?? firstLessonId;
@@ -17,6 +19,9 @@ export function LibraryScreen() {
   const currentLesson = currentModule?.lessons.find(
     (lesson) => lesson.id === currentLessonId,
   );
+  const completedModule = completedModuleId
+    ? modules.find((module) => module.id === completedModuleId)
+    : null;
 
   useEffect(() => {
     if (!activeLessonId && firstLessonId) {
@@ -70,6 +75,34 @@ export function LibraryScreen() {
             </div>
           </div>
         </section>
+      )}
+
+      {completedModule && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-md rounded-xl border border-yellow-400/40 bg-gradient-to-b from-mist-900 to-mist-950 p-6 shadow-2xl text-yellow-50">
+            <div className="space-y-2 text-center">
+              <p className="text-[11px] uppercase font-semibold tracking-[0.12em] text-emerald-200/80">
+                Модуль завершён
+              </p>
+              <h3 className="text-2xl font-semibold text-emerald-100">
+                Поздравляем! {completedModule.title} пройден.
+              </h3>
+              <p className="text-yellow-100/80 text-sm">
+                Отличная работа — ты успешно выполнил все шаги этого модуля. Готов двигаться дальше?
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={acknowledgeModuleCompletion}
+                className="inline-flex items-center gap-2 rounded-md border border-emerald-300/60 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 shadow hover:bg-emerald-500/30 transition"
+              >
+                Продолжить обучение
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

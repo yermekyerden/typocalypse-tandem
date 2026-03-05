@@ -106,13 +106,13 @@ export function readFile(
   fs: VirtualFileSystem,
   cwd: string,
   path: string,
-): { ok: true; content: string } | { ok: false; error: FsError } {
+): { ok: true; content: string; permissions?: string } | { ok: false; error: FsError } {
   const resolved = resolvePath(fs, cwd, path);
   if (!resolved.ok) return resolved;
   if (resolved.node.type !== 'file') {
     return { ok: false, error: { kind: 'not-a-file', message: 'Is a directory' } };
   }
-  return { ok: true, content: resolved.node.content };
+  return { ok: true, content: resolved.node.content, permissions: resolved.node.permissions };
 }
 
 export function changeDirectory(
