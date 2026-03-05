@@ -152,7 +152,7 @@ function executeCommand(
   args: string[],
   fs: VirtualFileSystem,
   cwd: string,
-): { lines: OutputLine[]; fs?: VirtualFileSystem; cwd?: string } {
+): { lines: OutputLine[]; fs?: VirtualFileSystem; cwd?: string; clear?: boolean } {
   const [command, ...rest] = args;
   const lines: OutputLine[] = [];
 
@@ -244,6 +244,10 @@ function executeCommand(
         return { lines };
       }
       return { lines, fs: result.fs };
+    }
+
+    case 'clear': {
+      return { lines: [], clear: true };
     }
 
     default: {
@@ -393,6 +397,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
       let nextFs = state.fs;
       let nextCwd = state.cwd;
+      let shouldClear = false;
 
       lines.push(createOutputLine(`$ ${input}`, 'stdout', state.activeLessonId));
 
@@ -402,6 +407,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         const execResult = executeCommand(parsed, nextFs, nextCwd);
         nextFs = execResult.fs ?? nextFs;
         nextCwd = execResult.cwd ?? nextCwd;
+        shouldClear = shouldClear || Boolean(execResult.clear);
         lines.push(...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })));
       }
 
@@ -414,7 +420,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
       const nextModuleId = get().activeModuleId;
       const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
-      const shouldResetTerminal = moduleCompleted || moduleSwitched;
+      const shouldResetTerminal = moduleCompleted || moduleSwitched || shouldClear;
 
       set((prev) => ({
         history: shouldResetTerminal ? [] : history,
