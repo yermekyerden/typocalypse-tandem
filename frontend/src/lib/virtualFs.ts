@@ -48,30 +48,29 @@ function resolvePath(
   cwd: string,
   rawPath: string,
 ): PathResolution {
-  const base = cwd.endsWith('/') ? cwd.slice(0, -1) : cwd;
-  const absolute = rawPath.startsWith('/') ? rawPath : `${base}/${rawPath}`;
-  const parts = splitPath(absolute);
+  const baseParts = rawPath.startsWith('/') ? [] : splitPath(cwd);
+  const targetParts: string[] = [...baseParts];
+
+  for (const part of splitPath(rawPath)) {
+    if (part === '.' || part === '') continue;
+    if (part === '..') {
+      if (targetParts.length === 0) {
+        return { ok: false, error: { kind: 'invalid-path', message: 'Cannot go above root' } };
+      }
+      targetParts.pop();
+      continue;
+    }
+    targetParts.push(part);
+  }
 
   let current: DirectoryNode | FileNode = fs;
   let parent: DirectoryNode | null = null;
 
-  for (const part of parts) {
-    if (part === '.') continue;
-    if (part === '..') {
-      if (!parent) {
-        return { ok: false, error: { kind: 'invalid-path', message: 'Cannot go above root' } };
-      }
-      const parentPath = splitPath(parent.name).length
-        ? parent.name
-        : '/';
-      return resolvePath(fs, parentPath, parts.slice(parts.indexOf(part) + 1).join('/'));
-    }
-
+  for (const part of targetParts) {
     if (current.type !== 'dir') {
       return { ok: false, error: { kind: 'not-a-directory', message: `${part}: Not a directory` } };
     }
-
-    const next: FileNode | DirectoryNode | undefined = current.children[part];
+    const next = current.children[part];
     if (!next) {
       return { ok: false, error: { kind: 'not-found', message: `${part}: No such file or directory` } };
     }
@@ -79,7 +78,8 @@ function resolvePath(
     current = next;
   }
 
-  return { ok: true, node: current, parent, path: absolute || '/' };
+  const path = `/${targetParts.join('/')}`;
+  return { ok: true, node: current, parent, path: path === '' ? '/' : path };
 }
 
 export function listDirectory(

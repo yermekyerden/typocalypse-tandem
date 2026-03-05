@@ -88,7 +88,7 @@ function normalizeModules(modules: Module[]): {
 function createOutputLine(
   text: string,
   kind: OutputKind,
-  lessonId?: string,
+  lessonId?: string | null,
 ): OutputLine {
   return {
     id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -131,6 +131,20 @@ function splitByAnd(value: string): string[] {
 
 function parseArgs(command: string): string[] {
   return command.split(' ').filter(Boolean);
+}
+
+function commandsMatch(
+  expected: string | null,
+  actual: string,
+  expectedCwd?: string | null,
+  resultingCwd?: string,
+): boolean {
+  if (!expected) return true;
+  if (actual === expected) return true;
+  if (expected.startsWith('cd ') && actual.startsWith('cd ')) {
+    return expectedCwd ? resultingCwd === expectedCwd : false;
+  }
+  return false;
 }
 
 function isLastLessonInModule(modules: Module[], lessonId: string | null): boolean {
@@ -386,12 +400,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         state.modules
           .flatMap((module) => module.lessons)
           .find((lesson) => lesson.id === state.activeLessonId) ?? null;
-
-      const shouldComplete =
-        activeLesson &&
-        normalizeCommand(activeLesson.expectedCommand) === normalizedInput;
-      const moduleCompleted =
-        shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
+      const expectedCommand = activeLesson
+        ? normalizeCommand(activeLesson.expectedCommand)
+        : null;
 
       const commandChunks = splitByAnd(normalizedInput);
 
@@ -400,7 +411,6 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       let shouldClear = false;
 
       lines.push(createOutputLine(`$ ${input}`, 'stdout', state.activeLessonId));
-
       for (const chunk of commandChunks) {
         const parsed = parseArgs(chunk);
         if (parsed.length === 0) continue;
@@ -410,6 +420,17 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         shouldClear = shouldClear || Boolean(execResult.clear);
         lines.push(...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })));
       }
+
+      const meetsCommand = commandsMatch(
+        expectedCommand,
+        normalizedInput,
+        activeLesson?.expectedCwd,
+        nextCwd,
+      );
+      const meetsCwd = activeLesson?.expectedCwd ? nextCwd === activeLesson.expectedCwd : true;
+      const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
+      const moduleCompleted =
+        shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
 
       if (shouldComplete) {
         get().completeLesson(activeLesson!.id);

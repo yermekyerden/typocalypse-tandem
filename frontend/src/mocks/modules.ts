@@ -8,6 +8,7 @@ export type Lesson = {
   theory: string;
   task: string;
   expectedCommand: string;
+  expectedCwd?: string;
   sampleOutput?: string;
 };
 
@@ -129,6 +130,7 @@ export const modules: Module[] = [
           'An absolute path always starts with / and points to the full route from the filesystem root.',
         task: 'Change to /var/tmp/rsschool using an absolute path.',
         expectedCommand: 'cd /var/tmp/rsschool',
+        expectedCwd: '/var/tmp/rsschool',
       },
       {
         id: 'cd-rel',
@@ -138,6 +140,7 @@ export const modules: Module[] = [
         theory: 'Use ls to list the current directory.',
         task: 'List the contents of /var/tmp/rsschool.',
         expectedCommand: 'ls',
+        expectedCwd: '/var/tmp/rsschool',
       },
       {
         id: 'archive-read',
@@ -148,6 +151,7 @@ export const modules: Module[] = [
           'Relative paths are built from the current directory and do not start with /.',
         task: 'Change to stage1 using a relative path, then display intro.txt.',
         expectedCommand: 'cd stage1 && cat intro.txt',
+        expectedCwd: '/var/tmp/rsschool/stage1',
       },
       {
         id: 'cd-up',
@@ -157,6 +161,7 @@ export const modules: Module[] = [
         theory: '.. refers to the parent directory.',
         task: 'Go one level up from stage1.',
         expectedCommand: 'cd ..',
+        expectedCwd: '/var/tmp/rsschool',
       },
       {
         id: 'cd-multi-up',
@@ -164,8 +169,9 @@ export const modules: Module[] = [
         order: 5,
         status: 'locked',
         theory: 'Using ../ repeatedly lets you climb multiple levels.',
-        task: 'From /var/tmp/rsschool/stage2, go to /var/tmp using a relative path.',
-        expectedCommand: 'cd ../../',
+        task: 'Move to stage2 using a relative path.',
+        expectedCommand: 'cd stage2',
+        expectedCwd: '/var/tmp/rsschool/stage2',
       },
       {
         id: 'archive-history',
@@ -173,8 +179,9 @@ export const modules: Module[] = [
         order: 6,
         status: 'locked',
         theory: 'Combine relative paths to move into archive content.',
-        task: 'Go to rsschool/archive and display history.txt.',
-        expectedCommand: 'cd rsschool/archive && cat history.txt',
+        task: 'From stage2, go two levels up to /var/tmp.',
+        expectedCommand: 'cd ../../',
+        expectedCwd: '/var/tmp',
       },
     ],
   },
