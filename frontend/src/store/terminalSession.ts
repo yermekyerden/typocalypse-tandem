@@ -420,12 +420,13 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
       const nextModuleId = get().activeModuleId;
       const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
-      const shouldResetTerminal = moduleCompleted || moduleSwitched || shouldClear;
+      const resetEnvironment = moduleCompleted || moduleSwitched;
+      const shouldResetTerminal = resetEnvironment || shouldClear;
 
       set((prev) => ({
         history: shouldResetTerminal ? [] : history,
-        fs: nextFs,
-        cwd: nextCwd,
+        fs: resetEnvironment ? createInitialFs() : nextFs,
+        cwd: resetEnvironment ? DEFAULT_CWD : nextCwd,
         output: shouldResetTerminal ? [] : [...prev.output, ...lines],
         completedModuleId: moduleCompleted ? prevModuleId : prev.completedModuleId,
       }));
