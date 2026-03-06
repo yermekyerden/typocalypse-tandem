@@ -8,7 +8,9 @@ export function LibraryScreen() {
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const completedModuleId = useTerminalSession((s) => s.completedModuleId);
-  const acknowledgeModuleCompletion = useTerminalSession((s) => s.acknowledgeModuleCompletion);
+  const acknowledgeModuleCompletion = useTerminalSession(
+    (s) => s.acknowledgeModuleCompletion,
+  );
 
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
   const currentLessonId = activeLessonId ?? firstLessonId;
@@ -79,16 +81,17 @@ export function LibraryScreen() {
 
       {completedModule && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="w-full max-w-md rounded-xl border border-yellow-400/40 bg-gradient-to-b from-mist-900 to-mist-950 p-6 shadow-2xl text-yellow-50">
+          <div className="w-full max-w-md rounded-sm border border-amber-400/70 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_0%,rgba(34,197,94,0.06),transparent_40%),linear-gradient(145deg,#0e0f13,#0a0b10)] p-7 shadow-[0_20px_60px_rgba(0,0,0,0.55)] text-amber-50">
             <div className="space-y-2 text-center">
-              <p className="text-[11px] uppercase font-semibold tracking-[0.12em] text-emerald-200/80">
+              <p className="text-[11px] uppercase font-semibold tracking-[0.12em] text-amber-200/80">
                 Модуль завершён
               </p>
-              <h3 className="text-2xl font-semibold text-emerald-100">
+              <h3 className="text-2xl font-semibold text-amber-50">
                 Поздравляем! {completedModule.title} пройден.
               </h3>
-              <p className="text-yellow-100/80 text-sm">
-                Отличная работа — ты успешно выполнил все шаги этого модуля. Готов двигаться дальше?
+              <p className="text-amber-100/80 text-sm leading-relaxed">
+                Отличная работа — ты успешно выполнил все шаги этого модуля. Готов
+                двигаться дальше?
               </p>
             </div>
 
@@ -96,7 +99,7 @@ export function LibraryScreen() {
               <button
                 type="button"
                 onClick={acknowledgeModuleCompletion}
-                className="inline-flex items-center gap-2 rounded-md border border-emerald-300/60 bg-emerald-500/20 px-4 py-2 text-sm font-semibold text-emerald-100 shadow hover:bg-emerald-500/30 transition"
+                className="inline-flex items-center gap-2 rounded-md border border-emerald-300/70 bg-gradient-to-r from-emerald-600 to-emerald-500 px-5 py-2.5 text-sm font-semibold text-emerald-50 shadow-[0_10px_40px_rgba(16,185,129,0.25)] transition hover:shadow-[0_12px_45px_rgba(16,185,129,0.35)]"
               >
                 Продолжить обучение
               </button>

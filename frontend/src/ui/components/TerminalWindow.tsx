@@ -202,7 +202,8 @@ export function TerminalWindow({ height, className }: Props) {
 
     linesToRender.forEach((line) => {
       const isEcho =
-        lastSubmittedCommandRef.current !== null && line.text === `$ ${lastSubmittedCommandRef.current}`;
+        lastSubmittedCommandRef.current !== null &&
+        line.text === `$ ${lastSubmittedCommandRef.current}`;
       if (isEcho) {
         return;
       }

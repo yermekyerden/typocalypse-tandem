@@ -30,7 +30,12 @@ export type DirectoryNode = {
 export type VirtualFileSystem = DirectoryNode;
 
 export type PathResolution =
-  | { ok: true; node: FileNode | DirectoryNode; parent: DirectoryNode | null; path: string }
+  | {
+      ok: true;
+      node: FileNode | DirectoryNode;
+      parent: DirectoryNode | null;
+      path: string;
+    }
   | { ok: false; error: FsError };
 
 export const DEFAULT_CWD = '/home/student';
@@ -55,7 +60,10 @@ export function resolvePath(
     if (part === '.' || part === '') continue;
     if (part === '..') {
       if (targetParts.length === 0) {
-        return { ok: false, error: { kind: 'invalid-path', message: 'Cannot go above root' } };
+        return {
+          ok: false,
+          error: { kind: 'invalid-path', message: 'Cannot go above root' },
+        };
       }
       targetParts.pop();
       continue;
@@ -68,11 +76,17 @@ export function resolvePath(
 
   for (const part of targetParts) {
     if (current.type !== 'dir') {
-      return { ok: false, error: { kind: 'not-a-directory', message: `${part}: Not a directory` } };
+      return {
+        ok: false,
+        error: { kind: 'not-a-directory', message: `${part}: Not a directory` },
+      };
     }
     const next = current.children[part];
     if (!next) {
-      return { ok: false, error: { kind: 'not-found', message: `${part}: No such file or directory` } };
+      return {
+        ok: false,
+        error: { kind: 'not-found', message: `${part}: No such file or directory` },
+      };
     }
     parent = current;
     current = next;
@@ -112,7 +126,11 @@ export function readFile(
   if (resolved.node.type !== 'file') {
     return { ok: false, error: { kind: 'not-a-file', message: 'Is a directory' } };
   }
-  return { ok: true, content: resolved.node.content, permissions: resolved.node.permissions };
+  return {
+    ok: true,
+    content: resolved.node.content,
+    permissions: resolved.node.permissions,
+  };
 }
 
 export function changeDirectory(
@@ -212,12 +230,16 @@ export function setPermissions(
   const resolved = resolvePath(fs, cwd, path);
   if (!resolved.ok) return resolved;
   if (!resolved.parent) {
-    return { ok: false, error: { kind: 'invalid-path', message: 'Cannot change root permissions' } };
+    return {
+      ok: false,
+      error: { kind: 'invalid-path', message: 'Cannot change root permissions' },
+    };
   }
 
   const clone = deepClone(fs);
   const target = resolvePath(clone, cwd, path);
-  if (!target.ok || !target.parent) return target as Extract<PathResolution, { ok: false }>;
+  if (!target.ok || !target.parent)
+    return target as Extract<PathResolution, { ok: false }>;
   target.node.permissions = permissions;
   return { ok: true, fs: clone };
 }
@@ -240,12 +262,10 @@ function dir(
 
 export function createInitialFs(): VirtualFileSystem {
   const home = dir('home', [
-    dir(
-      'student',
-      [
-        file(
-          'mission.txt',
-          `Welcome to Terminal Dojo.
+    dir('student', [
+      file(
+        'mission.txt',
+        `Welcome to Terminal Dojo.
 Your mission begins here.
 
 In this training environment you will learn how to:
@@ -262,11 +282,11 @@ Observe the output carefully.
 Think before typing.
 
 Good luck, trainee.`,
-        ),
-        file('notes.md', '# Notes\n- draft\n'),
-        file(
-          'rsstage1.txt',
-          `RS School Stage 1 Log
+      ),
+      file('notes.md', '# Notes\n- draft\n'),
+      file(
+        'rsstage1.txt',
+        `RS School Stage 1 Log
 
 Access to knowledge is controlled.
 Understanding permissions means
@@ -274,27 +294,25 @@ understanding system security.
 
         Every secure system starts
         with correct access control.`,
-          { permissions: '----------' },
-        ),
-        file('HELP', 'Run chmod to adjust permissions.'),
-        file('deploy.sh', '#!/bin/bash\necho "deploy"\n', { permissions: '-rwxr-xr-x' }),
-        file('notes.txt', 'Permissions practice notes.'),
-        dir('reports', []),
-        file('.secret_note', 'The real skill is paying attention.', { hidden: true }),
-        file('.bashrc', '# bash config', { hidden: true }),
-        file('.profile', '# profile config', { hidden: true }),
-        dir('.config', [], { hidden: true }),
-        dir('.cache', [], { hidden: true }),
-        dir('Documents', []),
-        dir('Downloads', []),
-        dir('Projects', []),
-        dir('scripts', []),
-        dir(
-          'training_zone',
-          [
-            file(
-              'history.txt',
-              `Terminal History Log
+        { permissions: '----------' },
+      ),
+      file('HELP', 'Run chmod to adjust permissions.'),
+      file('deploy.sh', '#!/bin/bash\necho "deploy"\n', { permissions: '-rwxr-xr-x' }),
+      file('notes.txt', 'Permissions practice notes.'),
+      dir('reports', []),
+      file('.secret_note', 'The real skill is paying attention.', { hidden: true }),
+      file('.bashrc', '# bash config', { hidden: true }),
+      file('.profile', '# profile config', { hidden: true }),
+      dir('.config', [], { hidden: true }),
+      dir('.cache', [], { hidden: true }),
+      dir('Documents', []),
+      dir('Downloads', []),
+      dir('Projects', []),
+      dir('scripts', []),
+      dir('training_zone', [
+        file(
+          'history.txt',
+          `Terminal History Log
 
 Did you know?
 
@@ -311,11 +329,9 @@ is part of a tradition that started over 50 years ago.
 
 You are not just learning commands.
 You are learning how systems think.`,
-            ),
-          ],
         ),
-      ],
-    ),
+      ]),
+    ]),
   ]);
 
   const varTmp = dir('var', [
@@ -335,9 +351,7 @@ In this stage you learned:
 Strong foundations define strong engineers.`,
           ),
         ]),
-        dir('stage2', [
-          file('algorithms.txt', 'Sorting, searching, complexity basics.'),
-        ]),
+        dir('stage2', [file('algorithms.txt', 'Sorting, searching, complexity basics.')]),
         dir('archive', [
           file(
             'history.txt',

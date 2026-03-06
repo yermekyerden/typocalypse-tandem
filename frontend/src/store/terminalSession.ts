@@ -247,7 +247,9 @@ function executeCommand(
       const result = makeDirectory(fs, cwd, target);
       if (!result.ok) {
         if (result.error.kind === 'already-exists') {
-          lines.push(makeLine(`mkdir: cannot create directory '${target}': File exists`, 'stderr'));
+          lines.push(
+            makeLine(`mkdir: cannot create directory '${target}': File exists`, 'stderr'),
+          );
         } else {
           lines.push(makeLine(result.error.message, 'stderr'));
         }
@@ -310,9 +312,7 @@ function executeCommand(
 }
 
 export const useTerminalSession = create<TerminalState>((set, get) => {
-  const { modules, activeLessonId, activeModuleId } = normalizeModules(
-    cloneModules(),
-  );
+  const { modules, activeLessonId, activeModuleId } = normalizeModules(cloneModules());
 
   const initialData = {
     modules,
@@ -333,7 +333,10 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           ...module,
           lessons: module.lessons.map<Lesson>((lesson) => {
             if (lesson.id === lessonId) {
-              return { ...lesson, status: lesson.status === 'completed' ? 'completed' : 'active' };
+              return {
+                ...lesson,
+                status: lesson.status === 'completed' ? 'completed' : 'active',
+              };
             }
             if (lesson.status === 'active') {
               return { ...lesson, status: 'locked' };
@@ -456,7 +459,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         nextFs = execResult.fs ?? nextFs;
         nextCwd = execResult.cwd ?? nextCwd;
         shouldClear = shouldClear || Boolean(execResult.clear);
-        lines.push(...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })));
+        lines.push(
+          ...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })),
+        );
       }
 
       const meetsCommand = commandsMatch(
@@ -465,7 +470,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         activeLesson?.expectedCwd,
         nextCwd,
       );
-      const meetsCwd = activeLesson?.expectedCwd ? nextCwd === activeLesson.expectedCwd : true;
+      const meetsCwd = activeLesson?.expectedCwd
+        ? nextCwd === activeLesson.expectedCwd
+        : true;
       const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
       const moduleCompleted =
         shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
@@ -473,7 +480,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       if (shouldComplete) {
         get().completeLesson(activeLesson!.id);
         if (activeLesson?.sampleOutput) {
-          lines.push(createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id));
+          lines.push(
+            createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id),
+          );
         }
       }
 
