@@ -81,7 +81,7 @@ export function resolvePath(
         error: { kind: 'not-a-directory', message: `${part}: Not a directory` },
       };
     }
-    const next = current.children[part];
+    const next: FileNode | DirectoryNode | undefined = current.children[part];
     if (!next) {
       return {
         ok: false,
