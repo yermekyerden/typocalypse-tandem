@@ -272,12 +272,12 @@ Access to knowledge is controlled.
 Understanding permissions means
 understanding system security.
 
-Every secure system starts
-with correct access control.`,
+        Every secure system starts
+        with correct access control.`,
           { permissions: '----------' },
         ),
         file('HELP', 'Run chmod to adjust permissions.'),
-        file('deploy.sh', '#!/bin/bash\necho \"deploy\"\n', { permissions: '-rwxr-xr-x' }),
+        file('deploy.sh', '#!/bin/bash\necho "deploy"\n', { permissions: '-rwxr-xr-x' }),
         file('notes.txt', 'Permissions practice notes.'),
         dir('reports', []),
         file('.secret_note', 'The real skill is paying attention.', { hidden: true }),
