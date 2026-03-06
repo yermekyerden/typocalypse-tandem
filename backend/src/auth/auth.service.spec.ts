@@ -1,6 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { UsersModule } from '../users/users.module';
 import { AuthService } from './auth.service';
 
 describe('AuthService', () => {
@@ -8,7 +9,7 @@ describe('AuthService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [JwtModule.register({})],
+      imports: [JwtModule.register({}), UsersModule],
       providers: [AuthService],
     }).compile();
 
