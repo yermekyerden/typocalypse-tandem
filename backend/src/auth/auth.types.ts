@@ -1,13 +1,7 @@
-export interface User {
-  id: string;
-  username: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  avatarUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { User } from '../users/users.types';
+
+export type { User } from '../users/users.types';
+export type { StoredUser } from '../users/users.types';
 
 export interface AuthTokens {
   accessToken: string;
@@ -24,8 +18,4 @@ export interface TokenPayload {
   sub: string;
   username: string;
   type: 'access' | 'refresh';
-}
-
-export interface StoredUser extends User {
-  passwordHash: string;
 }

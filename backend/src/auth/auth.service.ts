@@ -3,13 +3,14 @@ import { JwtService } from '@nestjs/jwt';
 import type { JwtSignOptions } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { randomUUID } from 'crypto';
+import { UsersStore } from '../users/users-store.service';
 import {
   DEFAULT_JWT_ACCESS_SECRET,
   DEFAULT_JWT_ACCESS_TTL,
   DEFAULT_JWT_REFRESH_SECRET,
   DEFAULT_JWT_REFRESH_TTL,
 } from './auth.constants';
-import { AuthResponse, AuthTokens, StoredUser, TokenPayload, User } from './auth.types';
+import { AuthResponse, AuthTokens, TokenPayload, User } from './auth.types';
 import { LoginRequestDto } from './dto/login-request.dto';
 import { RefreshRequestDto } from './dto/refresh-request.dto';
 import { RegisterRequestDto } from './dto/register-request.dto';
@@ -23,21 +24,20 @@ export class AuthService {
   private readonly refreshTtl = (process.env.JWT_REFRESH_TTL ??
     DEFAULT_JWT_REFRESH_TTL) as NonNullable<JwtSignOptions['expiresIn']>;
 
-  private readonly usersById = new Map<string, StoredUser>();
-  private readonly userIdByUsername = new Map<string, string>();
-  private readonly userIdByEmail = new Map<string, string>();
-
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly usersStore: UsersStore,
+  ) {}
 
   async register(dto: RegisterRequestDto): Promise<AuthResponse> {
     const username = dto.username.trim();
     const email = dto.email.trim().toLowerCase();
 
-    if (this.userIdByUsername.has(username)) {
+    if (this.usersStore.hasUsername(username)) {
       throw new ConflictException('Username is already taken');
     }
 
-    if (this.userIdByEmail.has(email)) {
+    if (this.usersStore.hasEmail(email)) {
       throw new ConflictException('Email is already taken');
     }
 
@@ -54,14 +54,7 @@ export class AuthService {
     };
 
     const passwordHash = await argon2.hash(dto.password);
-    const stored: StoredUser = {
-      ...user,
-      passwordHash,
-    };
-
-    this.usersById.set(stored.id, stored);
-    this.userIdByUsername.set(username, stored.id);
-    this.userIdByEmail.set(email, stored.id);
+    this.usersStore.create({ ...user, passwordHash });
 
     return {
       user,
@@ -71,12 +64,7 @@ export class AuthService {
 
   async login(dto: LoginRequestDto): Promise<AuthResponse> {
     const username = dto.username.trim();
-    const userId = this.userIdByUsername.get(username);
-    if (!userId) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const stored = this.usersById.get(userId);
+    const stored = this.usersStore.findByUsername(username);
     if (!stored) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -86,7 +74,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const user = this.toPublicUser(stored);
+    const user = this.usersStore.toPublicUser(stored);
     return {
       user,
       tokens: await this.issueTokens(user),
@@ -100,12 +88,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const stored = this.usersById.get(payload.sub);
+    const stored = this.usersStore.findById(payload.sub);
     if (!stored) {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    return this.issueTokens(this.toPublicUser(stored));
+    return this.issueTokens(this.usersStore.toPublicUser(stored));
   }
 
   private async issueTokens(user: User): Promise<AuthTokens> {
@@ -158,18 +146,5 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
-  }
-
-  private toPublicUser(stored: StoredUser): User {
-    return {
-      id: stored.id,
-      username: stored.username,
-      firstName: stored.firstName,
-      lastName: stored.lastName,
-      email: stored.email,
-      avatarUrl: stored.avatarUrl,
-      createdAt: stored.createdAt,
-      updatedAt: stored.updatedAt,
-    };
   }
 }
