@@ -30,17 +30,17 @@ export function LibraryScreen() {
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div className="flex flex-col gap-4 text-yellow-50 flex-1 min-h-0 h-full bg-mist-950 overflow-hidden">
+    <div className="flex flex-col gap-6 text-yellow-50 flex-1 min-h-0 h-full bg-mist-950 overflow-hidden">
       <section className="border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg flex flex-col flex-1 min-h-0 overflow-hidden">
         <div className="space-y-1">
           <p className="text-[11px] uppercase font-semibold tracking-[0.08em] text-yellow-300/80">
             Terminal
           </p>
           <h2 className="text-2xl font-semibold text-yellow-50">
-            Песочница для выполнения заданий
+            Sandbox for completing tasks
           </h2>
           <p className="text-sm text-yellow-100/80">
-            Вводи команды, прогресс синхронизируется с модулями.
+            Enter commands, progress is synchronized with modules.
           </p>
         </div>
 

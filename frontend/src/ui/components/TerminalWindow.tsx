@@ -70,10 +70,10 @@ export function TerminalWindow({ height, className }: Props) {
       fontSize: 14,
       rows: 24,
       theme: {
-        background: '#0b0f19',
+        background: '#000000',
         foreground: '#f8f6e5',
         cursor: '#facc15',
-        black: '#0b0f19',
+        black: '#000000',
         green: '#bbf7d0',
       },
     });
