@@ -12,7 +12,7 @@ export function AchievementStars({ total, completed, size = 20, className = '' }
 
   useEffect(() => {
     if (completed <= 0) return;
-    setHighlightIndex(completed - 1);
+    requestAnimationFrame(() => setHighlightIndex(completed - 1));
     const timer = setTimeout(() => setHighlightIndex(null), 450);
     return () => clearTimeout(timer);
   }, [completed]);

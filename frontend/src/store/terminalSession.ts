@@ -162,16 +162,6 @@ function commandsMatch(
   return false;
 }
 
-function isLastLessonInModule(modules: Module[], lessonId: string | null): boolean {
-  if (!lessonId) return false;
-  const ownerModule = modules.find((module) =>
-    module.lessons.some((lesson) => lesson.id === lessonId),
-  );
-  if (!ownerModule) return false;
-  const idx = ownerModule.lessons.findIndex((lesson) => lesson.id === lessonId);
-  return idx === ownerModule.lessons.length - 1;
-}
-
 function hasReadPermission(node: { permissions?: string | null }) {
   if (!node.permissions) return true;
   return /r/.test(node.permissions);
@@ -498,7 +488,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
           completedModuleId:
-            allLessonsCompleted && !nextLessonId ? moduleOwner?.id ?? null : state.completedModuleId,
+            allLessonsCompleted && !nextLessonId
+              ? (moduleOwner?.id ?? null)
+              : state.completedModuleId,
         };
       }),
 
@@ -582,9 +574,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         : true;
       const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
       if (shouldComplete) {
-        const activeModule = state.modules.find(
-          (mod) => mod.id === state.activeModuleId,
-        );
+        const activeModule = state.modules.find((mod) => mod.id === state.activeModuleId);
         const totalLessons = activeModule?.lessons.length ?? 0;
         const alreadyCompleted =
           activeModule?.lessons.filter((l) => l.status === 'completed').length ?? 0;
