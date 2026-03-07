@@ -240,4 +240,74 @@ export const modules: Module[] = [
       },
     ],
   },
+  {
+    id: 'file-ops',
+    title: 'Working with Files',
+    description:
+      'Edit text files, write via terminal, display contents, and create multi-line files with redirection.',
+    order: 4,
+    lessons: [
+      {
+        id: 'nano-rsschool-notes',
+        title: 'Step 1 — Edit rsschool_notes.txt',
+        order: 1,
+        status: 'active',
+        theory:
+          'Use echo with >> to append text to an existing file without overwriting its content.',
+        task: 'Append the line "RS School The best!" to rsschool_notes.txt.',
+        expectedCommand: 'echo "RS School The best!" >> rsschool_notes.txt',
+      },
+      {
+        id: 'cat-rsschool-notes',
+        title: 'Step 2 — Check file contents',
+        order: 2,
+        status: 'locked',
+        theory: 'cat prints the contents of a file directly to the terminal.',
+        task: 'Display the contents of rsschool_notes.txt to confirm the new line is present.',
+        expectedCommand: 'cat rsschool_notes.txt',
+      },
+      {
+        id: 'echo-mentor-message',
+        title: 'Step 3 — Write text with echo',
+        order: 3,
+        status: 'locked',
+        theory:
+          'echo combined with > writes text to a file, creating it if it does not exist.',
+        task: 'Create mentor_message.txt containing the line "Keep learning every day".',
+        expectedCommand: 'echo "Keep learning every day" > mentor_message.txt',
+      },
+      {
+        id: 'cat-create-journey',
+        title: 'Step 4 — Create a multi-line file',
+        order: 4,
+        status: 'locked',
+        theory:
+          'Write multiple lines using successive echo commands with > for the first line and >> to append the rest.',
+        task: 'Create rsschool_journey.txt with the lines JavaScript, Frontend, RS School (one per line).',
+        expectedCommand:
+          'echo "JavaScript" > rsschool_journey.txt && echo "Frontend" >> rsschool_journey.txt && echo "RS School" >> rsschool_journey.txt',
+      },
+      {
+        id: 'cat-rsschool-journey',
+        title: 'Step 5 — Count lines in rsschool_journey.txt',
+        order: 5,
+        status: 'locked',
+        theory:
+          'wc -l counts how many lines a file has and prints the count with the filename.',
+        task: 'Count the number of lines in rsschool_journey.txt.',
+        expectedCommand: 'wc -l rsschool_journey.txt',
+        sampleOutput: '3 rsschool_journey.txt',
+      },
+      {
+        id: 'create-rsschool-stack',
+        title: 'Step 6 — Build a tech stack list',
+        order: 6,
+        status: 'locked',
+        theory: 'Use a sequence of echo commands to build a short list file.',
+        task: 'Create rsschool_stack.txt with the lines HTML, CSS, JavaScript, Git (one per line).',
+        expectedCommand:
+          'echo "HTML" > rsschool_stack.txt && echo "CSS" >> rsschool_stack.txt && echo "JavaScript" >> rsschool_stack.txt && echo "Git" >> rsschool_stack.txt',
+      },
+    ],
+  },
 ];

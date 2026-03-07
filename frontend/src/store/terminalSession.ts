@@ -11,6 +11,7 @@ import {
   resolvePath,
   setPermissions,
   touchFile,
+  writeFileContent,
   type VirtualFileSystem,
 } from '@/lib/virtualFs';
 
@@ -132,7 +133,11 @@ function splitByAnd(value: string): string[] {
 }
 
 function parseArgs(command: string): string[] {
-  return command.split(' ').filter(Boolean);
+  const matches = command.match(/"[^"]*"|>>|>|\S+/g);
+  if (!matches) return [];
+  return matches.map((token) =>
+    token.startsWith('"') && token.endsWith('"') ? token.slice(1, -1) : token,
+  );
 }
 
 function toPermissionString(octal: string, isDir: boolean): string | null {
@@ -234,8 +239,86 @@ function executeCommand(
         lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
         return { lines };
       }
-      lines.push(...result.content.split('\n').map((line) => makeLine(line)));
+      const content =
+        result.content.endsWith('\n') && result.content.length > 0
+          ? result.content.slice(0, -1)
+          : result.content;
+      lines.push(...content.split('\n').map((line) => makeLine(line)));
       return { lines };
+    }
+
+    case 'wc': {
+      const flag = rest[0] === '-l' ? '-l' : null;
+      const target = flag ? rest[1] : rest[0];
+      if (!target) {
+        lines.push(makeLine('wc: missing file operand', 'stderr'));
+        return { lines };
+      }
+      const result = readFile(fs, cwd, target);
+      if (!result.ok) {
+        if (result.error.kind === 'not-a-directory') {
+          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
+        } else if (result.error.kind === 'not-found') {
+          lines.push(makeLine(`${target}: No such file or directory`, 'stderr'));
+        } else if (result.error.kind === 'permission-denied') {
+          lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
+        } else {
+          lines.push(makeLine(result.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+      const fileContent =
+        result.content.endsWith('\n') && result.content.length > 0
+          ? result.content.slice(0, -1)
+          : result.content;
+      const lineCount = fileContent === '' ? 0 : fileContent.split('\n').length;
+      lines.push(makeLine(`${lineCount} ${target}`));
+      return { lines };
+    }
+
+    case 'echo': {
+      if (rest.length === 0) {
+        lines.push(makeLine(''));
+        return { lines };
+      }
+
+      const redirectIdx = rest.findIndex((part) => part === '>' || part === '>>');
+      const messageParts =
+        redirectIdx === -1 ? rest : rest.slice(0, redirectIdx).filter(Boolean);
+      const message = messageParts.join(' ');
+
+      if (redirectIdx === -1) {
+        lines.push(makeLine(message));
+        return { lines };
+      }
+
+      const operator = rest[redirectIdx];
+      const target = rest[redirectIdx + 1];
+      if (!target) {
+        lines.push(makeLine('echo: invalid syntax', 'stderr'));
+        return { lines };
+      }
+
+      const writeResult = writeFileContent(
+        fs,
+        cwd,
+        target,
+        message,
+        operator === '>>' ? 'append' : 'overwrite',
+      );
+
+      if (!writeResult.ok) {
+        if (writeResult.error.kind === 'not-a-directory') {
+          lines.push(makeLine(`${target}: Not a directory`, 'stderr'));
+        } else if (writeResult.error.kind === 'not-a-file') {
+          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
+        } else {
+          lines.push(makeLine(writeResult.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+
+      return { lines, fs: writeResult.fs };
     }
 
     case 'mkdir': {
