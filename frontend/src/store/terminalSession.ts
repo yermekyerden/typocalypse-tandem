@@ -412,6 +412,15 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     ...initialData,
     setActiveLesson: (lessonId: string) =>
       set((state) => {
+        const targetLesson = state.modules
+          .flatMap((module) => module.lessons)
+          .find((lesson) => lesson.id === lessonId);
+
+        // Do not allow selecting locked lessons
+        if (!targetLesson || targetLesson.status === 'locked') {
+          return state;
+        }
+
         const updatedModules: Module[] = state.modules.map((module) => ({
           ...module,
           lessons: module.lessons.map<Lesson>((lesson) => {
@@ -471,10 +480,19 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           nextModuleId = acrossModules?.moduleId ?? nextModuleId;
         }
 
+        // Only mark module as completed if all lessons in that module are completed
+        const moduleOwner = updatedModules.find((module) =>
+          module.lessons.some((lesson) => lesson.id === lessonId),
+        );
+        const allLessonsCompleted =
+          moduleOwner?.lessons.every((lesson) => lesson.status === 'completed') ?? false;
+
         return {
           modules: updatedModules,
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
+          completedModuleId:
+            allLessonsCompleted && !nextLessonId ? moduleOwner?.id ?? null : state.completedModuleId,
         };
       }),
 
@@ -557,9 +575,6 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         ? nextCwd === activeLesson.expectedCwd
         : true;
       const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
-      const moduleCompleted =
-        shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
-
       if (shouldComplete) {
         get().completeLesson(activeLesson!.id);
         if (activeLesson?.sampleOutput) {
@@ -571,7 +586,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
       const nextModuleId = get().activeModuleId;
       const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
-      const resetEnvironment = moduleCompleted || moduleSwitched;
+      const resetEnvironment = moduleSwitched;
       const shouldResetTerminal = resetEnvironment || shouldClear;
 
       set((prev) => ({
