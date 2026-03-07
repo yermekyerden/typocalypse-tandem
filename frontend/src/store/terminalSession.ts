@@ -582,10 +582,29 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         : true;
       const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
       if (shouldComplete) {
+        const activeModule = state.modules.find(
+          (mod) => mod.id === state.activeModuleId,
+        );
+        const totalLessons = activeModule?.lessons.length ?? 0;
+        const alreadyCompleted =
+          activeModule?.lessons.filter((l) => l.status === 'completed').length ?? 0;
+        const completedAfter =
+          alreadyCompleted + (activeLesson?.status === 'completed' ? 0 : 1);
+
         get().completeLesson(activeLesson!.id);
         if (activeLesson?.sampleOutput) {
           lines.push(
             createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id),
+          );
+        }
+
+        if (totalLessons > 0) {
+          lines.push(
+            createOutputLine(
+              `⭐ Progress: ${completedAfter}/${totalLessons}`,
+              'system',
+              activeLesson?.id,
+            ),
           );
         }
       }

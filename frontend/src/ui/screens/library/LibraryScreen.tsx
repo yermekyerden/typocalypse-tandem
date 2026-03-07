@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { AchievementStars } from '@/ui/components/AchievementStars';
 import { useTerminalSession } from '@/store/terminalSession';
 import { TerminalWindow } from '@/ui/components/TerminalWindow';
 
@@ -24,6 +25,13 @@ export function LibraryScreen() {
   const completedModule = completedModuleId
     ? modules.find((module) => module.id === completedModuleId)
     : null;
+
+  const currentProgress = currentModule
+    ? {
+        completed: currentModule.lessons.filter((l) => l.status === 'completed').length,
+        total: currentModule.lessons.length,
+      }
+    : { completed: 0, total: 0 };
 
   useEffect(() => {
     if (!activeLessonId && firstLessonId) {
@@ -62,6 +70,16 @@ export function LibraryScreen() {
                 {currentLesson.title}
               </h2>
             </div>
+            <div className="flex flex-col items-end gap-1">
+              <AchievementStars
+                total={currentProgress.total}
+                completed={currentProgress.completed}
+                className="drop-shadow-sm"
+              />
+              <span className="text-[11px] uppercase tracking-[0.1em] text-amber-200/80">
+                {currentProgress.completed}/{currentProgress.total} steps
+              </span>
+            </div>
           </div>
 
           <div className="mt-4 space-y-4 text-sm leading-relaxed">
@@ -93,6 +111,15 @@ export function LibraryScreen() {
                 Отличная работа — ты успешно выполнил все шаги этого модуля. Готов
                 двигаться дальше?
               </p>
+            </div>
+
+            <div className="mt-4 flex justify-center">
+              <AchievementStars
+                total={completedModule.lessons.length}
+                completed={completedModule.lessons.length}
+                size={22}
+                className="drop-shadow-[0_0_12px_rgba(251,191,36,0.45)]"
+              />
             </div>
 
             <div className="mt-6 flex justify-center">
