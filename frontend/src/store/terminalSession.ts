@@ -122,12 +122,13 @@ function getNextLesson(
 }
 
 function normalizeCommand(value: string) {
-  return value.trim().replace(/\s+/g, ' ');
+  // Collapse spaces and tabs but preserve newlines to allow multi-line input splitting
+  return value.trim().replace(/[ \t]+/g, ' ');
 }
 
 function splitByAnd(value: string): string[] {
   return value
-    .split('&&')
+    .split(/(?:&&)|[\n;]/)
     .map((chunk) => chunk.trim())
     .filter(Boolean);
 }
@@ -202,7 +203,12 @@ function executeCommand(
         lines.push(makeLine(result.error.message, 'stderr'));
         return { lines };
       }
-      lines.push(makeLine(result.entries.join('  ')));
+      if (result.entries.length === 0) {
+        lines.push(makeLine('(no files)'));
+      } else {
+        // Render one entry per line for clarity
+        lines.push(makeLine(result.entries.join('\n')));
+      }
       return { lines };
     }
 
@@ -594,7 +600,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         fs: resetEnvironment ? createInitialFs() : nextFs,
         cwd: resetEnvironment ? DEFAULT_CWD : nextCwd,
         output: shouldResetTerminal ? [] : [...prev.output, ...lines],
-        completedModuleId: moduleCompleted ? prevModuleId : prev.completedModuleId,
+        completedModuleId: prev.completedModuleId,
       }));
     },
 

@@ -123,7 +123,7 @@ export const modules: Module[] = [
     lessons: [
       {
         id: 'cd-abs',
-        title: 'Step 1 — Absolute path',
+        title: 'Absolute path',
         order: 1,
         status: 'active',
         theory:
@@ -134,7 +134,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cd-rel',
-        title: 'Step 2 — List directory contents',
+        title: 'List directory contents',
         order: 2,
         status: 'locked',
         theory: 'Use ls to list the current directory.',
@@ -144,7 +144,7 @@ export const modules: Module[] = [
       },
       {
         id: 'archive-read',
-        title: 'Step 3 — Relative path to stage1',
+        title: 'Relative path to stage1',
         order: 3,
         status: 'locked',
         theory:
@@ -155,7 +155,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cd-up',
-        title: 'Step 4 — Go up one level',
+        title: 'Go up one level',
         order: 4,
         status: 'locked',
         theory: '.. refers to the parent directory.',
@@ -165,7 +165,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cd-multi-up',
-        title: 'Step 5 — Go up multiple levels',
+        title: 'Go up multiple levels',
         order: 5,
         status: 'locked',
         theory: 'Using ../ repeatedly lets you climb multiple levels.',
@@ -175,7 +175,7 @@ export const modules: Module[] = [
       },
       {
         id: 'archive-history',
-        title: 'Step 6 — Work with archive',
+        title: 'Work with archive',
         order: 6,
         status: 'locked',
         theory: 'Combine relative paths to move into archive content.',
@@ -193,7 +193,7 @@ export const modules: Module[] = [
     lessons: [
       {
         id: 'ls-perms',
-        title: 'Step 1 — Identify file owner',
+        title: 'Identify file owner',
         order: 1,
         status: 'active',
         theory:
@@ -203,7 +203,7 @@ export const modules: Module[] = [
       },
       {
         id: 'chmod-owner',
-        title: 'Step 2 — Attempt to read file',
+        title: 'Attempt to read file',
         order: 2,
         status: 'locked',
         theory: 'If you lack read permission, cat will return Permission denied.',
@@ -212,7 +212,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-protected',
-        title: 'Step 3 — Change permissions',
+        title: 'Change permissions',
         order: 3,
         status: 'locked',
         theory:
@@ -222,7 +222,7 @@ export const modules: Module[] = [
       },
       {
         id: 'ls-check',
-        title: 'Step 4 — Verify changes',
+        title: 'Verify changes',
         order: 4,
         status: 'locked',
         theory: 'After chmod, verify bits with ls -l.',
@@ -231,7 +231,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-after',
-        title: 'Step 5 — Read file again',
+        title: 'Read file again',
         order: 5,
         status: 'locked',
         theory: 'With rw for owner set, reading the file should work.',
@@ -249,7 +249,7 @@ export const modules: Module[] = [
     lessons: [
       {
         id: 'nano-rsschool-notes',
-        title: 'Step 1 — Edit rsschool_notes.txt',
+        title: 'Edit rsschool_notes.txt',
         order: 1,
         status: 'active',
         theory:
@@ -259,7 +259,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-rsschool-notes',
-        title: 'Step 2 — Check file contents',
+        title: 'Check file contents',
         order: 2,
         status: 'locked',
         theory: 'cat prints the contents of a file directly to the terminal.',
@@ -268,7 +268,7 @@ export const modules: Module[] = [
       },
       {
         id: 'echo-mentor-message',
-        title: 'Step 3 — Write text with echo',
+        title: 'Write text with echo',
         order: 3,
         status: 'locked',
         theory:
@@ -278,7 +278,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-create-journey',
-        title: 'Step 4 — Create a multi-line file',
+        title: 'Create a multi-line file',
         order: 4,
         status: 'locked',
         theory:
@@ -289,7 +289,7 @@ export const modules: Module[] = [
       },
       {
         id: 'cat-rsschool-journey',
-        title: 'Step 5 — Count lines in rsschool_journey.txt',
+        title: 'Count lines in rsschool_journey.txt',
         order: 5,
         status: 'locked',
         theory:
@@ -300,7 +300,7 @@ export const modules: Module[] = [
       },
       {
         id: 'create-rsschool-stack',
-        title: 'Step 6 — Build a tech stack list',
+        title: 'Build a tech stack list',
         order: 6,
         status: 'locked',
         theory: 'Use a sequence of echo commands to build a short list file.',
