@@ -221,6 +221,52 @@ export function touchFile(
   return { ok: true, fs: clone };
 }
 
+export function writeFileContent(
+  fs: VirtualFileSystem,
+  cwd: string,
+  path: string,
+  content: string,
+  mode: 'overwrite' | 'append',
+): { ok: true; fs: VirtualFileSystem } | { ok: false; error: FsError } {
+  const segments = splitPath(path);
+  if (segments.length === 0) {
+    return { ok: false, error: { kind: 'invalid-path', message: 'Invalid path' } };
+  }
+
+  const fileName = segments.pop()!;
+  const parentPath = segments.join('/') || '.';
+  const resolvedParent = resolvePath(fs, cwd, parentPath);
+  if (!resolvedParent.ok) return resolvedParent;
+  if (resolvedParent.node.type !== 'dir') {
+    return { ok: false, error: { kind: 'not-a-directory', message: 'Not a directory' } };
+  }
+
+  const clone = deepClone(fs);
+  const targetParent = resolvePath(clone, cwd, parentPath);
+  if (!targetParent.ok) return targetParent;
+  if (targetParent.node.type !== 'dir') {
+    return { ok: false, error: { kind: 'not-a-directory', message: 'Not a directory' } };
+  }
+
+  const existing = targetParent.node.children[fileName];
+  if (existing && existing.type === 'dir') {
+    return { ok: false, error: { kind: 'not-a-file', message: 'Is a directory' } };
+  }
+
+  const nextContent =
+    mode === 'overwrite'
+      ? `${content}\n`
+      : `${(existing?.type === 'file' ? existing.content : '') ?? ''}${content}\n`;
+
+  targetParent.node.children[fileName] = {
+    type: 'file',
+    name: fileName,
+    content: nextContent,
+  };
+
+  return { ok: true, fs: clone };
+}
+
 export function setPermissions(
   fs: VirtualFileSystem,
   cwd: string,
@@ -299,6 +345,15 @@ understanding system security.
       file('HELP', 'Run chmod to adjust permissions.'),
       file('deploy.sh', '#!/bin/bash\necho "deploy"\n', { permissions: '-rwxr-xr-x' }),
       file('notes.txt', 'Permissions practice notes.'),
+      file(
+        'rsschool_notes.txt',
+        `RS School Notes
+Day 1: Focus on fundamentals.
+Day 2: Practice commands, not memorization.`,
+      ),
+      file('mentor_message.txt', ''),
+      file('rsschool_journey.txt', ''),
+      file('rsschool_stack.txt', ''),
       dir('reports', []),
       file('.secret_note', 'The real skill is paying attention.', { hidden: true }),
       file('.bashrc', '# bash config', { hidden: true }),
@@ -330,6 +385,15 @@ is part of a tradition that started over 50 years ago.
 You are not just learning commands.
 You are learning how systems think.`,
         ),
+        file(
+          'rsschool_notes.txt',
+          `RS School Notes
+Day 1: Focus on fundamentals.
+Day 2: Practice commands, not memorization.`,
+        ),
+        file('mentor_message.txt', ''),
+        file('rsschool_journey.txt', ''),
+        file('rsschool_stack.txt', ''),
       ]),
     ]),
   ]);
