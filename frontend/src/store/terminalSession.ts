@@ -11,6 +11,7 @@ import {
   resolvePath,
   setPermissions,
   touchFile,
+  writeFileContent,
   type VirtualFileSystem,
 } from '@/lib/virtualFs';
 
@@ -121,18 +122,23 @@ function getNextLesson(
 }
 
 function normalizeCommand(value: string) {
-  return value.trim().replace(/\s+/g, ' ');
+  // Collapse spaces and tabs but preserve newlines to allow multi-line input splitting
+  return value.trim().replace(/[ \t]+/g, ' ');
 }
 
 function splitByAnd(value: string): string[] {
   return value
-    .split('&&')
+    .split(/(?:&&)|[\n;]/)
     .map((chunk) => chunk.trim())
     .filter(Boolean);
 }
 
 function parseArgs(command: string): string[] {
-  return command.split(' ').filter(Boolean);
+  const matches = command.match(/"[^"]*"|>>|>|\S+/g);
+  if (!matches) return [];
+  return matches.map((token) =>
+    token.startsWith('"') && token.endsWith('"') ? token.slice(1, -1) : token,
+  );
 }
 
 function toPermissionString(octal: string, isDir: boolean): string | null {
@@ -154,16 +160,6 @@ function commandsMatch(
     return expectedCwd ? resultingCwd === expectedCwd : false;
   }
   return false;
-}
-
-function isLastLessonInModule(modules: Module[], lessonId: string | null): boolean {
-  if (!lessonId) return false;
-  const ownerModule = modules.find((module) =>
-    module.lessons.some((lesson) => lesson.id === lessonId),
-  );
-  if (!ownerModule) return false;
-  const idx = ownerModule.lessons.findIndex((lesson) => lesson.id === lessonId);
-  return idx === ownerModule.lessons.length - 1;
 }
 
 function hasReadPermission(node: { permissions?: string | null }) {
@@ -197,7 +193,12 @@ function executeCommand(
         lines.push(makeLine(result.error.message, 'stderr'));
         return { lines };
       }
-      lines.push(makeLine(result.entries.join('  ')));
+      if (result.entries.length === 0) {
+        lines.push(makeLine('(no files)'));
+      } else {
+        // Render one entry per line for clarity
+        lines.push(makeLine(result.entries.join('\n')));
+      }
       return { lines };
     }
 
@@ -234,8 +235,86 @@ function executeCommand(
         lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
         return { lines };
       }
-      lines.push(...result.content.split('\n').map((line) => makeLine(line)));
+      const content =
+        result.content.endsWith('\n') && result.content.length > 0
+          ? result.content.slice(0, -1)
+          : result.content;
+      lines.push(...content.split('\n').map((line) => makeLine(line)));
       return { lines };
+    }
+
+    case 'wc': {
+      const flag = rest[0] === '-l' ? '-l' : null;
+      const target = flag ? rest[1] : rest[0];
+      if (!target) {
+        lines.push(makeLine('wc: missing file operand', 'stderr'));
+        return { lines };
+      }
+      const result = readFile(fs, cwd, target);
+      if (!result.ok) {
+        if (result.error.kind === 'not-a-directory') {
+          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
+        } else if (result.error.kind === 'not-found') {
+          lines.push(makeLine(`${target}: No such file or directory`, 'stderr'));
+        } else if (result.error.kind === 'permission-denied') {
+          lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
+        } else {
+          lines.push(makeLine(result.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+      const fileContent =
+        result.content.endsWith('\n') && result.content.length > 0
+          ? result.content.slice(0, -1)
+          : result.content;
+      const lineCount = fileContent === '' ? 0 : fileContent.split('\n').length;
+      lines.push(makeLine(`${lineCount} ${target}`));
+      return { lines };
+    }
+
+    case 'echo': {
+      if (rest.length === 0) {
+        lines.push(makeLine(''));
+        return { lines };
+      }
+
+      const redirectIdx = rest.findIndex((part) => part === '>' || part === '>>');
+      const messageParts =
+        redirectIdx === -1 ? rest : rest.slice(0, redirectIdx).filter(Boolean);
+      const message = messageParts.join(' ');
+
+      if (redirectIdx === -1) {
+        lines.push(makeLine(message));
+        return { lines };
+      }
+
+      const operator = rest[redirectIdx];
+      const target = rest[redirectIdx + 1];
+      if (!target) {
+        lines.push(makeLine('echo: invalid syntax', 'stderr'));
+        return { lines };
+      }
+
+      const writeResult = writeFileContent(
+        fs,
+        cwd,
+        target,
+        message,
+        operator === '>>' ? 'append' : 'overwrite',
+      );
+
+      if (!writeResult.ok) {
+        if (writeResult.error.kind === 'not-a-directory') {
+          lines.push(makeLine(`${target}: Not a directory`, 'stderr'));
+        } else if (writeResult.error.kind === 'not-a-file') {
+          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
+        } else {
+          lines.push(makeLine(writeResult.error.message, 'stderr'));
+        }
+        return { lines };
+      }
+
+      return { lines, fs: writeResult.fs };
     }
 
     case 'mkdir': {
@@ -329,6 +408,15 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     ...initialData,
     setActiveLesson: (lessonId: string) =>
       set((state) => {
+        const targetLesson = state.modules
+          .flatMap((module) => module.lessons)
+          .find((lesson) => lesson.id === lessonId);
+
+        // Do not allow selecting locked lessons
+        if (!targetLesson || targetLesson.status === 'locked') {
+          return state;
+        }
+
         const updatedModules: Module[] = state.modules.map((module) => ({
           ...module,
           lessons: module.lessons.map<Lesson>((lesson) => {
@@ -388,10 +476,21 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           nextModuleId = acrossModules?.moduleId ?? nextModuleId;
         }
 
+        // Only mark module as completed if all lessons in that module are completed
+        const moduleOwner = updatedModules.find((module) =>
+          module.lessons.some((lesson) => lesson.id === lessonId),
+        );
+        const allLessonsCompleted =
+          moduleOwner?.lessons.every((lesson) => lesson.status === 'completed') ?? false;
+
         return {
           modules: updatedModules,
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
+          completedModuleId:
+            allLessonsCompleted && !nextLessonId
+              ? (moduleOwner?.id ?? null)
+              : state.completedModuleId,
         };
       }),
 
@@ -474,21 +573,35 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         ? nextCwd === activeLesson.expectedCwd
         : true;
       const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
-      const moduleCompleted =
-        shouldComplete && isLastLessonInModule(state.modules, state.activeLessonId);
-
       if (shouldComplete) {
+        const activeModule = state.modules.find((mod) => mod.id === state.activeModuleId);
+        const totalLessons = activeModule?.lessons.length ?? 0;
+        const alreadyCompleted =
+          activeModule?.lessons.filter((l) => l.status === 'completed').length ?? 0;
+        const completedAfter =
+          alreadyCompleted + (activeLesson?.status === 'completed' ? 0 : 1);
+
         get().completeLesson(activeLesson!.id);
         if (activeLesson?.sampleOutput) {
           lines.push(
             createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id),
           );
         }
+
+        if (totalLessons > 0) {
+          lines.push(
+            createOutputLine(
+              `⭐ Progress: ${completedAfter}/${totalLessons}`,
+              'system',
+              activeLesson?.id,
+            ),
+          );
+        }
       }
 
       const nextModuleId = get().activeModuleId;
       const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
-      const resetEnvironment = moduleCompleted || moduleSwitched;
+      const resetEnvironment = moduleSwitched;
       const shouldResetTerminal = resetEnvironment || shouldClear;
 
       set((prev) => ({
@@ -496,7 +609,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         fs: resetEnvironment ? createInitialFs() : nextFs,
         cwd: resetEnvironment ? DEFAULT_CWD : nextCwd,
         output: shouldResetTerminal ? [] : [...prev.output, ...lines],
-        completedModuleId: moduleCompleted ? prevModuleId : prev.completedModuleId,
+        completedModuleId: prev.completedModuleId,
       }));
     },
 
