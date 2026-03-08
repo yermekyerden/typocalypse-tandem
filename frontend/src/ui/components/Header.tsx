@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Logo from '@/assets/icons/LogoIcon.png';
-import { UserAvatar } from './Profile';
+import { UserAvatar } from './Avatar';
 
 export function Header() {
   return (

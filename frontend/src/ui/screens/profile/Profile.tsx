@@ -1,41 +1,11 @@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { userData } from '@/mocks/user-data';
-import { useNavigate } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { ChangeData } from '../../components/EditProfileDialog';
+import { getInitials } from './utils';
 
 type TabType = 'user-data' | 'progress' | 'settings';
-
-function getInitials() {
-  const userName = userData.userName
-    .split(' ')
-    .map((elem) => elem[0])
-    .join('')
-    .toUpperCase();
-  return userName;
-}
-
-export function UserAvatar() {
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  const handleClick = () => {
-    if (location.pathname !== '/profile') {
-      navigate('/profile');
-    }
-  };
-
-  return (
-    <div
-      className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg
-    font-semibold text-yellow-400 ring-2 ring-yellow-400/50 cursor-pointer"
-      onClick={handleClick}
-    >
-      {getInitials()}
-    </div>
-  );
-}
 
 export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>('user-data');
@@ -120,8 +90,8 @@ export function ProfilePage() {
               <div className="space-y-6">
                 <div
                   className={cn(
-                    'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
-                    'md:flex-row md:items-center md:justify-between max-w-[50%]',
+                    'flex gap-2 rounded-lg bg-[#3f4044] p-4',
+                    'md:flex-row md:items-center md:justify-between w-[50%]',
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white">
@@ -168,16 +138,7 @@ export function ProfilePage() {
               </div>
 
               <div className="mt-8 flex justify-end">
-                <button
-                  className={cn(
-                    'px-6 py-3 font-medium transition-all duration-200 rounded-[30px]',
-                    'bg-[#ffd101] text-gray-900',
-                    'hover:bg-yellow-300 hover:shadow-lg hover:shadow-yellow-400/20',
-                    'active:scale-95 cursor-pointer',
-                  )}
-                >
-                  Change data
-                </button>
+                <ChangeData></ChangeData>
               </div>
             </>
           )}
