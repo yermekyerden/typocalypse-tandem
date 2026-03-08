@@ -1,8 +1,12 @@
 import { Link } from 'react-router-dom';
 import Logo from '@/assets/icons/LogoIcon.png';
 import { Avatar } from './Profile';
+import { useState } from 'react';
+import { ProfileModal } from './ui/ProfileModal';
 
 export function Header() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div>
       <header className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-400 p-1">
@@ -14,9 +18,11 @@ export function Header() {
             <img src={Logo} alt="Terminal Dojo" className="h-8 w-8" />
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
-          <Avatar onClick={() => console.log('Тестируем онклик!')}></Avatar>
+          <Avatar onClick={() => setIsModalOpen(true)}></Avatar>
         </div>
       </header>
+
+      {isModalOpen && <ProfileModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 }
