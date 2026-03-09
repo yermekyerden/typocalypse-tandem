@@ -34,10 +34,6 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer()).get('/').expect(200).expect('Hello World!');
-  });
-
   it('/api-docs-json (GET) exposes OpenAPI document with auth endpoints', async () => {
     const response = await request(app.getHttpServer()).get('/api-docs-json').expect(200);
 

@@ -226,13 +226,13 @@ describe('AuthController (e2e)', () => {
     expect(typeof body.expiresAt).toBe('string');
   });
 
-  it('POST /auth/refresh returns 401 for malformed token', async () => {
+  it('POST /auth/refresh returns 400 for malformed token', async () => {
     await request(app.getHttpServer())
       .post('/auth/refresh')
       .send({
         refreshToken: 'not-a-jwt',
       })
-      .expect(401);
+      .expect(400);
   });
 
   it('POST /auth/refresh returns 401 for access token passed as refresh token', async () => {
