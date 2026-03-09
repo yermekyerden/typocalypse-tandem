@@ -29,7 +29,7 @@ export function ChangeData() {
           <DialogHeader>
             <DialogTitle className="text-white">Edit profile</DialogTitle>
             <DialogDescription className="text-white">
-              Make changes to your profile here. Click save when you&apos;re done.
+              Make changes to your profile here. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-4">
