@@ -6,7 +6,7 @@ import { LibraryScreen } from '../ui/screens/library/LibraryScreen';
 import { MissionRunScreen } from '../ui/screens/mission-run/MissionRunScreen';
 import { ReplayScreen } from '../ui/screens/replay/ReplayScreen';
 import { NotFoundScreen } from '../ui/screens/not-found/NotFoundScreen';
-import { ProfilePage } from '../ui/components/Profile';
+import { ProfilePage } from '../ui/screens/profile/Profile';
 
 export function createAppRouter() {
   return createHashRouter([
