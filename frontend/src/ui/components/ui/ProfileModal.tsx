@@ -12,8 +12,8 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
         <h2 className="cursor-pointer hover:text-yellow-400">Profile</h2>
         <h2 className="cursor-pointer hover:text-yellow-400">Theme</h2>
         <h2 className="cursor-pointer hover:text-yellow-400">Help</h2>
-        <h2 className="cursor-pointer hover:text-yellow-400">Logout</h2>
         <h2 className="cursor-pointer hover:text-yellow-400">Properties</h2>
+        <h2 className="cursor-pointer hover:text-yellow-400">Logout</h2>
       </div>
     </div>
   );
