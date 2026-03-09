@@ -512,8 +512,9 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
           expandedModuleId: nextModuleId ?? state.expandedModuleId,
-          completedModuleId:
-            allLessonsCompleted ? (moduleOwner?.id ?? null) : state.completedModuleId,
+          completedModuleId: allLessonsCompleted
+            ? (moduleOwner?.id ?? null)
+            : state.completedModuleId,
         };
       }),
 

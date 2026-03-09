@@ -108,8 +108,8 @@ export function LibraryScreen() {
                 Congratulations! {completedModule.title} completed.
               </h3>
               <p className="text-amber-100/80 text-sm leading-relaxed">
-                Great work. You successfully completed every step in this module.
-                Ready to move on?
+                Great work. You successfully completed every step in this module. Ready to
+                move on?
               </p>
             </div>
 
