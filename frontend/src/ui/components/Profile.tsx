@@ -1,8 +1,15 @@
 import { cn } from '@/lib/utils';
+type AvatarProps = {
+  initials?: string;
+  onClick?: () => void;
+};
 
-export function Avatar({ initials = 'JD' }: { initials?: string }) {
+export function Avatar({ initials = 'JD', onClick }: AvatarProps) {
   return (
-    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50">
+    <div
+      className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)]"
+      onClick={onClick}
+    >
       {initials}
     </div>
   );
