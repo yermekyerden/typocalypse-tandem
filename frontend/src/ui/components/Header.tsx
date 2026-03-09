@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Logo from '@/assets/icons/LogoIcon.png';
-import { UserAvatar } from './Avatar';
+import { Avatar } from './Avatar';
 
 export function Header() {
   return (
@@ -11,7 +11,7 @@ export function Header() {
             <img src={Logo} alt="Terminal Dojo" className="h-8 w-8" />
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
-          <UserAvatar></UserAvatar>
+          <Avatar></Avatar>
         </div>
       </header>
     </div>

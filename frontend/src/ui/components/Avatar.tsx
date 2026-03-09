@@ -1,6 +1,6 @@
 import { getInitials } from '../screens/profile/utils';
 
-export function UserAvatar() {
+export function Avatar() {
   return (
     <div
       className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg
