@@ -106,13 +106,19 @@ function getNextLesson(
   modules: Module[],
   currentLessonId: string | null,
 ): { lesson: Module['lessons'][number]; moduleId: string } | null {
-  for (const module of modules) {
+  for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex += 1) {
+    const module = modules[moduleIndex];
     for (let i = 0; i < module.lessons.length; i += 1) {
       const lesson = module.lessons[i];
       if (lesson.id === currentLessonId) {
         const nextLesson = module.lessons[i + 1];
         if (nextLesson) {
           return { lesson: nextLesson, moduleId: module.id };
+        }
+        const nextModule = modules[moduleIndex + 1];
+        const firstLessonOfNextModule = nextModule?.lessons[0];
+        if (nextModule && firstLessonOfNextModule) {
+          return { lesson: firstLessonOfNextModule, moduleId: nextModule.id };
         }
         return null;
       }
@@ -448,7 +454,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
       set((state) => {
         let nextLessonId: string | null = null;
         let nextModuleId: string | null = null;
-        const updatedModules: Module[] = state.modules.map((module) => {
+        let updatedModules: Module[] = state.modules.map((module) => {
           const lessons: Lesson[] = module.lessons.map((lesson, index) => {
             if (lesson.id === lessonId) {
               nextLessonId = module.lessons[index + 1]?.id ?? null;
@@ -474,6 +480,15 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           const acrossModules = getNextLesson(updatedModules, lessonId);
           nextLessonId = acrossModules?.lesson.id ?? null;
           nextModuleId = acrossModules?.moduleId ?? nextModuleId;
+
+          if (nextLessonId) {
+            updatedModules = updatedModules.map((module) => ({
+              ...module,
+              lessons: module.lessons.map((lesson) =>
+                lesson.id === nextLessonId ? { ...lesson, status: 'active' } : lesson,
+              ),
+            }));
+          }
         }
 
         // Only mark module as completed if all lessons in that module are completed
@@ -488,9 +503,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
           completedModuleId:
-            allLessonsCompleted && !nextLessonId
-              ? (moduleOwner?.id ?? null)
-              : state.completedModuleId,
+            allLessonsCompleted ? (moduleOwner?.id ?? null) : state.completedModuleId,
         };
       }),
 
