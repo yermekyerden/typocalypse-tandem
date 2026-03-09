@@ -29,11 +29,13 @@ type TerminalState = {
   modules: Module[];
   activeModuleId: string | null;
   activeLessonId: string | null;
+  expandedModuleId: string | null;
   completedModuleId: string | null;
   cwd: string;
   fs: VirtualFileSystem;
   history: string[];
   output: OutputLine[];
+  setExpandedModuleId: (moduleId: string | null) => void;
   setActiveLesson: (lessonId: string) => void;
   completeLesson: (lessonId: string) => void;
   unlockNextLesson: (lessonId: string) => void;
@@ -403,6 +405,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
     modules,
     activeModuleId,
     activeLessonId,
+    expandedModuleId: activeModuleId,
     completedModuleId: null,
     cwd: DEFAULT_CWD,
     fs: createInitialFs(),
@@ -412,6 +415,11 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
 
   return {
     ...initialData,
+    setExpandedModuleId: (moduleId: string | null) =>
+      set({
+        expandedModuleId: moduleId,
+      }),
+
     setActiveLesson: (lessonId: string) =>
       set((state) => {
         const targetLesson = state.modules
@@ -447,6 +455,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           modules: updatedModules,
           activeLessonId: lessonId,
           activeModuleId: moduleOfLesson?.id ?? state.activeModuleId,
+          expandedModuleId: moduleOfLesson?.id ?? state.expandedModuleId,
         };
       }),
 
@@ -502,6 +511,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           modules: updatedModules,
           activeLessonId: nextLessonId ?? state.activeLessonId,
           activeModuleId: nextModuleId ?? state.activeModuleId,
+          expandedModuleId: nextModuleId ?? state.expandedModuleId,
           completedModuleId:
             allLessonsCompleted ? (moduleOwner?.id ?? null) : state.completedModuleId,
         };
@@ -533,6 +543,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
           modules: updatedModules,
           activeLessonId: activatedNext ?? state.activeLessonId,
           activeModuleId: activatedModule ?? state.activeModuleId,
+          expandedModuleId: activatedModule ?? state.expandedModuleId,
         };
       }),
 
@@ -639,6 +650,7 @@ export const useTerminalSession = create<TerminalState>((set, get) => {
         modules: fresh.modules,
         activeLessonId: fresh.activeLessonId,
         activeModuleId: fresh.activeModuleId,
+        expandedModuleId: fresh.activeModuleId,
         completedModuleId: null,
         cwd: DEFAULT_CWD,
         fs: createInitialFs(),
