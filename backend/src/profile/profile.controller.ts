@@ -88,6 +88,7 @@ export class ProfileController {
   }
 
   @Post('me/avatar')
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @UseInterceptors(FileInterceptor('avatar', avatarMulterOptions))
