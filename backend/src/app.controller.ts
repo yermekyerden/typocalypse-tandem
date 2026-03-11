@@ -1,16 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { AppService } from './app.service';
+import { Controller } from '@nestjs/common';
 
-@ApiTags('App')
 @Controller()
-export class AppController {
-  constructor(private readonly appService: AppService) {}
-
-  @Get()
-  @ApiOperation({ summary: 'Default root endpoint' })
-  @ApiOkResponse({ schema: { type: 'string', example: 'Hello World!' } })
-  getHello(): string {
-    return this.appService.getHello();
-  }
-}
+export class AppController {}
