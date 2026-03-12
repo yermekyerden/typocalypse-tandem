@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { type LessonStatus } from '@/mocks/modules';
 import { useTerminalSession } from '@/store/terminalSession';
 import {
@@ -15,10 +14,11 @@ const statusStyles: Record<LessonStatus, string> = {
 };
 
 export function ModulesSidebar() {
-  const [openId, setOpenId] = useState<string | null>('cmd-basics');
   const modules = useTerminalSession((s) => s.modules);
+  const openId = useTerminalSession((s) => s.expandedModuleId);
   const selectedLessonId = useTerminalSession((s) => s.activeLessonId);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
+  const setExpandedModuleId = useTerminalSession((s) => s.setExpandedModuleId);
 
   return (
     <aside className="w-[460px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-170px)] overflow-y-auto">
@@ -33,7 +33,7 @@ export function ModulesSidebar() {
         type="single"
         collapsible
         value={openId ?? undefined}
-        onValueChange={(val) => setOpenId(val || null)}
+        onValueChange={(val) => setExpandedModuleId(val || null)}
         className="space-y-3"
       >
         {modules.map((module) => (
