@@ -79,7 +79,6 @@ export function LibraryScreen() {
           progress={currentProgress}
         />
       )}
-
       <LibraryCompletionModal
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}
