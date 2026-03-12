@@ -17,10 +17,16 @@ function resolveCurrentModule(modules: Module[], lessonId: string | null) {
     return null;
   }
 
-  return modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ?? null;
+  return (
+    modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ??
+    null
+  );
 }
 
-function resolveCurrentLesson(module: Module | null, lessonId: string | null): Lesson | null {
+function resolveCurrentLesson(
+  module: Module | null,
+  lessonId: string | null,
+): Lesson | null {
   if (!module || !lessonId) {
     return null;
   }
