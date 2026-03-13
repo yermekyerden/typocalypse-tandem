@@ -137,7 +137,7 @@ export function ProfileScreen() {
                       onClick={() => handleEditClick('username', userData.userName)}
                     >
                       <span>Edit</span>
-                      <img className="w-4 h-4" src="/Union.svg"></img>
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
                 </div>
@@ -177,7 +177,7 @@ export function ProfileScreen() {
                       onClick={() => handleEditClick('login', userData.login)}
                     >
                       <span>Edit</span>
-                      <img className="w-4 h-4" src="/Union.svg"></img>
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
                 </div>
@@ -217,7 +217,7 @@ export function ProfileScreen() {
                       onClick={() => handleEditClick('email', userData.email)}
                     >
                       <span>Edit</span>
-                      <img className="w-4 h-4" src="/Union.svg"></img>
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
                 </div>
@@ -257,7 +257,7 @@ export function ProfileScreen() {
                       onClick={() => handleEditClick('password', userData.password)}
                     >
                       <span>Edit</span>
-                      <img className="w-4 h-4" src="/Union.svg"></img>
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
                 </div>
