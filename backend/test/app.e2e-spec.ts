@@ -45,4 +45,16 @@ describe('AppController (e2e)', () => {
     expect(paths['/auth/login']).toBeDefined();
     expect(paths['/auth/refresh']).toBeDefined();
   });
+
+  it('/api-docs-json (GET) exposes OpenAPI document with auth endpoints', async () => {
+    const response = await request(app.getHttpServer()).get('/api-docs-json').expect(200);
+
+    const body = toRecord(response.body as unknown);
+    const paths = toRecord(body.paths);
+
+    expect(body.openapi).toEqual(expect.any(String));
+    expect(paths['/auth/register']).toBeDefined();
+    expect(paths['/auth/login']).toBeDefined();
+    expect(paths['/auth/refresh']).toBeDefined();
+  });
 });
