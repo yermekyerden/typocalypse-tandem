@@ -4,7 +4,10 @@
         "lint-staged": "npm run lint:backend && npm run lint:frontend",
         "lint:backend": "cd backend && npx lint-staged",
         "lint:frontend": "cd frontend && npx lint-staged",
-        "build:frontend": "cd frontend && npm run build"
+        "build:frontend": "cd frontend && npm run build",
+        "test": "npm run test:frontend && npm run test:backend",
+        "test:frontend": "npm --prefix frontend run test",
+        "test:backend": "npm --prefix backend run test"
     },
     "devDependencies": {
         "@commitlint/cli": "^20.4.2",
