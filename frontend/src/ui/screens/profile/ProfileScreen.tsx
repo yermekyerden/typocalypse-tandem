@@ -13,6 +13,7 @@ export function ProfileScreen() {
   const [editValue, setEditValue] = useState('');
 
   function handleEditClick(field: EditableField, currentValue: string) {
+    if (!field) return;
     setEditingField(field);
     setEditValue(currentValue);
   }
