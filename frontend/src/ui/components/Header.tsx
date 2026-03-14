@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Logo from '@/assets/icons/LogoIcon.png';
-import { Avatar } from './Profile';
+import { Avatar } from './Avatar';
 import { useState } from 'react';
 import { ProfileModal } from './ui/ProfileModal';
 
