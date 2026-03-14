@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { userData } from '@/mocks/user-data';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { getInitials } from './utils';
+import { DashboardScreen } from '../dashboard/DashboardScreen';
 
 type TabType = 'user-data' | 'progress' | 'settings';
 type EditableField = 'username' | 'login' | 'email' | 'password' | null;
@@ -85,7 +86,7 @@ export function ProfileScreen() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col md:justify-between">
+        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
           {activeTab === 'user-data' && (
             <>
               <h1 className="mb-8 text-4xl font-bold text-yellow-400">
@@ -264,6 +265,7 @@ export function ProfileScreen() {
               </div>
             </>
           )}
+          {activeTab === 'progress' && <DashboardScreen></DashboardScreen>}
         </div>
       </div>
     </div>
