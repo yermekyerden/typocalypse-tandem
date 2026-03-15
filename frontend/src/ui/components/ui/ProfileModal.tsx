@@ -8,8 +8,8 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
-    onClose();
     navigate('/profile');
+    onClose();
   };
 
   return (
