@@ -5,9 +5,10 @@ import { HealthModule } from './health/health.module';
 import { ProfileModule } from './profile/profile.module';
 import { LearningModule } from './learning/learning.module';
 import { MissionsModule } from './missions/missions.module';
+import { EngineModule } from './engine/engine.module';
 
 @Module({
-  imports: [AuthModule, HealthModule, ProfileModule, LearningModule, MissionsModule],
+  imports: [AuthModule, HealthModule, ProfileModule, LearningModule, MissionsModule, EngineModule],
   controllers: [AppController],
 })
 export class AppModule {}
