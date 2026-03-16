@@ -18,11 +18,8 @@ export function Header() {
             <img src={Logo} alt="Terminal Dojo" className="h-8 w-8" />
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
-          <div
-            className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)]"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Avatar />
+          <div className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)]">
+            <Avatar onClick={() => setIsModalOpen(true)} />
           </div>
         </div>
       </header>
