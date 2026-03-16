@@ -1,5 +1,7 @@
 import {
+  ArrayMinSize,
   IsArray,
+  IsDefined,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -7,7 +9,6 @@ import {
   IsString,
   Min,
   MinLength,
-  ArrayMinSize,
 } from 'class-validator';
 
 export type MissionDifficulty = 'easy' | 'medium' | 'hard';
@@ -54,6 +55,7 @@ export class MissionDefinition {
   initialCwd!: string;
 
   /** Validated structurally in loadMissionsContent via assertValidVfsSnapshot(). */
+  @IsDefined()
   initialFs!: unknown;
 
   /** Validated structurally in loadMissionsContent via assertValidChecks(). */
