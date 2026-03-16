@@ -19,6 +19,7 @@
 ## Артефакты
 - PR review: https://github.com/yermekyerden/typocalypse-tandem/pull/50
 - PR review: https://github.com/yermekyerden/typocalypse-tandem/pull/46
+- PR review: https://github.com/yermekyerden/typocalypse-tandem/pull/70
 
 ## Дальнейшие шаги
 - Продолжить работу над интеграцией frontend с backend до следующей встречи команды.
