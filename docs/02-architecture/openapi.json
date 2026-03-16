@@ -557,6 +557,206 @@
           "Learning"
         ]
       }
+    },
+    "/missions": {
+      "get": {
+        "operationId": "MissionsController_listMissions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns all mission headers."
+          }
+        },
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/missions/{id}": {
+      "get": {
+        "operationId": "MissionsController_getMissionById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns a full mission by id."
+          },
+          "404": {
+            "description": "Mission not found."
+          }
+        },
+        "tags": [
+          "missions"
+        ]
+      }
+    },
+    "/attempts": {
+      "post": {
+        "operationId": "AttemptsController_createAttempt",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttemptDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Creates a new in-progress attempt."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "attempts"
+        ]
+      }
+    },
+    "/attempts/{id}": {
+      "get": {
+        "operationId": "AttemptsController_getAttempt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns attempt with full step history."
+          },
+          "403": {
+            "description": "Attempt belongs to another user."
+          },
+          "404": {
+            "description": "Attempt not found."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "attempts"
+        ]
+      }
+    },
+    "/attempts/{id}/command": {
+      "patch": {
+        "operationId": "AttemptsController_submitCommand",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitCommandDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Executes a command and returns result."
+          },
+          "404": {
+            "description": "Attempt not found."
+          },
+          "409": {
+            "description": "Attempt is completed or abandoned."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "attempts"
+        ]
+      }
+    },
+    "/attempts/{id}/abandon": {
+      "patch": {
+        "operationId": "AttemptsController_abandonAttempt",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marks the attempt as abandoned."
+          },
+          "404": {
+            "description": "Attempt not found."
+          },
+          "409": {
+            "description": "Attempt is already finished."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "attempts"
+        ]
+      }
+    },
+    "/progress": {
+      "get": {
+        "operationId": "ProgressController_getProgress",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns derived progress for the current user."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "progress"
+        ]
+      }
     }
   },
   "info": {
@@ -926,6 +1126,35 @@
         },
         "required": [
           "lesson"
+        ]
+      },
+      "CreateAttemptDto": {
+        "type": "object",
+        "properties": {
+          "missionId": {
+            "type": "string",
+            "description": "The mission to attempt."
+          }
+        },
+        "required": [
+          "missionId"
+        ]
+      },
+      "SubmitCommandDto": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The shell command line to execute."
+          },
+          "clientCommandId": {
+            "type": "string",
+            "description": "UUID generated by the client per submission. Enforces idempotency."
+          }
+        },
+        "required": [
+          "command",
+          "clientCommandId"
         ]
       }
     }
