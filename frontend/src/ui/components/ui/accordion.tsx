@@ -24,7 +24,7 @@ const AccordionTrigger = ({
     <AccordionPrimitive.Trigger
       className={cn(
         'flex flex-1 items-center justify-between py-2 text-left text-sm font-medium transition-all',
-        'hover:underline focus:outline-none',
+        'hover:no-underline focus:outline-none',
         className,
       )}
       {...props}

@@ -71,6 +71,7 @@ backend/.tsbuildinfo
 backend/logs/
 backend/tmp/
 backend/temp/
+backend/uploads/
 
 # =========================
 # Env files

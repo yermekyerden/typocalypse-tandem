@@ -15,14 +15,23 @@ npm install
 npm run start:dev
 ```
 
-The API starts on `http://localhost:3000` by default.
+The API starts on `http://localhost:3001` by default (set `PORT` env var to change).
+
+> **Note:** The backend uses port 3001 to avoid conflicting with the frontend dev server, which defaults to port 3000.
 
 ## Health check
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3001/health
 # {"status":"ok","info":{},"error":{},"details":{}}
 ```
+
+## API docs (Swagger)
+
+When the backend is running, open:
+
+- UI: `http://localhost:3001/api-docs`
+- JSON: `http://localhost:3001/api-docs-json`
 
 ## Scripts
 
@@ -44,7 +53,7 @@ Build and run with Docker Compose:
 
 ```bash
 docker compose up --build
-curl http://localhost:3000/health
+curl http://localhost:3001/health
 ```
 
 To stop:
