@@ -9,6 +9,46 @@ import {
 } from './vfs.service';
 import { VfsSnapshot } from '../engine.types';
 
+function expectVfsSuccess(result: ReturnType<typeof vfsMkdir>): VfsSnapshot {
+  expect('root' in result).toBe(true);
+  if (!('root' in result)) {
+    throw new Error(`Expected VFS success, got: ${result.type}`);
+  }
+  return result;
+}
+
+function expectVfsError(result: ReturnType<typeof vfsMkdir>) {
+  expect('root' in result).toBe(false);
+  if ('root' in result) {
+    throw new Error('Expected VFS error, got a snapshot result.');
+  }
+  return result;
+}
+
+function expectListResult(result: ReturnType<typeof vfsList>) {
+  expect(Array.isArray(result)).toBe(true);
+  if (!Array.isArray(result)) {
+    throw new Error(`Expected directory listing, got: ${result.type}`);
+  }
+  return result;
+}
+
+function expectListError(result: ReturnType<typeof vfsList>) {
+  expect(Array.isArray(result)).toBe(false);
+  if (Array.isArray(result)) {
+    throw new Error(`Expected list error, got ${result.length} entries.`);
+  }
+  return result;
+}
+
+function expectReadError(result: ReturnType<typeof vfsRead>) {
+  expect(typeof result).not.toBe('string');
+  if (typeof result === 'string') {
+    throw new Error(`Expected read error, got content: ${result}`);
+  }
+  return result;
+}
+
 function makeSnapshot(): VfsSnapshot {
   return {
     root: {
@@ -51,23 +91,20 @@ describe('VfsService', () => {
 
   describe('vfsList', () => {
     it('lists children of a directory', () => {
-      const result = vfsList(makeSnapshot(), '/home/dojo');
-      expect(Array.isArray(result)).toBe(true);
-      if (!Array.isArray(result)) return;
+      const result = expectListResult(vfsList(makeSnapshot(), '/home/dojo'));
+
       expect(result.map((n) => n.name)).toContain('readme.txt');
     });
 
     it('returns error for missing path', () => {
-      const result = vfsList(makeSnapshot(), '/nonexistent');
-      expect(Array.isArray(result)).toBe(false);
-      if (Array.isArray(result)) return;
+      const result = expectListError(vfsList(makeSnapshot(), '/nonexistent'));
+
       expect(result.type).toBe('path_not_found');
     });
 
     it('returns error for file path', () => {
-      const result = vfsList(makeSnapshot(), '/home/dojo/readme.txt');
-      expect(Array.isArray(result)).toBe(false);
-      if (Array.isArray(result)) return;
+      const result = expectListError(vfsList(makeSnapshot(), '/home/dojo/readme.txt'));
+
       expect(result.type).toBe('not_a_directory');
     });
   });
@@ -78,38 +115,35 @@ describe('VfsService', () => {
     });
 
     it('returns error for directory', () => {
-      const result = vfsRead(makeSnapshot(), '/home/dojo');
-      expect(typeof result).not.toBe('string');
-      if (typeof result === 'string') return;
+      const result = expectReadError(vfsRead(makeSnapshot(), '/home/dojo'));
+
       expect(result.type).toBe('is_a_directory');
     });
 
     it('returns error for missing path', () => {
-      const result = vfsRead(makeSnapshot(), '/home/dojo/nope.txt');
-      expect(typeof result).not.toBe('string');
-      if (typeof result === 'string') return;
+      const result = expectReadError(vfsRead(makeSnapshot(), '/home/dojo/nope.txt'));
+
       expect(result.type).toBe('path_not_found');
     });
   });
 
   describe('vfsMkdir', () => {
     it('creates a new directory', () => {
-      const result = vfsMkdir(makeSnapshot(), '/home/dojo/projects');
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(vfsMkdir(makeSnapshot(), '/home/dojo/projects'));
+
       expect(vfsResolve(result, '/home/dojo/projects')?.type).toBe('dir');
     });
 
     it('returns error when parent does not exist', () => {
-      const result = vfsMkdir(makeSnapshot(), '/home/ghost/projects');
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(vfsMkdir(makeSnapshot(), '/home/ghost/projects'));
+
       expect(result.type).toBe('path_not_found');
     });
 
     it('returns error when path already exists', () => {
-      const result = vfsMkdir(makeSnapshot(), '/home/dojo');
-      expect('root' in result).toBe(false);
+      const result = expectVfsError(vfsMkdir(makeSnapshot(), '/home/dojo'));
+
+      expect(result.type).toBe('path_not_found');
     });
 
     it('enforces maxNodes budget', () => {
@@ -117,9 +151,8 @@ describe('VfsService', () => {
         ...makeSnapshot(),
         budgets: { maxNodes: 3, maxDepth: 10, maxFileBytes: 65536 },
       };
-      const result = vfsMkdir(snapshot, '/home/dojo/projects');
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(vfsMkdir(snapshot, '/home/dojo/projects'));
+
       expect(result.type).toBe('budget_exceeded');
       expect(result.budget).toBe('max_vfs_nodes');
     });
@@ -127,9 +160,8 @@ describe('VfsService', () => {
 
   describe('vfsTouch', () => {
     it('creates a new empty file', () => {
-      const result = vfsTouch(makeSnapshot(), '/home/dojo/newfile.txt');
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(vfsTouch(makeSnapshot(), '/home/dojo/newfile.txt'));
+
       expect(vfsResolve(result, '/home/dojo/newfile.txt')?.type).toBe('file');
     });
 
@@ -140,32 +172,34 @@ describe('VfsService', () => {
     });
 
     it('returns error for existing directory', () => {
-      const result = vfsTouch(makeSnapshot(), '/home/dojo');
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(vfsTouch(makeSnapshot(), '/home/dojo'));
+
       expect(result.type).toBe('is_a_directory');
     });
   });
 
   describe('vfsWriteFile', () => {
     it('overwrites existing file', () => {
-      const result = vfsWriteFile(makeSnapshot(), '/home/dojo/readme.txt', 'new content', false);
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(
+        vfsWriteFile(makeSnapshot(), '/home/dojo/readme.txt', 'new content', false),
+      );
+
       expect(vfsRead(result, '/home/dojo/readme.txt')).toBe('new content');
     });
 
     it('appends to existing file', () => {
-      const result = vfsWriteFile(makeSnapshot(), '/home/dojo/readme.txt', 'appended', true);
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(
+        vfsWriteFile(makeSnapshot(), '/home/dojo/readme.txt', 'appended', true),
+      );
+
       expect(vfsRead(result, '/home/dojo/readme.txt')).toBe('hello\nappended');
     });
 
     it('creates file if it does not exist', () => {
-      const result = vfsWriteFile(makeSnapshot(), '/home/dojo/new.txt', 'created', false);
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(
+        vfsWriteFile(makeSnapshot(), '/home/dojo/new.txt', 'created', false),
+      );
+
       expect(vfsRead(result, '/home/dojo/new.txt')).toBe('created');
     });
 
@@ -174,9 +208,10 @@ describe('VfsService', () => {
         ...makeSnapshot(),
         budgets: { maxNodes: 200, maxDepth: 10, maxFileBytes: 5 },
       };
-      const result = vfsWriteFile(snapshot, '/home/dojo/readme.txt', 'way too long content', false);
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(
+        vfsWriteFile(snapshot, '/home/dojo/readme.txt', 'way too long content', false),
+      );
+
       expect(result.type).toBe('budget_exceeded');
       expect(result.budget).toBe('max_file_bytes');
     });
@@ -184,23 +219,20 @@ describe('VfsService', () => {
 
   describe('vfsRemoveFile', () => {
     it('removes an existing file', () => {
-      const result = vfsRemoveFile(makeSnapshot(), '/home/dojo/readme.txt');
-      expect('root' in result).toBe(true);
-      if (!('root' in result)) return;
+      const result = expectVfsSuccess(vfsRemoveFile(makeSnapshot(), '/home/dojo/readme.txt'));
+
       expect(vfsResolve(result, '/home/dojo/readme.txt')).toBeNull();
     });
 
     it('returns error for missing path', () => {
-      const result = vfsRemoveFile(makeSnapshot(), '/home/dojo/ghost.txt');
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(vfsRemoveFile(makeSnapshot(), '/home/dojo/ghost.txt'));
+
       expect(result.type).toBe('path_not_found');
     });
 
     it('returns error for directory', () => {
-      const result = vfsRemoveFile(makeSnapshot(), '/home/dojo');
-      expect('root' in result).toBe(false);
-      if ('root' in result) return;
+      const result = expectVfsError(vfsRemoveFile(makeSnapshot(), '/home/dojo'));
+
       expect(result.type).toBe('is_a_directory');
     });
   });

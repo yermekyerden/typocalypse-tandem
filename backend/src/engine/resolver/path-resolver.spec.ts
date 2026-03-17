@@ -2,28 +2,15 @@ import { resolvePath, resolveArgs, parentPath, basename } from './path-resolver'
 
 describe('PathResolver', () => {
   describe('resolvePath', () => {
-    it('absolute path ignores cwd', () => {
-      expect(resolvePath('/home/dojo', '/tmp')).toBe('/tmp');
-    });
-
-    it('relative path resolved against cwd', () => {
-      expect(resolvePath('/home/dojo', 'projects')).toBe('/home/dojo/projects');
-    });
-
-    it('. stays at same level', () => {
-      expect(resolvePath('/home/dojo', '.')).toBe('/home/dojo');
-    });
-
-    it('.. goes to parent', () => {
-      expect(resolvePath('/home/dojo', '..')).toBe('/home');
-    });
-
-    it('.. at root stays at root', () => {
-      expect(resolvePath('/', '..')).toBe('/');
-    });
-
-    it('normalizes multiple slashes', () => {
-      expect(resolvePath('/home/dojo', '../dojo/../dojo')).toBe('/home/dojo');
+    test.each([
+      ['/home/dojo', '/tmp', '/tmp'],
+      ['/home/dojo', 'projects', '/home/dojo/projects'],
+      ['/home/dojo', '.', '/home/dojo'],
+      ['/home/dojo', '..', '/home'],
+      ['/', '..', '/'],
+      ['/home/dojo', '../dojo/../dojo', '/home/dojo'],
+    ])('resolvePath(%s, %s) -> %s', (cwd, input, expected) => {
+      expect(resolvePath(cwd, input)).toBe(expected);
     });
   });
 
