@@ -146,13 +146,13 @@ describe('VfsService', () => {
       expect(result.type).toBe('path_not_found');
     });
 
-    it('enforces maxNodes budget', () => {
       const snapshot: VfsSnapshot = {
         ...makeSnapshot(),
         budgets: { maxNodes: 3, maxDepth: 10, maxFileBytes: 65536 },
       };
-      const result = expectVfsError(vfsMkdir(snapshot, '/home/dojo/projects'));
-
+      const result = vfsMkdir(snapshot, '/home/dojo/projects');
+      
+      expect('root' in result).toBe(false);
       expect(result.type).toBe('budget_exceeded');
       expect(result.budget).toBe('max_vfs_nodes');
     });
