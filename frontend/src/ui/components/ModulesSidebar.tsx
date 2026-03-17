@@ -21,7 +21,7 @@ export function ModulesSidebar() {
   const setExpandedModuleId = useTerminalSession((s) => s.setExpandedModuleId);
 
   return (
-    <aside className="w-[460px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-170px)] overflow-y-auto">
+    <aside className="w-[460px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-170px)] overflow-y-auto scrollbar-thin">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
           Learning
