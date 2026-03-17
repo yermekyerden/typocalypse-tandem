@@ -8,12 +8,7 @@ import { AttemptStep } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MissionsService } from '../missions/missions.service';
 import { EngineService } from '../engine/engine.service';
-import {
-  ExecutionTrace,
-  MissionCheck,
-  ValidationResult,
-  VfsSnapshot,
-} from '../engine/engine.types';
+import { ExecutionTrace, ValidationResult, VfsSnapshot } from '../engine/engine.types';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
 import { SubmitCommandDto } from './dto/submit-command.dto';
 
@@ -146,7 +141,7 @@ export class AttemptsService {
       inputLine: dto.command,
       vfs: currentVfs,
       cwd: attempt.currentCwd,
-      checks: mission.checks as MissionCheck[],
+      checks: mission.checks,
       constraints: {
         ...(mission.allowedCommands ? { allowedCommands: mission.allowedCommands } : {}),
       },

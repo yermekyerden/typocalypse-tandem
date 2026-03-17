@@ -1,35 +1,7 @@
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validateSync } from 'class-validator';
+import type { MissionCheck, VfsDirNode, VfsNode, VfsSnapshot } from '../engine/engine.types';
 import { MissionDefinition, MissionContentSource } from './missions-content.types';
-
-export type VfsDirNode = {
-  type: 'dir';
-  name: string;
-  children: VfsNode[];
-};
-
-export type VfsFileNode = {
-  type: 'file';
-  name: string;
-  content: string;
-};
-
-export type VfsNode = VfsDirNode | VfsFileNode;
-
-export type VfsSnapshot = {
-  root: VfsDirNode;
-  budgets?: {
-    maxNodes: number;
-    maxDepth: number;
-    maxFileBytes: number;
-  };
-};
-
-export type MissionCheck = {
-  id: string;
-  type: string;
-  [key: string]: unknown;
-};
 
 export type MissionHint = {
   id: string;
@@ -215,7 +187,7 @@ function assertValidVfsNode(raw: unknown, path: string): VfsNode {
   throw new Error(`${path}.type must be "dir" or "file", got: ${String(node['type'])}`);
 }
 
-const VALID_CHECK_TYPES = new Set([
+const VALID_CHECK_TYPES: ReadonlySet<MissionCheck['type']> = new Set([
   'cwd_is',
   'exit_code_is',
   'path_exists',
@@ -238,7 +210,12 @@ function assertValidChecks(raw: unknown[], name: string): MissionCheck[] {
       throw new Error(`${name}[${i}].id must be a non-empty string`);
     }
 
-    if (typeof c['type'] !== 'string' || !VALID_CHECK_TYPES.has(c['type'])) {
+    const checkType = c['type'];
+
+    if (
+      typeof checkType !== 'string' ||
+      !VALID_CHECK_TYPES.has(checkType as MissionCheck['type'])
+    ) {
       throw new Error(`${name}[${i}].type must be one of: ${[...VALID_CHECK_TYPES].join(', ')}`);
     }
 
