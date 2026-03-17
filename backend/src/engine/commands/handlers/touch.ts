@@ -1,9 +1,15 @@
-import { CommandExecution } from '../../engine.types';
+import { CommandExecution, InvalidArgumentsError, NodeCreatedEffect } from '../../engine.types';
 import { CommandHandler } from '../command-handler.types';
 import { vfsTouch } from '../../vfs/vfs.service';
 
 export const touchHandler: CommandHandler = (args, vfs, cwd): CommandExecution => {
   if (args.length === 0) {
+    const error: InvalidArgumentsError = {
+      type: 'invalid_arguments',
+      message: 'missing file operand',
+      commandName: 'touch',
+    };
+
     return {
       stdout: '',
       stderr: 'touch: missing file operand',
@@ -11,7 +17,7 @@ export const touchHandler: CommandHandler = (args, vfs, cwd): CommandExecution =
       vfsAfter: vfs,
       cwdAfter: cwd,
       effects: [],
-      error: { type: 'invalid_arguments', message: 'missing file operand', commandName: 'touch' },
+      error,
     };
   }
 
@@ -48,10 +54,13 @@ export const touchHandler: CommandHandler = (args, vfs, cwd): CommandExecution =
     exitCode: 0,
     vfsAfter: currentVfs,
     cwdAfter: cwd,
-    effects: created.map((p) => ({
-      type: 'node_created' as const,
-      path: p,
-      kind: 'file' as const,
-    })),
+    effects: created.map(
+      (path) =>
+        ({
+          type: 'node_created',
+          path,
+          kind: 'file',
+        }) satisfies NodeCreatedEffect,
+    ),
   };
 };

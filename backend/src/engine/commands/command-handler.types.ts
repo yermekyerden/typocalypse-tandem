@@ -1,10 +1,5 @@
-import {
-  CommandExecution,
-  DEFAULT_BUDGETS,
-  EngineConstraints,
-  VfsBudgets,
-  VfsSnapshot,
-} from '../engine.types';
+import { CommandExecution, EngineConstraints, VfsBudgets, VfsSnapshot } from '../engine.types';
+import { DEFAULT_BUDGETS } from '../engine.constants';
 
 /** All constraints passed into every handler. */
 export type HandlerConstraints = {

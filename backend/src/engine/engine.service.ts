@@ -4,8 +4,8 @@ import {
   CommandExecution,
   EngineRunInput,
   EngineRunResult,
-  MAX_INPUT_LENGTH,
 } from './engine.types';
+import { MAX_INPUT_LENGTH } from './engine.constants';
 import { parseShellLine } from './parser/shell-parser';
 import { resolveArgs, resolvePath } from './resolver/path-resolver';
 import { dispatch } from './commands/registry';

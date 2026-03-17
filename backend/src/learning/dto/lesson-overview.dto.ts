@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import type { LessonHeuristicStatus } from '../../learning-content/learning-content.types';
 
 export class LessonOverviewDto {
   @ApiProperty({ example: 'ls-home' })
@@ -14,5 +15,5 @@ export class LessonOverviewDto {
   order: number;
 
   @ApiProperty({ enum: ['locked', 'active', 'completed'], example: 'active' })
-  status: 'locked' | 'active' | 'completed';
+  status: LessonHeuristicStatus;
 }

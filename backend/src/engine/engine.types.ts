@@ -33,14 +33,6 @@ export type VfsSnapshot = {
   budgets?: VfsBudgets;
 };
 
-export const DEFAULT_BUDGETS: VfsBudgets = {
-  maxNodes: 200,
-  maxDepth: 10,
-  maxFileBytes: 65536,
-};
-
-export const MAX_INPUT_LENGTH = 4096;
-
 // ── Engine errors ──────────────────────────────────────────────────────────
 
 export type ParseError = {
@@ -118,6 +110,8 @@ export type TraceEffect =
   | { type: 'node_created'; path: PosixPath; kind: 'file' | 'dir' }
   | { type: 'node_removed'; path: PosixPath }
   | { type: 'file_written'; path: PosixPath; bytesWritten: number };
+
+export type NodeCreatedEffect = Extract<TraceEffect, { type: 'node_created' }>;
 
 // ── Command execution result ───────────────────────────────────────────────
 

@@ -55,18 +55,7 @@ export class AttemptsService {
   }
 
   async getAttempt(userId: string, attemptId: string) {
-    const attempt = await this.prisma.attempt.findUnique({
-      where: { id: attemptId },
-      include: { steps: { orderBy: { stepIndex: 'asc' } } },
-    });
-
-    if (!attempt) {
-      throw new NotFoundException(`Attempt not found: ${attemptId}`);
-    }
-
-    if (attempt.userId !== userId) {
-      throw new ForbiddenException('You do not own this attempt.');
-    }
+    const attempt = await this.getOwnedAttemptWithStepsOrThrow(userId, attemptId);
 
     return {
       attempt: {
@@ -91,23 +80,9 @@ export class AttemptsService {
   }
 
   async submitCommand(userId: string, attemptId: string, dto: SubmitCommandDto) {
-    const attempt = await this.prisma.attempt.findUnique({
-      where: { id: attemptId },
-    });
+    const attempt = await this.getOwnedAttemptOrThrow(userId, attemptId);
 
-    if (!attempt) {
-      throw new NotFoundException(`Attempt not found: ${attemptId}`);
-    }
-
-    if (attempt.userId !== userId) {
-      throw new ForbiddenException('You do not own this attempt.');
-    }
-
-    if (attempt.status !== 'in_progress') {
-      throw new ConflictException(
-        `Attempt is already ${attempt.status}. Cannot submit more commands.`,
-      );
-    }
+    this.assertAttemptInProgress(attempt.status as AttemptStatus, 'submit more commands');
 
     // Idempotency: if this clientCommandId was already recorded, return its result
     const existing = await this.prisma.attemptStep.findUnique({
@@ -195,6 +170,22 @@ export class AttemptsService {
   }
 
   async abandonAttempt(userId: string, attemptId: string) {
+    const attempt = await this.getOwnedAttemptOrThrow(userId, attemptId);
+
+    this.assertAttemptInProgress(attempt.status as AttemptStatus, 'abandon');
+
+    await this.prisma.attempt.update({
+      where: { id: attemptId },
+      data: {
+        status: 'abandoned' satisfies AttemptStatus,
+        finishedAtUtc: new Date(),
+      },
+    });
+
+    return { attemptId, status: 'abandoned' as const };
+  }
+
+  private async getOwnedAttemptOrThrow(userId: string, attemptId: string) {
     const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
     });
@@ -207,18 +198,32 @@ export class AttemptsService {
       throw new ForbiddenException('You do not own this attempt.');
     }
 
-    if (attempt.status !== 'in_progress') {
-      throw new ConflictException(`Attempt is already ${attempt.status}. Cannot abandon.`);
-    }
+    return attempt;
+  }
 
-    await this.prisma.attempt.update({
+  private async getOwnedAttemptWithStepsOrThrow(userId: string, attemptId: string) {
+    const attempt = await this.prisma.attempt.findUnique({
       where: { id: attemptId },
-      data: {
-        status: 'abandoned' satisfies AttemptStatus,
-        finishedAtUtc: new Date(),
-      },
+      include: { steps: { orderBy: { stepIndex: 'asc' } } },
     });
 
-    return { attemptId, status: 'abandoned' as const };
+    if (!attempt) {
+      throw new NotFoundException(`Attempt not found: ${attemptId}`);
+    }
+
+    if (attempt.userId !== userId) {
+      throw new ForbiddenException('You do not own this attempt.');
+    }
+
+    return attempt;
+  }
+
+  private assertAttemptInProgress(
+    status: AttemptStatus,
+    action: 'submit more commands' | 'abandon',
+  ) {
+    if (status !== 'in_progress') {
+      throw new ConflictException(`Attempt is already ${status}. Cannot ${action}.`);
+    }
   }
 }

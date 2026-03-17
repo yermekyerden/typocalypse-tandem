@@ -1,16 +1,16 @@
-import { CommandHandler } from './command-handler.types';
-import { pwdHandler } from './handlers/pwd';
-import { lsHandler } from './handlers/ls';
-import { cdHandler } from './handlers/cd';
-import { catHandler } from './handlers/cat';
-import { echoHandler } from './handlers/echo';
-import { mkdirHandler } from './handlers/mkdir';
-import { touchHandler } from './handlers/touch';
-import { rmHandler } from './handlers/rm';
-import { helpHandler } from './handlers/help';
-import { CommandExecution, EngineError } from '../engine.types';
-import { HandlerConstraints } from './command-handler.types';
-import { VfsSnapshot } from '../engine.types';
+import { CommandExecution, EngineError, VfsSnapshot } from '../engine.types';
+import { CommandHandler, HandlerConstraints } from './command-handler.types';
+import {
+  catHandler,
+  cdHandler,
+  echoHandler,
+  helpHandler,
+  lsHandler,
+  mkdirHandler,
+  pwdHandler,
+  rmHandler,
+  touchHandler,
+} from './handlers';
 
 const REGISTRY = new Map<string, CommandHandler>([
   ['pwd', pwdHandler],

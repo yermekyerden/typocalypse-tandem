@@ -2,14 +2,16 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import type { LessonHeuristicStatus } from '../src/learning-content/learning-content.types';
+
+import { AppModule } from '../src/app.module';
 
 type LessonOverview = {
   id: string;
   slug: string;
   title: string;
   order: number;
-  status: string;
+  status: LessonHeuristicStatus;
 };
 
 type ModuleOverview = {
@@ -55,7 +57,7 @@ function asModules(value: unknown): ModuleOverview[] {
           slug: String(lessonRecord.slug),
           title: String(lessonRecord.title),
           order: Number(lessonRecord.order),
-          status: String(lessonRecord.status),
+          status: String(lessonRecord.status) as LessonHeuristicStatus,
         };
       }),
     };

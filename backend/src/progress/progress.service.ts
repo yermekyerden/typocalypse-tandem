@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+type MissionProgressStatus = 'not_started' | 'in_progress' | 'completed';
+
 type MissionProgressEntry = {
   missionId: string;
   missionVersion: number;
-  status: 'not_started' | 'in_progress' | 'completed';
+  status: MissionProgressStatus;
   attemptsCount: number;
   lastAttemptAtUtc?: string;
   bestAttemptId?: string;

@@ -14,8 +14,8 @@ import {
   VfsFileNode,
   VfsNode,
   VfsSnapshot,
-  DEFAULT_BUDGETS,
 } from '../engine.types';
+import { DEFAULT_BUDGETS } from '../engine.constants';
 
 export type VfsError =
   | PathNotFoundError
