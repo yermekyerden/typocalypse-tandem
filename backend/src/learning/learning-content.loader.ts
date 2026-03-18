@@ -3,6 +3,7 @@ import { ValidationError, validateSync } from 'class-validator';
 import {
   LessonContentDefinition,
   LessonDetail,
+  LessonHeuristicStatus,
   LearningContentSource,
   LearningOverviewResponse,
   ModuleContentDefinition,
@@ -99,7 +100,7 @@ export function loadLearningContent(source: LearningContentSource): LoadedLearni
         slug: lesson.slug,
         title: lesson.title,
         order: lesson.order,
-        status: 'locked' as const,
+        status: 'locked' satisfies LessonHeuristicStatus,
       })),
     };
   });
