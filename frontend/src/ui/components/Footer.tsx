@@ -1,4 +1,5 @@
 import GitHubLogo from '@/assets/icons/GitHub.png';
+import { AiAssistant } from './AiAssistant';
 
 export function Footer() {
   return (
@@ -24,6 +25,7 @@ export function Footer() {
           <img src={GitHubLogo} alt="GitHub Logo" className="h-6 w-6" />
         </a>
       </div>
+      <AiAssistant />
     </footer>
   );
 }
