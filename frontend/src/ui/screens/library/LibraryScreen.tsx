@@ -78,7 +78,11 @@ export function LibraryScreen() {
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
   const currentLessonId = activeLessonId ?? firstLessonId;
   const currentModule = resolveCurrentModule(modules, currentLessonId);
-  const currentLesson = resolveCurrentLesson(currentModule, currentLessonId, lessonDetailsById);
+  const currentLesson = resolveCurrentLesson(
+    currentModule,
+    currentLessonId,
+    lessonDetailsById,
+  );
   const currentProgress = resolveLessonProgress(currentModule);
   const completedModule =
     modules.find((module) => module.id === completedModuleId) ?? null;

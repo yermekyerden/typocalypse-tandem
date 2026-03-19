@@ -78,7 +78,9 @@ function appendOutputLines(
     return current;
   }
 
-  const nextLines = text.split('\n').map((line) => createOutputLine(line, kind, lessonId));
+  const nextLines = text
+    .split('\n')
+    .map((line) => createOutputLine(line, kind, lessonId));
   return [...current, ...nextLines];
 }
 
@@ -143,7 +145,10 @@ function findModuleByLessonId(modules: LearningModule[], lessonId: string | null
     return null;
   }
 
-  return modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ?? null;
+  return (
+    modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ??
+    null
+  );
 }
 
 function getNextLesson(
@@ -389,7 +394,11 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
       set((current) => ({
         output: [
           ...current.output,
-          createOutputLine('No active lesson selected.', 'system', current.activeLessonId),
+          createOutputLine(
+            'No active lesson selected.',
+            'system',
+            current.activeLessonId,
+          ),
         ],
       }));
       return;
@@ -399,7 +408,10 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
       isTerminalBusy: true,
       apiError: null,
       history: [...current.history, input],
-      output: [...current.output, createOutputLine(`$ ${input}`, 'stdout', activeLessonId)],
+      output: [
+        ...current.output,
+        createOutputLine(`$ ${input}`, 'stdout', activeLessonId),
+      ],
     }));
 
     try {
@@ -419,7 +431,10 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
 
         const validationMessage = formatValidationMessage(response.validation);
         if (validationMessage) {
-          output = [...output, createOutputLine(validationMessage, 'system', activeLessonId)];
+          output = [
+            ...output,
+            createOutputLine(validationMessage, 'system', activeLessonId),
+          ];
         }
 
         let modules = current.modules;
@@ -514,6 +529,10 @@ function formatValidationMessage(validation: ValidationResult) {
     return 'Mission completed. The next lesson is unlocked locally in the frontend.';
   }
 
-  const failedReport = validation.reports.find((report) => report.checkId === validation.failedCheckId);
-  return failedReport?.message ?? 'Command executed, but mission checks are not satisfied yet.';
+  const failedReport = validation.reports.find(
+    (report) => report.checkId === validation.failedCheckId,
+  );
+  return (
+    failedReport?.message ?? 'Command executed, but mission checks are not satisfied yet.'
+  );
 }

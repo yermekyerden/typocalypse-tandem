@@ -62,7 +62,11 @@ export function createAttempt(lessonId: string) {
   );
 }
 
-export function submitCommand(attemptId: string, command: string, clientCommandId: string) {
+export function submitCommand(
+  attemptId: string,
+  command: string,
+  clientCommandId: string,
+) {
   return apiRequest<SubmitCommandResponse>(
     `/attempts/${attemptId}/command`,
     {

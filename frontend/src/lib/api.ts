@@ -23,7 +23,9 @@ export class ApiError extends Error {
 }
 
 export function getApiBaseUrl() {
-  return (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? DEFAULT_API_BASE_URL;
+  return (
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? DEFAULT_API_BASE_URL
+  );
 }
 
 function getConfiguredAccessTokenKey() {
