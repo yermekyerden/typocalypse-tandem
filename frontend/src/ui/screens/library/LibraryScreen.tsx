@@ -1,6 +1,10 @@
 import { useEffect } from 'react';
 
-import { type Module, type Lesson } from '@/mocks/modules';
+import type {
+  LearningLessonDetail,
+  LearningLessonView,
+  LearningModule,
+} from '@/features/learning/types';
 import { useTerminalSession } from '@/store/terminalSession';
 
 import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
@@ -12,7 +16,7 @@ type LessonProgress = {
   total: number;
 };
 
-function resolveCurrentModule(modules: Module[], lessonId: string | null) {
+function resolveCurrentModule(modules: LearningModule[], lessonId: string | null) {
   if (!lessonId) {
     return null;
   }
@@ -24,17 +28,30 @@ function resolveCurrentModule(modules: Module[], lessonId: string | null) {
 }
 
 function resolveCurrentLesson(
-  module: Module | null,
+  module: LearningModule | null,
   lessonId: string | null,
-): Lesson | null {
+  lessonDetailsById: Record<string, LearningLessonDetail>,
+): LearningLessonView | null {
   if (!module || !lessonId) {
     return null;
   }
 
-  return module.lessons.find((lesson) => lesson.id === lessonId) ?? null;
+  const summary = module.lessons.find((lesson) => lesson.id === lessonId);
+  if (!summary) {
+    return null;
+  }
+
+  const detail = lessonDetailsById[lessonId];
+
+  return {
+    ...summary,
+    theoryMarkdown: detail?.theoryMarkdown ?? '',
+    taskDescription: detail?.taskDescription ?? '',
+    hints: detail?.hints ?? [],
+  };
 }
 
-function resolveLessonProgress(module: Module | null): LessonProgress {
+function resolveLessonProgress(module: LearningModule | null): LessonProgress {
   if (!module) {
     return { completed: 0, total: 0 };
   }
@@ -47,9 +64,13 @@ function resolveLessonProgress(module: Module | null): LessonProgress {
 
 export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
+  const lessonDetailsById = useTerminalSession((s) => s.lessonDetailsById);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const initialize = useTerminalSession((s) => s.initialize);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const completedModuleId = useTerminalSession((s) => s.completedModuleId);
+  const apiError = useTerminalSession((s) => s.apiError);
+  const isBootstrapping = useTerminalSession((s) => s.isBootstrapping);
   const acknowledgeModuleCompletion = useTerminalSession(
     (s) => s.acknowledgeModuleCompletion,
   );
@@ -57,19 +78,29 @@ export function LibraryScreen() {
   const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
   const currentLessonId = activeLessonId ?? firstLessonId;
   const currentModule = resolveCurrentModule(modules, currentLessonId);
-  const currentLesson = resolveCurrentLesson(currentModule, currentLessonId);
+  const currentLesson = resolveCurrentLesson(currentModule, currentLessonId, lessonDetailsById);
   const currentProgress = resolveLessonProgress(currentModule);
   const completedModule =
     modules.find((module) => module.id === completedModuleId) ?? null;
 
   useEffect(() => {
+    void initialize();
+  }, [initialize]);
+
+  useEffect(() => {
     if (!activeLessonId && firstLessonId) {
-      setActiveLesson(firstLessonId);
+      void setActiveLesson(firstLessonId);
     }
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
     <div className="flex flex-1 min-h-0 h-full flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50">
+      {apiError ? (
+        <div className="rounded border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+          {apiError}
+        </div>
+      ) : null}
+
       <LibraryTerminalSection />
 
       {currentLesson && currentModule && (
@@ -79,6 +110,11 @@ export function LibraryScreen() {
           progress={currentProgress}
         />
       )}
+      {!currentLesson && !isBootstrapping ? (
+        <section className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80">
+          No lesson details available yet.
+        </section>
+      ) : null}
       <LibraryCompletionModal
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}

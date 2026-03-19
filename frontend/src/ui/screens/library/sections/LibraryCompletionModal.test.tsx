@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { LearningModule } from '@/features/learning/types';
+
 import { LibraryCompletionModal } from './LibraryCompletionModal';
 
 vi.mock('@/ui/components/AchievementStars', () => ({
@@ -29,28 +31,25 @@ describe('LibraryCompletionModal', () => {
   it('calls onAcknowledge when the continue button is clicked', async () => {
     const user = userEvent.setup();
     const onAcknowledge = vi.fn();
+    const moduleFixture: LearningModule = {
+      id: 'module-1',
+      slug: 'module-1',
+      title: 'Command Line Basics',
+      description: 'Intro module',
+      order: 1,
+      lessons: [
+        {
+          id: 'lesson-1',
+          slug: 'lesson-1',
+          title: 'First lesson',
+          order: 1,
+          status: 'completed',
+        },
+      ],
+    };
 
     render(
-      <LibraryCompletionModal
-        module={{
-          id: 'module-1',
-          title: 'Command Line Basics',
-          description: 'Intro module',
-          order: 1,
-          lessons: [
-            {
-              id: 'lesson-1',
-              title: 'First lesson',
-              order: 1,
-              status: 'completed',
-              theory: 'Theory',
-              task: 'Task',
-              expectedCommand: 'ls',
-            },
-          ],
-        }}
-        onAcknowledge={onAcknowledge}
-      />,
+      <LibraryCompletionModal module={moduleFixture} onAcknowledge={onAcknowledge} />,
     );
 
     await user.click(screen.getByRole('button', { name: /continue learning/i }));

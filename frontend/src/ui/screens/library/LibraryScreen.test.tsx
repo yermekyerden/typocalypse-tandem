@@ -1,22 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { type Module } from '@/mocks/modules';
+import type { LearningLessonDetail, LearningModule } from '@/features/learning/types';
 
 import { LibraryScreen } from './LibraryScreen';
 
 type StoreState = {
-  modules: Module[];
+  modules: LearningModule[];
+  lessonDetailsById: Record<string, LearningLessonDetail>;
   activeLessonId: string | null;
   completedModuleId: string | null;
+  apiError: string | null;
+  isBootstrapping: boolean;
+  initialize: ReturnType<typeof vi.fn>;
   setActiveLesson: ReturnType<typeof vi.fn>;
   acknowledgeModuleCompletion: ReturnType<typeof vi.fn>;
 };
 
 const storeState: StoreState = {
   modules: [],
+  lessonDetailsById: {},
   activeLessonId: null,
   completedModuleId: null,
+  apiError: null,
+  isBootstrapping: false,
+  initialize: vi.fn(),
   setActiveLesson: vi.fn(),
   acknowledgeModuleCompletion: vi.fn(),
 };
@@ -45,30 +53,27 @@ vi.mock('@/ui/components/AchievementStars', () => ({
   }) => <div>{`stars:${completed}/${total}`}</div>,
 }));
 
-const modulesFixture: Module[] = [
+const modulesFixture: LearningModule[] = [
   {
     id: 'cmd-basics',
+    slug: 'cmd-basics',
     title: 'Command Line Basics',
     description: 'Core shell basics',
     order: 1,
     lessons: [
       {
         id: 'lesson-1',
+        slug: 'lesson-1',
         title: 'List files',
         order: 1,
         status: 'completed',
-        theory: 'Use ls to inspect the current directory.',
-        task: 'Print the contents of the current directory.',
-        expectedCommand: 'ls',
       },
       {
         id: 'lesson-2',
+        slug: 'lesson-2',
         title: 'Read a file',
         order: 2,
         status: 'active',
-        theory: 'Use cat to print file content.',
-        task: 'Read mission.txt.',
-        expectedCommand: 'cat mission.txt',
       },
     ],
   },
@@ -77,8 +82,31 @@ const modulesFixture: Module[] = [
 describe('LibraryScreen', () => {
   beforeEach(() => {
     storeState.modules = modulesFixture;
+    storeState.lessonDetailsById = {
+      'lesson-1': {
+        id: 'lesson-1',
+        moduleId: 'cmd-basics',
+        slug: 'lesson-1',
+        title: 'List files',
+        order: 1,
+        theoryMarkdown: 'Use ls to inspect the current directory.',
+        taskDescription: 'Print the contents of the current directory.',
+      },
+      'lesson-2': {
+        id: 'lesson-2',
+        moduleId: 'cmd-basics',
+        slug: 'lesson-2',
+        title: 'Read a file',
+        order: 2,
+        theoryMarkdown: 'Use cat to print file content.',
+        taskDescription: 'Read mission.txt.',
+      },
+    };
     storeState.activeLessonId = null;
     storeState.completedModuleId = null;
+    storeState.apiError = null;
+    storeState.isBootstrapping = false;
+    storeState.initialize = vi.fn();
     storeState.setActiveLesson = vi.fn();
     storeState.acknowledgeModuleCompletion = vi.fn();
   });

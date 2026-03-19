@@ -1,6 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import type { LearningLessonView } from '@/features/learning/types';
+
 import { LibraryLessonDetails } from './LibraryLessonDetails';
 
 vi.mock('@/ui/components/AchievementStars', () => ({
@@ -17,19 +19,22 @@ vi.mock('@/ui/components/AchievementStars', () => ({
 
 describe('LibraryLessonDetails', () => {
   it('renders fallback placeholders for empty theory and task', () => {
+    const lesson: LearningLessonView = {
+      id: 'lesson-1',
+      slug: 'lesson-1',
+      title: 'List files',
+      order: 1,
+      status: 'active',
+      theoryMarkdown: '',
+      taskDescription: '',
+      hints: [],
+    };
+
     render(
       <LibraryLessonDetails
         moduleTitle="Command Line Basics"
         progress={{ completed: 0, total: 3 }}
-        lesson={{
-          id: 'lesson-1',
-          title: 'List files',
-          order: 1,
-          status: 'active',
-          theory: '',
-          task: '',
-          expectedCommand: 'ls',
-        }}
+        lesson={lesson}
       />,
     );
 

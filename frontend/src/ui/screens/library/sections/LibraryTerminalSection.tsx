@@ -1,6 +1,9 @@
 import { TerminalWindow } from '@/ui/components/TerminalWindow';
+import { useTerminalSession } from '@/store/terminalSession';
 
 export function LibraryTerminalSection() {
+  const activeAttempt = useTerminalSession((s) => s.activeAttempt);
+
   return (
     <section className="flex flex-1 min-h-0 flex-col overflow-hidden border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg">
       <div className="space-y-1">
@@ -11,8 +14,13 @@ export function LibraryTerminalSection() {
           Sandbox for completing tasks
         </h2>
         <p className="text-sm text-yellow-100/80">
-          Enter commands, progress is synchronized with modules.
+          Enter commands to execute them in the backend terminal engine.
         </p>
+        {activeAttempt ? (
+          <p className="text-xs text-yellow-200/70">
+            Active attempt: {activeAttempt.attemptId}
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-4 flex min-h-0 flex-1 overflow-hidden">

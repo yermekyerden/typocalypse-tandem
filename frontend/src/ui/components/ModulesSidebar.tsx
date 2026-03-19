@@ -1,4 +1,4 @@
-import { type LessonStatus } from '@/mocks/modules';
+import { type LessonStatus } from '@/features/learning/types';
 import { useTerminalSession } from '@/store/terminalSession';
 import {
   Accordion,
@@ -19,6 +19,7 @@ export function ModulesSidebar() {
   const selectedLessonId = useTerminalSession((s) => s.activeLessonId);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const setExpandedModuleId = useTerminalSession((s) => s.setExpandedModuleId);
+  const isBootstrapping = useTerminalSession((s) => s.isBootstrapping);
 
   return (
     <aside className="w-[460px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-170px)] overflow-y-auto scrollbar-thin">
@@ -36,6 +37,11 @@ export function ModulesSidebar() {
         onValueChange={(val) => setExpandedModuleId(val || null)}
         className="space-y-3"
       >
+        {isBootstrapping && modules.length === 0 ? (
+          <div className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80">
+            Loading learning modules...
+          </div>
+        ) : null}
         {modules.map((module) => (
           <AccordionItem
             key={module.id}

@@ -1,8 +1,8 @@
-import { type Lesson } from '@/mocks/modules';
+import { type LearningLessonView } from '@/features/learning/types';
 import { AchievementStars } from '@/ui/components/AchievementStars';
 
 type LibraryLessonDetailsProps = {
-  lesson: Lesson;
+  lesson: LearningLessonView;
   moduleTitle: string;
   progress: {
     completed: number;
@@ -39,12 +39,26 @@ export function LibraryLessonDetails({
       <div className="mt-4 space-y-4 text-sm leading-relaxed">
         <div className="space-y-1.5">
           <p className="font-semibold text-yellow-100">Theory</p>
-          <p className="text-yellow-100/80">{lesson.theory || '—'}</p>
+          <p className="whitespace-pre-wrap text-yellow-100/80">
+            {lesson.theoryMarkdown || '—'}
+          </p>
         </div>
         <div className="space-y-1.5">
           <p className="font-semibold text-yellow-100">Task</p>
-          <p className="whitespace-pre-wrap text-yellow-100/80">{lesson.task || '—'}</p>
+          <p className="whitespace-pre-wrap text-yellow-100/80">
+            {lesson.taskDescription || '—'}
+          </p>
         </div>
+        {lesson.hints.length > 0 ? (
+          <div className="space-y-1.5">
+            <p className="font-semibold text-yellow-100">Hints</p>
+            <ul className="space-y-1 text-yellow-100/80">
+              {lesson.hints.map((hint) => (
+                <li key={hint}>{hint}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
     </section>
   );
