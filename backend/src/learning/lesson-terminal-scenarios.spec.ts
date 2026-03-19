@@ -29,7 +29,41 @@ describe('getLessonAttemptScenario', () => {
     );
   });
 
-  it('returns null for lessons without terminal runtime yet', () => {
-    expect(getLessonAttemptScenario('ls-perms')).toBeNull();
+  it('returns a permissions scenario', () => {
+    const scenario = getLessonAttemptScenario('cat-protected');
+
+    expect(scenario).toEqual(
+      expect.objectContaining({
+        initialCwd: '/home/student',
+        allowedCommands: expect.arrayContaining(['chmod']),
+        checks: expect.arrayContaining([
+          expect.objectContaining({
+            type: 'path_mode_is',
+            expectedMode: '600',
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it('returns a file-ops scenario', () => {
+    const scenario = getLessonAttemptScenario('cat-rsschool-journey');
+
+    expect(scenario).toEqual(
+      expect.objectContaining({
+        initialCwd: '/home/student',
+        allowedCommands: expect.arrayContaining(['wc']),
+        checks: expect.arrayContaining([
+          expect.objectContaining({
+            type: 'output_contains',
+            text: '3 rsschool_journey.txt',
+          }),
+        ]),
+      }),
+    );
+  });
+
+  it('returns null for unknown lessons', () => {
+    expect(getLessonAttemptScenario('unknown-lesson')).toBeNull();
   });
 });

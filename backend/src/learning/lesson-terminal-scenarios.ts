@@ -136,6 +136,129 @@ function makeFsBasicsBaseFs(): VfsSnapshot {
   };
 }
 
+function makePermissionsBaseFs(mode = '200'): VfsSnapshot {
+  return {
+    root: {
+      type: 'dir',
+      name: '',
+      children: [
+        {
+          type: 'dir',
+          name: 'home',
+          children: [
+            {
+              type: 'dir',
+              name: 'student',
+              children: [
+                {
+                  type: 'file',
+                  name: 'rsstage1.txt',
+                  content:
+                    'RS School students level up by practicing terminal skills every day.\n',
+                  metadata: {
+                    owner: 'student',
+                    group: 'dojo',
+                    mode,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function makeFileOpsBaseFs(): VfsSnapshot {
+  return {
+    root: {
+      type: 'dir',
+      name: '',
+      children: [
+        {
+          type: 'dir',
+          name: 'home',
+          children: [
+            {
+              type: 'dir',
+              name: 'student',
+              children: [
+                {
+                  type: 'file',
+                  name: 'rsschool_notes.txt',
+                  content: 'Daily practice log\n',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function makeFileOpsNotesReadyFs(): VfsSnapshot {
+  return {
+    root: {
+      type: 'dir',
+      name: '',
+      children: [
+        {
+          type: 'dir',
+          name: 'home',
+          children: [
+            {
+              type: 'dir',
+              name: 'student',
+              children: [
+                {
+                  type: 'file',
+                  name: 'rsschool_notes.txt',
+                  content: 'Daily practice log\nRS School The best!\n',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+function makeJourneyReadyFs(): VfsSnapshot {
+  return {
+    root: {
+      type: 'dir',
+      name: '',
+      children: [
+        {
+          type: 'dir',
+          name: 'home',
+          children: [
+            {
+              type: 'dir',
+              name: 'student',
+              children: [
+                {
+                  type: 'file',
+                  name: 'rsschool_notes.txt',
+                  content: 'Daily practice log\n',
+                },
+                {
+                  type: 'file',
+                  name: 'rsschool_journey.txt',
+                  content: 'JavaScript\nFrontend\nRS School\n',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 const CMD_BASICS_SCENARIOS: Record<string, LessonAttemptScenario> = {
   'ls-home': {
     initialCwd: '/home/student',
@@ -339,6 +462,190 @@ const FS_BASICS_SCENARIOS: Record<string, LessonAttemptScenario> = {
   },
 };
 
+const PERMISSIONS_SCENARIOS: Record<string, LessonAttemptScenario> = {
+  'ls-perms': {
+    initialCwd: '/home/student',
+    initialFs: makePermissionsBaseFs(),
+    allowedCommands: ['ls', 'help'],
+    checks: [
+      { id: 'ls-perms-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'ls-perms-output-owner',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: 'student',
+      },
+      {
+        id: 'ls-perms-output-file',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: 'rsstage1.txt',
+      },
+    ],
+  },
+  'chmod-owner': {
+    initialCwd: '/home/student',
+    initialFs: makePermissionsBaseFs(),
+    allowedCommands: ['cat', 'ls', 'help'],
+    checks: [
+      { id: 'chmod-owner-exit', type: 'exit_code_is', expectedExitCode: 1 },
+      {
+        id: 'chmod-owner-denied',
+        type: 'output_contains',
+        stream: 'stderr',
+        text: 'Permission denied',
+      },
+    ],
+  },
+  'cat-protected': {
+    initialCwd: '/home/student',
+    initialFs: makePermissionsBaseFs(),
+    allowedCommands: ['chmod', 'ls', 'help'],
+    checks: [
+      { id: 'cat-protected-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'cat-protected-mode',
+        type: 'path_mode_is',
+        path: '/home/student/rsstage1.txt',
+        expectedMode: '600',
+      },
+      {
+        id: 'cat-protected-file-readable',
+        type: 'file_content_matches',
+        path: '/home/student/rsstage1.txt',
+        expected: { pattern: 'RS School students level up' },
+      },
+    ],
+  },
+  'ls-check': {
+    initialCwd: '/home/student',
+    initialFs: makePermissionsBaseFs('600'),
+    allowedCommands: ['ls', 'help'],
+    checks: [
+      { id: 'ls-check-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'ls-check-mode',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: '-rw-------',
+      },
+      {
+        id: 'ls-check-file',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: 'rsstage1.txt',
+      },
+    ],
+  },
+  'cat-after': {
+    initialCwd: '/home/student',
+    initialFs: makePermissionsBaseFs('600'),
+    allowedCommands: ['cat', 'ls', 'help'],
+    checks: [
+      { id: 'cat-after-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'cat-after-output',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: 'RS School students level up by practicing terminal skills every day.',
+      },
+    ],
+  },
+};
+
+const FILE_OPS_SCENARIOS: Record<string, LessonAttemptScenario> = {
+  'nano-rsschool-notes': {
+    initialCwd: '/home/student',
+    initialFs: makeFileOpsBaseFs(),
+    allowedCommands: ['echo', 'cat', 'help'],
+    checks: [
+      { id: 'nano-rsschool-notes-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'nano-rsschool-notes-content',
+        type: 'file_content_matches',
+        path: '/home/student/rsschool_notes.txt',
+        expected: { pattern: 'RS School The best!' },
+      },
+    ],
+  },
+  'cat-rsschool-notes': {
+    initialCwd: '/home/student',
+    initialFs: makeFileOpsNotesReadyFs(),
+    allowedCommands: ['cat', 'help'],
+    checks: [
+      { id: 'cat-rsschool-notes-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'cat-rsschool-notes-output',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: 'RS School The best!',
+      },
+    ],
+  },
+  'echo-mentor-message': {
+    initialCwd: '/home/student',
+    initialFs: makeFileOpsBaseFs(),
+    allowedCommands: ['echo', 'cat', 'help'],
+    checks: [
+      { id: 'echo-mentor-message-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'echo-mentor-message-file',
+        type: 'file_content_equals',
+        path: '/home/student/mentor-message.txt',
+        expectedText: 'Keep learning every day\n',
+      },
+    ],
+  },
+  'cat-create-journey': {
+    initialCwd: '/home/student',
+    initialFs: makeFileOpsBaseFs(),
+    allowedCommands: ['echo', 'cat', 'help'],
+    checks: [
+      { id: 'cat-create-journey-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'cat-create-journey-file',
+        type: 'file_content_equals',
+        path: '/home/student/rsschool_journey.txt',
+        expectedText: 'JavaScript\nFrontend\nRS School\n',
+      },
+    ],
+  },
+  'cat-rsschool-journey': {
+    initialCwd: '/home/student',
+    initialFs: makeJourneyReadyFs(),
+    allowedCommands: ['wc', 'cat', 'help'],
+    checks: [
+      { id: 'cat-rsschool-journey-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'cat-rsschool-journey-output',
+        type: 'output_contains',
+        stream: 'stdout',
+        text: '3 rsschool_journey.txt',
+      },
+    ],
+  },
+  'create-rsschool-stack': {
+    initialCwd: '/home/student',
+    initialFs: makeFileOpsBaseFs(),
+    allowedCommands: ['echo', 'cat', 'help'],
+    checks: [
+      { id: 'create-rsschool-stack-exit', type: 'exit_code_is', expectedExitCode: 0 },
+      {
+        id: 'create-rsschool-stack-file',
+        type: 'file_content_equals',
+        path: '/home/student/rsschool_stack.txt',
+        expectedText: 'HTML\nCSS\nJavaScript\nGit\n',
+      },
+    ],
+  },
+};
+
 export function getLessonAttemptScenario(lessonId: string): LessonAttemptScenario | null {
-  return CMD_BASICS_SCENARIOS[lessonId] ?? FS_BASICS_SCENARIOS[lessonId] ?? null;
+  return (
+    CMD_BASICS_SCENARIOS[lessonId] ??
+    FS_BASICS_SCENARIOS[lessonId] ??
+    PERMISSIONS_SCENARIOS[lessonId] ??
+    FILE_OPS_SCENARIOS[lessonId] ??
+    null
+  );
 }

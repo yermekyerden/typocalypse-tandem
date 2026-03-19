@@ -7,7 +7,7 @@ import {
 } from './engine.types';
 import { MAX_INPUT_LENGTH } from './engine.constants';
 import { parseShellLine, splitShellSequence } from './parser/shell-parser';
-import { resolveArgs, resolvePath } from './resolver/path-resolver';
+import { resolveCommandArgs, resolvePath } from './resolver/path-resolver';
 import { dispatch } from './commands/registry';
 import { makeConstraints } from './commands/command-handler.types';
 import { evaluate } from './validator/validator';
@@ -113,7 +113,7 @@ export class EngineService {
       cwdAfter: cwd,
       effects: [],
     };
-    let lastResolvedPaths: ReturnType<typeof resolveArgs> = [];
+    let lastResolvedPaths: ReturnType<typeof resolveCommandArgs> = [];
     let lastParsedCommand = undefined;
 
     for (const commandInput of splitResult.commands) {
@@ -202,7 +202,7 @@ export class EngineService {
       }
 
       // ── Step 4: Resolve paths ────────────────────────────────────────────
-      const resolved = resolveArgs(command.args, currentCwd);
+      const resolved = resolveCommandArgs(command.commandName, command.args, currentCwd);
       const resolvedArgValues = resolved.map((r) => r.resolved);
       lastResolvedPaths = resolved;
 

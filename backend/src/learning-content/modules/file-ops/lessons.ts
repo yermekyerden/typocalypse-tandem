@@ -36,9 +36,9 @@ export const echoMentorMessageLesson: LessonContentDefinition = {
   order: 3,
   theoryMarkdown:
     '`echo` combined with `>` writes text to a file, creating it if it does not exist.',
-  taskDescription: 'Create mentor_message.txt containing the line "Keep learning every day".',
+  taskDescription: 'Create mentor-message.txt containing the line "Keep learning every day".',
   runtime: {
-    expectedCommand: 'echo "Keep learning every day" > mentor_message.txt',
+    expectedCommand: 'echo "Keep learning every day" > mentor-message.txt',
   },
 };
 

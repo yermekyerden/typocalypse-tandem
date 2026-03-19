@@ -25,6 +25,39 @@ function makeVfs(): VfsSnapshot {
   };
 }
 
+function makePermissionsVfs(mode = '200'): VfsSnapshot {
+  return {
+    root: {
+      type: 'dir',
+      name: '',
+      children: [
+        {
+          type: 'dir',
+          name: 'home',
+          children: [
+            {
+              type: 'dir',
+              name: 'dojo',
+              children: [
+                {
+                  type: 'file',
+                  name: 'rsstage1.txt',
+                  content: 'protected lesson text\n',
+                  metadata: {
+                    owner: 'student',
+                    group: 'dojo',
+                    mode,
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 const NO_CHECKS: MissionCheck[] = [];
 
 describe('EngineService', () => {
@@ -111,6 +144,86 @@ describe('EngineService', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe(''); // stdout consumed by redirect
     expect(vfsResolve(result.vfsAfter, '/home/dojo/out.txt')?.type).toBe('file');
+  });
+
+  it('denies cat when read permission is missing', () => {
+    const result = engine.run({
+      inputLine: 'cat rsstage1.txt',
+      vfs: makePermissionsVfs(),
+      cwd: '/home/dojo',
+      checks: NO_CHECKS,
+      constraints: {},
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('Permission denied');
+  });
+
+  it('supports chmod with numeric mode and allows reading afterwards', () => {
+    const result = engine.run({
+      inputLine: 'chmod 600 rsstage1.txt && cat rsstage1.txt',
+      vfs: makePermissionsVfs(),
+      cwd: '/home/dojo',
+      checks: NO_CHECKS,
+      constraints: {},
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('protected lesson text');
+  });
+
+  it('renders ls -l with symbolic permissions and owner', () => {
+    const result = engine.run({
+      inputLine: 'ls -l rsstage1.txt',
+      vfs: makePermissionsVfs('600'),
+      cwd: '/home/dojo',
+      checks: NO_CHECKS,
+      constraints: {},
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('-rw-------');
+    expect(result.stdout).toContain('student');
+    expect(result.stdout).toContain('rsstage1.txt');
+  });
+
+  it('supports wc -l for counting file lines', () => {
+    const vfs: VfsSnapshot = {
+      root: {
+        type: 'dir',
+        name: '',
+        children: [
+          {
+            type: 'dir',
+            name: 'home',
+            children: [
+              {
+                type: 'dir',
+                name: 'dojo',
+                children: [
+                  {
+                    type: 'file',
+                    name: 'journey.txt',
+                    content: 'JavaScript\nFrontend\nRS School\n',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const result = engine.run({
+      inputLine: 'wc -l journey.txt',
+      vfs,
+      cwd: '/home/dojo',
+      checks: NO_CHECKS,
+      constraints: {},
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('3 journey.txt');
   });
 
   it('rejects command above input length budget', () => {

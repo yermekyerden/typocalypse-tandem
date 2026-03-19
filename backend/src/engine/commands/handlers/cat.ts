@@ -1,6 +1,6 @@
 import { CommandExecution } from '../../engine.types';
 import { CommandHandler } from '../command-handler.types';
-import { vfsRead } from '../../vfs/vfs.service';
+import { vfsCanRead, vfsRead } from '../../vfs/vfs.service';
 
 export const catHandler: CommandHandler = (args, vfs, cwd): CommandExecution => {
   if (args.length === 0) {
@@ -18,6 +18,22 @@ export const catHandler: CommandHandler = (args, vfs, cwd): CommandExecution => 
   const outputs: string[] = [];
 
   for (const filePath of args) {
+    if (!vfsCanRead(vfs, filePath)) {
+      return {
+        stdout: '',
+        stderr: `cat: ${filePath}: Permission denied`,
+        exitCode: 1,
+        vfsAfter: vfs,
+        cwdAfter: cwd,
+        effects: [],
+        error: {
+          type: 'operation_not_allowed',
+          message: `Permission denied: ${filePath}`,
+          reason: 'Read permission is required.',
+        },
+      };
+    }
+
     const result = vfsRead(vfs, filePath);
 
     if (typeof result !== 'string') {

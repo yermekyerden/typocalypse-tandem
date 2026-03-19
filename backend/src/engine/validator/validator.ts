@@ -6,7 +6,7 @@ import {
   ValidationResult,
   VfsSnapshot,
 } from '../engine.types';
-import { vfsRead, vfsResolve } from '../vfs/vfs.service';
+import { getEffectiveMetadata, vfsRead, vfsResolve } from '../vfs/vfs.service';
 
 export type ValidatorInput = {
   vfsAfter: VfsSnapshot;
@@ -90,6 +90,23 @@ function evaluateCheck(check: MissionCheck, input: ValidatorInput): CheckReport 
         };
       }
       return { ...base, ok: true, message: `Path exists: ${check.path}` };
+    }
+
+    case 'path_mode_is': {
+      const node = vfsResolve(input.vfsAfter, check.path);
+      if (!node) {
+        return { ...base, ok: false, message: `Path does not exist: ${check.path}` };
+      }
+
+      const metadata = getEffectiveMetadata(node);
+      const ok = metadata.mode === check.expectedMode;
+      return {
+        ...base,
+        ok,
+        message: ok
+          ? `Path mode matches ${check.expectedMode}.`
+          : `Expected mode ${check.expectedMode}, got ${metadata.mode}.`,
+      };
     }
 
     case 'path_not_exists': {

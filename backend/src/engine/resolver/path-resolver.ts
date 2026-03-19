@@ -43,6 +43,31 @@ export function resolveArgs(args: string[], cwd: string): Array<{ raw: string; r
   }));
 }
 
+export function resolveCommandArgs(
+  commandName: string,
+  args: string[],
+  cwd: string,
+): Array<{ raw: string; resolved: string }> {
+  switch (commandName) {
+    case 'echo':
+    case 'pwd':
+    case 'help':
+      return args.map((arg) => ({ raw: arg, resolved: arg }));
+    case 'chmod':
+      return args.map((arg, index) => ({
+        raw: arg,
+        resolved: index === 0 ? arg : resolvePath(cwd, arg),
+      }));
+    case 'wc':
+      return args.map((arg, index) => ({
+        raw: arg,
+        resolved: index === 0 && arg.startsWith('-') ? arg : resolvePath(cwd, arg),
+      }));
+    default:
+      return resolveArgs(args, cwd);
+  }
+}
+
 /**
  * Returns the parent path for an absolute path.
  * `/home/dojo/file` → `/home/dojo`

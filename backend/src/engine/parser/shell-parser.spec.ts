@@ -1,4 +1,5 @@
 import { parseShellLine, splitShellSequence } from './shell-parser';
+import { resolveCommandArgs } from '../resolver/path-resolver';
 
 function expectParseSuccess(result: ReturnType<typeof parseShellLine>) {
   expect(result.ok).toBe(true);
@@ -78,6 +79,17 @@ describe('ShellParser', () => {
       }
 
       expect(result.commands).toEqual(['echo "A && B"', 'pwd']);
+    });
+
+    it('does not resolve echo text arguments as paths', () => {
+      const resolved = resolveCommandArgs('echo', ['Keep learning every day'], '/home/student');
+
+      expect(resolved).toEqual([
+        {
+          raw: 'Keep learning every day',
+          resolved: 'Keep learning every day',
+        },
+      ]);
     });
   });
 

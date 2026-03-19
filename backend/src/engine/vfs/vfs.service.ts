@@ -12,6 +12,7 @@ import {
   VfsBudgets,
   VfsDirNode,
   VfsFileNode,
+  VfsMetadata,
   VfsNode,
   VfsSnapshot,
 } from '../engine.types';
@@ -90,6 +91,68 @@ export function vfsRead(
   }
 
   return node.content;
+}
+
+export function vfsChmod(
+  snapshot: VfsSnapshot,
+  absolutePath: string,
+  mode: string,
+): VfsSnapshot | VfsError {
+  const node = vfsResolve(snapshot, absolutePath);
+
+  if (!node) {
+    return {
+      type: 'path_not_found',
+      message: `No such file or directory: ${absolutePath}`,
+      path: absolutePath,
+    };
+  }
+
+  if (!/^[0-7]{3}$/.test(mode)) {
+    return {
+      type: 'path_not_found',
+      message: `Invalid mode: ${mode}`,
+      path: absolutePath,
+    };
+  }
+
+  const segments = splitPath(absolutePath);
+  const newRoot = updateNode(snapshot.root, segments, (current) => ({
+    ...current,
+    metadata: {
+      ...current.metadata,
+      mode,
+    },
+  })) as VfsDirNode;
+
+  return { ...snapshot, root: newRoot };
+}
+
+export function vfsCanRead(
+  snapshot: VfsSnapshot,
+  absolutePath: string,
+  user = 'student',
+): boolean {
+  const node = vfsResolve(snapshot, absolutePath);
+
+  if (!node || node.type === 'dir') {
+    return false;
+  }
+
+  const metadata = getEffectiveMetadata(node);
+  const ownerDigit = Number(metadata.mode[0] ?? '0');
+  const otherDigit = Number(metadata.mode[2] ?? '0');
+  const digit = metadata.owner === user ? ownerDigit : otherDigit;
+
+  return (digit & 4) === 4;
+}
+
+export function getEffectiveMetadata(node: VfsNode): Required<VfsMetadata> {
+  return {
+    owner: node.metadata?.owner ?? 'student',
+    group: node.metadata?.group ?? 'dojo',
+    mode: node.metadata?.mode ?? (node.type === 'dir' ? '755' : '644'),
+  };
 }
 
 // ── Write operations (return new VfsSnapshot) ──────────────────────────────
@@ -283,7 +346,12 @@ export function vfsWriteFile(
       return { ...dir, children: [...dir.children, newFile] };
     }) as VfsDirNode;
   } else {
-    const updatedFile: VfsFileNode = { type: 'file', name: fileName, content: newContent };
+    const updatedFile: VfsFileNode = {
+      type: 'file',
+      name: fileName,
+      content: newContent,
+      metadata: existing.metadata,
+    };
     newRoot = updateNode(snapshot.root, segments, () => updatedFile) as VfsDirNode;
   }
 

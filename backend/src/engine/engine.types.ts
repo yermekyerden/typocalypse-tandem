@@ -6,18 +6,26 @@
 
 export type PosixPath = string;
 
+export type VfsMetadata = {
+  owner?: string;
+  group?: string;
+  mode?: string;
+};
+
 // ── VFS ────────────────────────────────────────────────────────────────────
 
 export type VfsDirNode = {
   type: 'dir';
   name: string;
   children: VfsNode[];
+  metadata?: VfsMetadata;
 };
 
 export type VfsFileNode = {
   type: 'file';
   name: string;
   content: string;
+  metadata?: VfsMetadata;
 };
 
 export type VfsNode = VfsDirNode | VfsFileNode;
@@ -230,6 +238,7 @@ export type MissionCheck =
   | (MissionCheckBase & { type: 'cwd_is'; expectedPath: PosixPath })
   | (MissionCheckBase & { type: 'exit_code_is'; expectedExitCode: number })
   | (MissionCheckBase & { type: 'path_exists'; path: PosixPath; expectedKind?: 'file' | 'dir' })
+  | (MissionCheckBase & { type: 'path_mode_is'; path: PosixPath; expectedMode: string })
   | (MissionCheckBase & { type: 'path_not_exists'; path: PosixPath })
   | (MissionCheckBase & {
       type: 'file_content_equals';
