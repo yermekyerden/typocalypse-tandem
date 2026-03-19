@@ -26,6 +26,11 @@ export type LearningLessonDetail = {
   theoryMarkdown: string;
   taskDescription: string;
   hints?: string[];
+  runtime?: {
+    expectedCommand: string;
+    expectedCwd?: string;
+    sampleOutput?: string;
+  };
 };
 
 export type LearningLessonView = LearningLessonSummary & {

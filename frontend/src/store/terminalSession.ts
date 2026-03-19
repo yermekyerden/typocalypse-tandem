@@ -6,7 +6,6 @@ import type {
   LearningLessonSummary,
   LearningModule,
 } from '@/features/learning/types';
-import { listMissions, type MissionHeader } from '@/features/missions/api';
 import {
   abandonAttempt,
   createAttempt,
@@ -14,7 +13,6 @@ import {
   type AttemptStatus,
   type ValidationResult,
 } from '@/features/terminal/api';
-import { lessonMissionMap } from '@/features/terminal/lessonMissionMap';
 import { ApiError } from '@/lib/api';
 
 export type OutputKind = 'stdout' | 'stderr' | 'system';
@@ -30,7 +28,6 @@ export type OutputLine = {
 type TerminalAttempt = {
   attemptId: string;
   lessonId: string;
-  missionId: string;
   status: AttemptStatus;
 };
 
@@ -41,7 +38,6 @@ type TerminalState = {
   expandedModuleId: string | null;
   completedModuleId: string | null;
   lessonDetailsById: Record<string, LearningLessonDetail>;
-  missionHeaders: MissionHeader[];
   apiError: string | null;
   isBootstrapping: boolean;
   isLessonLoading: boolean;
@@ -218,10 +214,6 @@ function completeLesson(modules: LearningModule[], lessonId: string) {
   };
 }
 
-function getLessonMissionId(lessonId: string) {
-  return lessonMissionMap[lessonId] ?? null;
-}
-
 function getReadableError(error: unknown) {
   if (error instanceof ApiError) {
     return error.message;
@@ -264,29 +256,20 @@ async function ensureLessonLoaded(lessonId: string) {
 
 async function ensureAttemptForLesson(lessonId: string) {
   const state = useTerminalSession.getState();
-  const missionId = getLessonMissionId(lessonId);
-
-  if (!missionId) {
-    throw new Error(
-      `Lesson "${lessonId}" is not connected to a mission yet. Add it to lessonMissionMap.ts.`,
-    );
-  }
 
   if (
     state.activeAttempt &&
     state.activeAttempt.lessonId === lessonId &&
-    state.activeAttempt.missionId === missionId &&
     state.activeAttempt.status === 'in_progress'
   ) {
     return state.activeAttempt;
   }
 
-  const response = await createAttempt(missionId);
+  const response = await createAttempt(lessonId);
 
   const nextAttempt: TerminalAttempt = {
     attemptId: response.attemptId,
     lessonId,
-    missionId,
     status: 'in_progress',
   };
 
@@ -298,7 +281,7 @@ async function ensureAttemptForLesson(lessonId: string) {
         ? current.output
         : [
             createOutputLine(
-              `Connected lesson "${lessonId}" to mission "${missionId}" for backend testing.`,
+              `Connected lesson "${lessonId}" to backend terminal runtime.`,
               'system',
               lessonId,
             ),
@@ -315,7 +298,6 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
   expandedModuleId: null,
   completedModuleId: null,
   lessonDetailsById: {},
-  missionHeaders: [],
   apiError: null,
   isBootstrapping: false,
   isLessonLoading: false,
@@ -337,16 +319,12 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
     });
 
     try {
-      const [overviewResponse, missionsResponse] = await Promise.all([
-        getLearningOverview(),
-        listMissions(),
-      ]);
+      const overviewResponse = await getLearningOverview();
 
       const normalized = normalizeModules(overviewResponse.modules);
 
       set({
         modules: normalized.modules,
-        missionHeaders: missionsResponse.missions,
         activeModuleId: normalized.activeModuleId,
         activeLessonId: normalized.activeLessonId,
         expandedModuleId: normalized.activeModuleId,
@@ -517,7 +495,6 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
       expandedModuleId: null,
       completedModuleId: null,
       lessonDetailsById: {},
-      missionHeaders: [],
       apiError: null,
       isBootstrapping: false,
       isLessonLoading: false,

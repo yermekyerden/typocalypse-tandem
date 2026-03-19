@@ -86,6 +86,20 @@ describe('EngineService', () => {
     expect(vfsResolve(result.vfsAfter, '/home/dojo/projects')?.type).toBe('dir');
   });
 
+  it('executes chained commands in sequence', () => {
+    const result = engine.run({
+      inputLine: 'mkdir projects && cd projects',
+      vfs: makeVfs(),
+      cwd: '/home/dojo',
+      checks: NO_CHECKS,
+      constraints: {},
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.cwdAfter).toBe('/home/dojo/projects');
+    expect(vfsResolve(result.vfsAfter, '/home/dojo/projects')?.type).toBe('dir');
+  });
+
   it('echo with overwrite redirect writes to VFS', () => {
     const result = engine.run({
       inputLine: 'echo hello > /home/dojo/out.txt',

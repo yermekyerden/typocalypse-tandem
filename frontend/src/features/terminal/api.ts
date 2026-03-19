@@ -27,15 +27,16 @@ export type AttemptCreateResponse = {
   attemptId: string;
   initialCwd: string;
   initialFs: unknown;
-  mission: {
+  lesson?: {
     id: string;
-    version: number;
-    chapterId: string;
+    moduleId: string;
     title: string;
-    difficulty: 'easy' | 'medium' | 'hard';
-    estimatedMinutes: number;
-    shortDescription: string;
-    tags?: string[];
+    order: number;
+  };
+  runtime?: {
+    expectedCommand: string;
+    expectedCwd?: string;
+    sampleOutput?: string;
   };
 };
 
@@ -50,12 +51,12 @@ export type SubmitCommandResponse = {
   progressChanged: boolean;
 };
 
-export function createAttempt(missionId: string) {
+export function createAttempt(lessonId: string) {
   return apiRequest<AttemptCreateResponse>(
     '/attempts',
     {
       method: 'POST',
-      body: JSON.stringify({ missionId }),
+      body: JSON.stringify({ lessonId }),
     },
     { requiresAuth: true },
   );

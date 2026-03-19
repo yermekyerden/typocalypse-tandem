@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+class LessonRuntimeDto {
+  @ApiProperty({ example: 'ls' })
+  expectedCommand: string;
+
+  @ApiProperty({ example: '/home/student/training_zone', required: false })
+  expectedCwd?: string;
+
+  @ApiProperty({ example: '3 rsschool_journey.txt', required: false })
+  sampleOutput?: string;
+}
+
 export class LessonDetailDto {
   @ApiProperty({ example: 'ls-home' })
   id: string;
@@ -31,4 +42,7 @@ export class LessonDetailDto {
     example: ['Try `ls` first if you are not sure the file exists.'],
   })
   hints?: string[];
+
+  @ApiProperty({ type: LessonRuntimeDto, required: false })
+  runtime?: LessonRuntimeDto;
 }

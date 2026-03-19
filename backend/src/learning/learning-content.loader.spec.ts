@@ -27,10 +27,12 @@ describe('loadLearningContent', () => {
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */
         theoryMarkdown: expect.any(String),
         taskDescription: expect.any(String),
+        runtime: expect.objectContaining({
+          expectedCommand: expect.any(String),
+        }),
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
       }),
     );
-    expect(detail).not.toHaveProperty('runtime');
     expect(detail).not.toHaveProperty('expectedCommand');
   });
 

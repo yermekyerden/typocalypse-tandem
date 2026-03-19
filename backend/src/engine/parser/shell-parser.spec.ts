@@ -1,4 +1,4 @@
-import { parseShellLine } from './shell-parser';
+import { parseShellLine, splitShellSequence } from './shell-parser';
 
 function expectParseSuccess(result: ReturnType<typeof parseShellLine>) {
   expect(result.ok).toBe(true);
@@ -56,6 +56,28 @@ describe('ShellParser', () => {
       const command = expectParseSuccess(parseShellLine('echo more >> file.txt'));
 
       expect(command.redirect).toEqual({ type: 'append', target: 'file.txt' });
+    });
+
+    it('splits chained commands by &&', () => {
+      const result = splitShellSequence('mkdir practice_arena && cd practice_arena');
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        throw new Error(result.error.message);
+      }
+
+      expect(result.commands).toEqual(['mkdir practice_arena', 'cd practice_arena']);
+    });
+
+    it('does not split separators inside quotes', () => {
+      const result = splitShellSequence('echo "A && B" && pwd');
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        throw new Error(result.error.message);
+      }
+
+      expect(result.commands).toEqual(['echo "A && B"', 'pwd']);
     });
   });
 

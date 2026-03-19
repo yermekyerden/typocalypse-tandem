@@ -1,6 +1,9 @@
 import { ParsedCommand, ParseError, Redirect } from '../engine.types';
 
 export type ParseResult = { ok: true; command: ParsedCommand } | { ok: false; error: ParseError };
+export type SplitSequenceResult =
+  | { ok: true; commands: string[] }
+  | { ok: false; error: ParseError };
 
 /**
  * Tokenizes a shell input line into a command name, arguments, and an
@@ -37,6 +40,84 @@ export function parseShellLine(input: string): ParseResult {
       ...(redirect ? { redirect } : {}),
     },
   };
+}
+
+export function splitShellSequence(input: string): SplitSequenceResult {
+  if (input.trim().length === 0) {
+    return {
+      ok: false,
+      error: { type: 'parse_error', message: 'Empty command.' },
+    };
+  }
+
+  const commands: string[] = [];
+  let current = '';
+  let i = 0;
+  let quote: "'" | '"' | null = null;
+
+  while (i < input.length) {
+    const ch = input[i];
+    const next = input[i + 1];
+
+    if (quote) {
+      current += ch;
+      if (ch === quote) {
+        quote = null;
+      } else if (ch === '\\' && quote === '"' && next) {
+        current += next;
+        i += 1;
+      }
+      i += 1;
+      continue;
+    }
+
+    if (ch === "'" || ch === '"') {
+      quote = ch;
+      current += ch;
+      i += 1;
+      continue;
+    }
+
+    if ((ch === '&' && next === '&') || ch === ';' || ch === '\n') {
+      const trimmed = current.trim();
+      if (trimmed.length > 0) {
+        commands.push(trimmed);
+      }
+      current = '';
+      i += ch === '&' && next === '&' ? 2 : 1;
+      continue;
+    }
+
+    current += ch;
+    i += 1;
+  }
+
+  if (quote) {
+    return {
+      ok: false,
+      error: {
+        type: 'parse_error',
+        message:
+          quote === '"'
+            ? 'Unterminated double-quoted string.'
+            : 'Unterminated single-quoted string.',
+      },
+    };
+  }
+
+  const trimmed = current.trim();
+  if (trimmed.length > 0) {
+    commands.push(trimmed);
+  }
+
+  if (commands.length === 0) {
+    return {
+      ok: false,
+      error: { type: 'parse_error', message: 'Empty command.' },
+    };
+  }
+
+  return { ok: true, commands };
 }
 
 // ── Tokenizer ──────────────────────────────────────────────────────────────

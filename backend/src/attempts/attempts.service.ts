@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -11,6 +12,7 @@ import { EngineService } from '../engine/engine.service';
 import { ExecutionTrace, ValidationResult, VfsSnapshot } from '../engine/engine.types';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
 import { SubmitCommandDto } from './dto/submit-command.dto';
+import { LearningContentService } from '../learning/learning-content.service';
 
 type AttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 
@@ -20,10 +22,19 @@ export class AttemptsService {
     private readonly prisma: PrismaService,
     private readonly missions: MissionsService,
     private readonly engine: EngineService,
+    private readonly learningContent: LearningContentService,
   ) {}
 
   async createAttempt(userId: string, dto: CreateAttemptDto) {
-    const mission = this.missions.getMissionById(dto.missionId);
+    if (!dto.lessonId && !dto.missionId) {
+      throw new BadRequestException('Either lessonId or missionId must be provided.');
+    }
+
+    if (dto.lessonId) {
+      return this.createLessonAttempt(userId, dto.lessonId);
+    }
+
+    const mission = this.missions.getMissionById(dto.missionId!);
 
     const attempt = await this.prisma.attempt.create({
       data: {
@@ -51,6 +62,36 @@ export class AttemptsService {
         shortDescription: mission.shortDescription,
         ...(mission.tags ? { tags: mission.tags } : {}),
       },
+    };
+  }
+
+  private async createLessonAttempt(userId: string, lessonId: string) {
+    const lesson = this.learningContent.getLessonDetailOrThrow(lessonId);
+    const scenario = this.learningContent.getLessonAttemptScenarioOrThrow(lessonId);
+
+    const attempt = await this.prisma.attempt.create({
+      data: {
+        userId,
+        missionId: `lesson:${lessonId}`,
+        missionVersion: 1,
+        status: 'in_progress' satisfies AttemptStatus,
+        currentCwd: scenario.initialCwd,
+        currentVfsJson: JSON.stringify(scenario.initialFs),
+        stepCount: 0,
+      },
+    });
+
+    return {
+      attemptId: attempt.id,
+      initialCwd: scenario.initialCwd,
+      initialFs: scenario.initialFs,
+      lesson: {
+        id: lesson.id,
+        moduleId: lesson.moduleId,
+        title: lesson.title,
+        order: lesson.order,
+      },
+      ...(lesson.runtime ? { runtime: lesson.runtime } : {}),
     };
   }
 
@@ -107,18 +148,20 @@ export class AttemptsService {
       };
     }
 
-    // Load current VFS + mission checks
-    const mission = this.missions.getMissionById(attempt.missionId);
     const currentVfs = JSON.parse(attempt.currentVfsJson) as VfsSnapshot;
+    const runtime =
+      attempt.missionId.startsWith('lesson:')
+        ? this.resolveLessonRuntime(attempt.missionId.slice('lesson:'.length))
+        : this.resolveMissionRuntime(attempt.missionId);
 
     // Run the engine
     const result = this.engine.run({
       inputLine: dto.command,
       vfs: currentVfs,
       cwd: attempt.currentCwd,
-      checks: mission.checks,
+      checks: runtime.checks,
       constraints: {
-        ...(mission.allowedCommands ? { allowedCommands: mission.allowedCommands } : {}),
+        ...(runtime.allowedCommands ? { allowedCommands: runtime.allowedCommands } : {}),
       },
     });
 
@@ -225,5 +268,17 @@ export class AttemptsService {
     if (status !== 'in_progress') {
       throw new ConflictException(`Attempt is already ${status}. Cannot ${action}.`);
     }
+  }
+
+  private resolveLessonRuntime(lessonId: string) {
+    return this.learningContent.getLessonAttemptScenarioOrThrow(lessonId);
+  }
+
+  private resolveMissionRuntime(missionId: string) {
+    const mission = this.missions.getMissionById(missionId);
+    return {
+      checks: mission.checks,
+      allowedCommands: mission.allowedCommands,
+    };
   }
 }

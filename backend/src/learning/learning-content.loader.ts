@@ -128,6 +128,19 @@ export function loadLearningContent(source: LearningContentSource): LoadedLearni
         theoryMarkdown: lesson.theoryMarkdown,
         taskDescription: lesson.taskDescription,
         ...(lesson.hints ? { hints: [...lesson.hints] } : {}),
+        ...(lesson.runtime
+          ? {
+              runtime: {
+                expectedCommand: lesson.runtime.expectedCommand,
+                ...(lesson.runtime.expectedCwd
+                  ? { expectedCwd: lesson.runtime.expectedCwd }
+                  : {}),
+                ...(lesson.runtime.sampleOutput
+                  ? { sampleOutput: lesson.runtime.sampleOutput }
+                  : {}),
+              },
+            }
+          : {}),
       },
     ]),
   );

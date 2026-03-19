@@ -7,6 +7,7 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
+import type { MissionCheck, VfsSnapshot } from '../engine/engine.types';
 
 export type LessonHeuristicStatus = 'locked' | 'active' | 'completed';
 
@@ -36,6 +37,7 @@ export type LessonDetail = {
   theoryMarkdown: string;
   taskDescription: string;
   hints?: string[];
+  runtime?: LessonRuntime;
 };
 
 export type LearningOverviewResponse = {
@@ -44,6 +46,19 @@ export type LearningOverviewResponse = {
 
 export type LearningLessonDetailResponse = {
   lesson: LessonDetail;
+};
+
+export type LessonRuntime = {
+  expectedCommand: string;
+  expectedCwd?: string;
+  sampleOutput?: string;
+};
+
+export type LessonAttemptScenario = {
+  initialCwd: string;
+  initialFs: VfsSnapshot;
+  allowedCommands?: string[];
+  checks: MissionCheck[];
 };
 
 export class LessonRuntimeDefinition {

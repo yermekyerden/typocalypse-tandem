@@ -9,5 +9,6 @@ import { LearningContentService } from './learning-content.service';
   imports: [JwtModule.register({}), UsersModule],
   controllers: [LearningController],
   providers: [LearningContentService, JwtAuthGuard],
+  exports: [LearningContentService],
 })
 export class LearningModule {}

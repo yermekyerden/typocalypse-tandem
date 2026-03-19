@@ -6,7 +6,7 @@ import {
   EngineRunResult,
 } from './engine.types';
 import { MAX_INPUT_LENGTH } from './engine.constants';
-import { parseShellLine } from './parser/shell-parser';
+import { parseShellLine, splitShellSequence } from './parser/shell-parser';
 import { resolveArgs, resolvePath } from './resolver/path-resolver';
 import { dispatch } from './commands/registry';
 import { makeConstraints } from './commands/command-handler.types';
@@ -63,28 +63,28 @@ export class EngineService {
     }
 
     // ── Step 2: Parse ──────────────────────────────────────────────────────
-    const parseResult = parseShellLine(inputLine);
+    const splitResult = splitShellSequence(inputLine);
 
-    if (!parseResult.ok) {
+    if (!splitResult.ok) {
       const emptyExecution: CommandExecution = {
         stdout: '',
-        stderr: parseResult.error.message,
+        stderr: splitResult.error.message,
         exitCode: 1,
         vfsAfter: vfs,
         cwdAfter: cwd,
         effects: [],
-        error: parseResult.error,
+        error: splitResult.error,
       };
       const validation = evaluate(checks, {
         vfsAfter: vfs,
         cwdAfter: cwd,
         stdout: '',
-        stderr: parseResult.error.message,
+        stderr: splitResult.error.message,
         exitCode: 1,
       });
       return {
         stdout: '',
-        stderr: parseResult.error.message,
+        stderr: splitResult.error.message,
         exitCode: 1,
         vfsAfter: vfs,
         cwdAfter: cwd,
@@ -92,7 +92,7 @@ export class EngineService {
         trace: buildTrace({
           inputLine,
           parseOk: false,
-          parseError: parseResult.error,
+          parseError: splitResult.error,
           cwdBefore: cwd,
           resolvedPaths: [],
           execution: emptyExecution,
@@ -101,128 +101,196 @@ export class EngineService {
       };
     }
 
-    const { command } = parseResult;
+    let currentVfs = vfs;
+    let currentCwd = cwd;
+    let stdout = '';
+    let stderr = '';
+    let lastExecution: CommandExecution = {
+      stdout: '',
+      stderr: '',
+      exitCode: 0,
+      vfsAfter: vfs,
+      cwdAfter: cwd,
+      effects: [],
+    };
+    let lastResolvedPaths: ReturnType<typeof resolveArgs> = [];
+    let lastParsedCommand = undefined;
 
-    // ── Step 3: Allowed commands check ─────────────────────────────────────
-    if (constraints.allowedCommands && !constraints.allowedCommands.includes(command.commandName)) {
-      const error = {
-        type: 'operation_not_allowed' as const,
-        message: `Command not allowed: ${command.commandName}`,
-        reason: `Allowed: ${constraints.allowedCommands.join(', ')}`,
-      };
-      const emptyExecution: CommandExecution = {
-        stdout: '',
-        stderr: error.message,
-        exitCode: 1,
-        vfsAfter: vfs,
-        cwdAfter: cwd,
-        effects: [],
-        error,
-      };
-      const validation = evaluate(checks, {
-        vfsAfter: vfs,
-        cwdAfter: cwd,
-        stdout: '',
-        stderr: error.message,
-        exitCode: 1,
-      });
-      return {
-        stdout: '',
-        stderr: error.message,
-        exitCode: 1,
-        vfsAfter: vfs,
-        cwdAfter: cwd,
-        validation,
-        trace: buildTrace({
-          inputLine,
-          parseOk: true,
-          parsedCommand: command,
-          cwdBefore: cwd,
-          resolvedPaths: [],
-          execution: emptyExecution,
+    for (const commandInput of splitResult.commands) {
+      const parseResult = parseShellLine(commandInput);
+
+      if (!parseResult.ok) {
+        const errorExecution: CommandExecution = {
+          stdout: '',
+          stderr: parseResult.error.message,
+          exitCode: 1,
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
+          effects: [],
+          error: parseResult.error,
+        };
+        const validation = evaluate(checks, {
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
+          stdout,
+          stderr: stderr + parseResult.error.message,
+          exitCode: 1,
+        });
+
+        return {
+          stdout,
+          stderr: stderr + parseResult.error.message,
+          exitCode: 1,
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
           validation,
-        }),
-      };
-    }
+          trace: buildTrace({
+            inputLine,
+            parseOk: false,
+            parseError: parseResult.error,
+            cwdBefore: cwd,
+            resolvedPaths: lastResolvedPaths,
+            execution: errorExecution,
+            validation,
+          }),
+        };
+      }
 
-    // ── Step 4: Resolve paths ──────────────────────────────────────────────
-    const resolved = resolveArgs(command.args, cwd);
-    const resolvedArgValues = resolved.map((r) => r.resolved);
+      const { command } = parseResult;
+      lastParsedCommand = command;
 
-    // Also resolve redirect target if present
-    const resolvedRedirectTarget = command.redirect
-      ? resolvePath(cwd, command.redirect.target)
-      : undefined;
+      // ── Step 3: Allowed commands check ───────────────────────────────────
+      if (constraints.allowedCommands && !constraints.allowedCommands.includes(command.commandName)) {
+        const error = {
+          type: 'operation_not_allowed' as const,
+          message: `Command not allowed: ${command.commandName}`,
+          reason: `Allowed: ${constraints.allowedCommands.join(', ')}`,
+        };
+        const blockedExecution: CommandExecution = {
+          stdout: '',
+          stderr: error.message,
+          exitCode: 1,
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
+          effects: [],
+          error,
+        };
+        const validation = evaluate(checks, {
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
+          stdout,
+          stderr: stderr + error.message,
+          exitCode: 1,
+        });
+        return {
+          stdout,
+          stderr: stderr + error.message,
+          exitCode: 1,
+          vfsAfter: currentVfs,
+          cwdAfter: currentCwd,
+          validation,
+          trace: buildTrace({
+            inputLine,
+            parseOk: true,
+            parsedCommand: command,
+            cwdBefore: cwd,
+            resolvedPaths: [],
+            execution: blockedExecution,
+            validation,
+          }),
+        };
+      }
 
-    // ── Step 5: Dispatch to handler ────────────────────────────────────────
-    let execution = dispatch(
-      command.commandName,
-      resolvedArgValues,
-      vfs,
-      cwd,
-      makeConstraints(constraints, vfs.budgets),
-    );
+      // ── Step 4: Resolve paths ────────────────────────────────────────────
+      const resolved = resolveArgs(command.args, currentCwd);
+      const resolvedArgValues = resolved.map((r) => r.resolved);
+      lastResolvedPaths = resolved;
 
-    // ── Step 5b: Apply redirect (echo > file / echo >> file) ───────────────
-    if (execution.exitCode === 0 && command.redirect && resolvedRedirectTarget) {
-      const writeResult = vfsWriteFile(
-        execution.vfsAfter,
-        resolvedRedirectTarget,
-        execution.stdout,
-        command.redirect.type === 'append',
+      // Also resolve redirect target if present
+      const resolvedRedirectTarget = command.redirect
+        ? resolvePath(currentCwd, command.redirect.target)
+        : undefined;
+
+      // ── Step 5: Dispatch to handler ──────────────────────────────────────
+      let execution = dispatch(
+        command.commandName,
+        resolvedArgValues,
+        currentVfs,
+        currentCwd,
+        makeConstraints(constraints, currentVfs.budgets),
       );
 
-      if ('type' in writeResult) {
-        execution = {
-          ...execution,
-          stdout: '',
-          stderr: `${resolvedRedirectTarget}: ${writeResult.message}`,
-          exitCode: 1,
-          error: writeResult,
-        };
-      } else {
-        execution = {
-          ...execution,
-          stdout: '',
-          vfsAfter: writeResult,
-          effects: [
-            ...execution.effects,
-            {
-              type: 'file_written' as const,
-              path: resolvedRedirectTarget,
-              bytesWritten: execution.stdout.length,
-            },
-          ],
-        };
+      // ── Step 5b: Apply redirect (echo > file / echo >> file) ─────────────
+      if (execution.exitCode === 0 && command.redirect && resolvedRedirectTarget) {
+        const writeResult = vfsWriteFile(
+          execution.vfsAfter,
+          resolvedRedirectTarget,
+          execution.stdout,
+          command.redirect.type === 'append',
+        );
+
+        if ('type' in writeResult) {
+          execution = {
+            ...execution,
+            stdout: '',
+            stderr: `${resolvedRedirectTarget}: ${writeResult.message}`,
+            exitCode: 1,
+            error: writeResult,
+          };
+        } else {
+          execution = {
+            ...execution,
+            stdout: '',
+            vfsAfter: writeResult,
+            effects: [
+              ...execution.effects,
+              {
+                type: 'file_written' as const,
+                path: resolvedRedirectTarget,
+                bytesWritten: execution.stdout.length,
+              },
+            ],
+          };
+        }
+      }
+
+      stdout += execution.stdout;
+      stderr += execution.stderr;
+      currentVfs = execution.vfsAfter;
+      currentCwd = execution.cwdAfter;
+      lastExecution = execution;
+
+      if (execution.exitCode !== 0) {
+        break;
       }
     }
 
     // ── Step 6: Validate ───────────────────────────────────────────────────
     const validation = evaluate(checks, {
-      vfsAfter: execution.vfsAfter,
-      cwdAfter: execution.cwdAfter,
-      stdout: execution.stdout,
-      stderr: execution.stderr,
-      exitCode: execution.exitCode,
+      vfsAfter: currentVfs,
+      cwdAfter: currentCwd,
+      stdout,
+      stderr,
+      exitCode: lastExecution.exitCode,
     });
 
     // ── Step 7: Build trace ────────────────────────────────────────────────
     const trace = buildTrace({
       inputLine,
       parseOk: true,
-      parsedCommand: command,
+      ...(lastParsedCommand ? { parsedCommand: lastParsedCommand } : {}),
       cwdBefore: cwd,
-      resolvedPaths: resolved,
-      execution,
+      resolvedPaths: lastResolvedPaths,
+      execution: lastExecution,
       validation,
     });
 
     return {
-      stdout: execution.stdout,
-      stderr: execution.stderr,
-      exitCode: execution.exitCode,
-      vfsAfter: execution.vfsAfter,
-      cwdAfter: execution.cwdAfter,
+      stdout,
+      stderr,
+      exitCode: lastExecution.exitCode,
+      vfsAfter: currentVfs,
+      cwdAfter: currentCwd,
       validation,
       trace,
     };
