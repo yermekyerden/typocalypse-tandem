@@ -6,12 +6,18 @@ describe('loadLearningContent', () => {
   it('loads valid source and derives overview/detail read models', () => {
     const loaded = loadLearningContent(learningContentSource);
 
-    expect(loaded.overview.modules.length).toBeGreaterThan(0);
+    expect(loaded.overview.modules).toHaveLength(4);
 
     const orderedLessons = loaded.overview.modules.flatMap((module) => module.lessons);
-    expect(orderedLessons.length).toBeGreaterThan(0);
+    expect(orderedLessons).toHaveLength(26);
     expect(orderedLessons[0].status).toBe('active');
     expect(orderedLessons.slice(1).every((lesson) => lesson.status === 'locked')).toBe(true);
+    expect(loaded.overview.modules.map((module) => module.id)).toEqual([
+      'cmd-basics',
+      'fs-basics',
+      'permissions',
+      'file-ops',
+    ]);
 
     const firstLessonId = orderedLessons[0].id;
     const detail = loaded.lessonDetailsById.get(firstLessonId);
