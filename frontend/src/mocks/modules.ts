@@ -273,8 +273,8 @@ export const modules: Module[] = [
         status: 'locked',
         theory:
           'echo combined with > writes text to a file, creating it if it does not exist.',
-        task: 'Create mentor-message.txt containing the line "Keep learning every day".',
-        expectedCommand: 'echo "Keep learning every day" > mentor-message.txt',
+        task: 'Create mentor_message.txt containing the line "Keep learning every day".',
+        expectedCommand: 'echo "Keep learning every day" > mentor_message.txt',
       },
       {
         id: 'cat-create-journey',
