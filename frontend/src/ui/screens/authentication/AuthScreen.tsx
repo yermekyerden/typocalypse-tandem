@@ -30,17 +30,12 @@ export function AuthScreen() {
   const error = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
   const accessToken = useAuthStore((state) => state.accessToken);
-  const version = useAuthStore((state) => state.version);
 
   useEffect(() => {
     if (accessToken) {
       navigate('/profile', { replace: true });
     }
-  }, [version, accessToken, navigate]);
-
-  useEffect(() => {
-    clearError();
-  }, [mode, clearError]);
+  }, [accessToken, navigate]);
 
   const handleFormChange = (field: keyof AuthFormValues, value: string) => {
     setValues((currentValues) => ({
@@ -51,18 +46,17 @@ export function AuthScreen() {
 
   const handleModeChange = (nextMode: AuthMode) => {
     setMode(nextMode);
-    setValues(initialValues);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
+      clearError();
       if (mode === 'login') {
         await login(values.username, values.password);
       } else {
         if (!values.email) {
-          console.error('Email is required for registration');
           return;
         }
         await register(values.username, values.email, values.password);
@@ -73,38 +67,38 @@ export function AuthScreen() {
   };
 
   return (
-    <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 min-h-dvh">
-      <div className="mx-auto h-full flex items-center justify-center">
-        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-yellow-400">Terminal Dojo</h1>
-            <p className="text-white/60 mt-2">
-              {mode === 'login' ? 'Welcome back' : 'Create an account'}
-            </p>
-          </div>
+    <>
+      <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 min-h-dvh">
+        <div className="mx-auto h-full flex items-center justify-center">
+          <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md">
+            <div className="mb-8 text-center">
+              <h1 className="text-4xl font-bold text-yellow-400">Terminal Dojo</h1>
+              <p className="text-white/60 mt-2">
+                {mode === 'login' ? 'Welcome back' : 'Create an account'}
+              </p>
+            </div>
 
-          <div className="mb-6">
-            <AuthTabs mode={mode} onModeChange={handleModeChange} />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="mb-6">
+              <AuthTabs mode={mode} onModeChange={handleModeChange} />
+            </div>
             {error && (
-              <div className="rounded-lg bg-red-500/20 p-3 text-sm text-red-400 border border-red-500/30">
+              <div className="rounded-md bg-red-500/20 p-3 text-sm text-red-400">
                 {error}
               </div>
             )}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <AuthForm
+                values={values}
+                onChange={handleFormChange}
+                disabled={isLoading}
+                mode={mode}
+              />
 
-            <AuthForm
-              values={values}
-              onChange={handleFormChange}
-              disabled={isLoading}
-              mode={mode}
-            />
-
-            <AuthSubmitButton mode={mode} isLoading={isLoading} disabled={isLoading} />
-          </form>
+              <AuthSubmitButton mode={mode} isLoading={isLoading} disabled={isLoading} />
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
