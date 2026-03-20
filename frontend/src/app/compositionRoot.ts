@@ -7,6 +7,9 @@ import { MissionRunScreen } from '../ui/screens/mission-run/MissionRunScreen';
 import { ReplayScreen } from '../ui/screens/replay/ReplayScreen';
 import { NotFoundScreen } from '../ui/screens/not-found/NotFoundScreen';
 import { ProfileScreen } from '../ui/screens/profile/ProfileScreen';
+import { AuthScreen } from '@/ui/screens/authentication/AuthScreen';
+import { ProtectedRoute } from '@/ui/screens/authentication/ProtectedRoute';
+import { PublicRoute } from '@/ui/screens/authentication/PublicRoute';
 
 export function createAppRouter() {
   return createHashRouter([
@@ -15,14 +18,28 @@ export function createAppRouter() {
       Component: AppShell,
       children: [
         {
-          Component: LearningLayout,
+          Component: PublicRoute,
           children: [
-            { index: true, Component: LibraryScreen },
-            { path: 'missions/:missionId', Component: MissionRunScreen },
-            { path: 'replays/:attemptId', Component: ReplayScreen },
+            {
+              path: 'auth',
+              Component: AuthScreen,
+            },
           ],
         },
-        { path: 'profile', Component: ProfileScreen },
+        {
+          Component: ProtectedRoute,
+          children: [
+            {
+              Component: LearningLayout,
+              children: [
+                { index: true, Component: LibraryScreen },
+                { path: 'missions/:missionId', Component: MissionRunScreen },
+                { path: 'replays/:attemptId', Component: ReplayScreen },
+              ],
+            },
+            { path: 'profile', Component: ProfileScreen },
+          ],
+        },
         { path: '*', Component: NotFoundScreen },
       ],
     },
