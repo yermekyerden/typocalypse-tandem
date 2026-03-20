@@ -5,7 +5,8 @@ import { existsSync, rmSync } from 'fs';
 import { join } from 'path';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+
+import { AppModule } from '../src/app.module';
 
 const TEST_UPLOAD_DIR = join(process.cwd(), 'uploads-test');
 

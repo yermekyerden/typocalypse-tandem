@@ -3,7 +3,8 @@ import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+
+import { AppModule } from '../src/app.module';
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object') {

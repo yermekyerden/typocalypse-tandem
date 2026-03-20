@@ -1,0 +1,52 @@
+{
+  "id": "ch01-m01-print-cwd",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Print your working directory",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use pwd to find out where you are in the filesystem.",
+  "descriptionMd": "## Where am I?\n\nEvery shell session starts somewhere in the filesystem. The `pwd` command (**p**rint **w**orking **d**irectory) prints the absolute path of your current location.\n\nRun `pwd` and read the output.",
+  "goalMd": "Run `pwd` successfully.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "dojo"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `pwd` and press Enter."
+    }
+  ],
+  "allowedCommands": ["pwd", "help"]
+}
