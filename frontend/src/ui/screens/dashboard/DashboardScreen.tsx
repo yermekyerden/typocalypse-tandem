@@ -4,7 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/ui/components/ui/accordion';
-import { modules } from '@/mocks/modules';
+// import { modules } from '@/mocks/modules';
 import { Progress } from '@/ui/components/ui/progress';
 import { getStatus } from './utils';
 
