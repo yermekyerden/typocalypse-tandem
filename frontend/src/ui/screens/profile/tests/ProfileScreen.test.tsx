@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react';
-import { ProfileScreen } from '../ProfileScreen';
 import { userData } from '@/mocks/user-data';
 import userEvent from '@testing-library/user-event';
-import { modules } from '@/mocks/modules';
+import { vi } from 'vitest';
+
+import { ProfileScreen } from '../ProfileScreen';
+
+vi.mock('../../dashboard/DashboardScreen', () => ({
+  DashboardScreen: () => <div>Mocked dashboard content</div>,
+}));
 
 it('renders user data', () => {
   render(<ProfileScreen />);
@@ -17,7 +22,7 @@ it('switches to progress tab', async () => {
 
   await userEvent.click(screen.getByText('Progress'));
 
-  expect(screen.getByText(modules[0].title)).toBeInTheDocument();
+  expect(screen.getByText('Mocked dashboard content')).toBeInTheDocument();
 });
 
 it('prefills input with current value', async () => {

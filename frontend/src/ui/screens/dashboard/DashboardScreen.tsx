@@ -4,11 +4,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/ui/components/ui/accordion';
-// import { modules } from '@/mocks/modules';
+import { useTerminalSession } from '@/store/terminalSession';
 import { Progress } from '@/ui/components/ui/progress';
 import { getStatus } from './utils';
 
 export function DashboardScreen() {
+  const modules = useTerminalSession((state) => state.modules);
+
   return (
     <Accordion type="multiple" className="max-w-lg" defaultValue={['notifications']}>
       {modules.map((item, index) => {
