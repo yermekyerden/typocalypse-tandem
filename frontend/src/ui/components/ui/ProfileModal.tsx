@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 
 type ProfileModalProps = {
   onClose: () => void;
@@ -6,9 +7,16 @@ type ProfileModalProps = {
 
 export function ProfileModal({ onClose }: ProfileModalProps) {
   const navigate = useNavigate();
+  const { logout } = useAuthStore();
 
   const handleProfileClick = () => {
     navigate('/profile');
+    onClose();
+  };
+
+  const handleLogoutClick = () => {
+    logout();
+    navigate('/auth');
     onClose();
   };
 
@@ -24,7 +32,9 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
         <h2 className="cursor-pointer hover:text-yellow-400">Theme</h2>
         <h2 className="cursor-pointer hover:text-yellow-400">Help</h2>
         <h2 className="cursor-pointer hover:text-yellow-400">Properties</h2>
-        <h2 className="cursor-pointer hover:text-yellow-400">Logout</h2>
+        <h2 className="cursor-pointer hover:text-yellow-400" onClick={handleLogoutClick}>
+          Logout
+        </h2>
       </div>
     </div>
   );
