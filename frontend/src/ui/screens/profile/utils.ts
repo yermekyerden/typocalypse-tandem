@@ -1,10 +1,5 @@
-import { userData } from '@/mocks/user-data';
-
-export function getInitials() {
-  const userName = userData.userName
-    .split(' ')
-    .map((elem) => elem[0])
-    .join('')
-    .toUpperCase();
-  return userName;
+export function getInitials(firstName?: string, lastName?: string) {
+  const first = firstName?.[0] || '';
+  const last = lastName?.[0] || '';
+  return (first + last).toUpperCase();
 }
