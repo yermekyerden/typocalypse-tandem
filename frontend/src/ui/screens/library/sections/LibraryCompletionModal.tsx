@@ -27,7 +27,10 @@ export function LibraryCompletionModal({
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-amber-200/80">
             Module completed
           </p>
-          <h3 id="library-completion-title" className="text-2xl font-semibold text-amber-50">
+          <h3
+            id="library-completion-title"
+            className="text-2xl font-semibold text-amber-50"
+          >
             Congratulations! {module.title} completed.
           </h3>
           <p
