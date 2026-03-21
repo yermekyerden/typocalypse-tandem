@@ -3,12 +3,18 @@ import { ModulesSidebar } from './ModulesSidebar';
 
 export function LearningLayout() {
   return (
-    <div className="flex h-full w-full gap-6 px-6 py-6 min-h-0 bg-mist-950 overflow-hidden">
+    <main
+      aria-label="Learning workspace"
+      className="flex h-full w-full min-h-0 gap-6 overflow-hidden bg-mist-950 px-6 py-6"
+    >
       <ModulesSidebar />
 
-      <section className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <section
+        aria-label="Learning content"
+        className="flex flex-1 flex-col min-h-0 overflow-hidden"
+      >
         <Outlet />
       </section>
-    </div>
+    </main>
   );
 }

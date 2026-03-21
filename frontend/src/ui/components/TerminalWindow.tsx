@@ -230,6 +230,8 @@ export function TerminalWindow({ height, className }: Props) {
 
   return (
     <div
+      role="region"
+      aria-label="Interactive terminal"
       className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
       style={height ? { height } : undefined}
     >

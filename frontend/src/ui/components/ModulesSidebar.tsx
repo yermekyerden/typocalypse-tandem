@@ -22,12 +22,17 @@ export function ModulesSidebar() {
   const isBootstrapping = useTerminalSession((s) => s.isBootstrapping);
 
   return (
-    <aside className="w-[460px] shrink-0 space-y-4 border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg text-yellow-50 h-full min-h-[calc(100vh-170px)] overflow-y-auto scrollbar-thin">
+    <aside
+      aria-labelledby="learning-modules-title"
+      className="h-full min-h-[calc(100vh-170px)] w-[460px] shrink-0 space-y-4 overflow-y-auto border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 text-yellow-50 shadow-lg scrollbar-thin"
+    >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
           Learning
         </p>
-        <h2 className="text-xl font-semibold text-yellow-100">Modules</h2>
+        <h2 id="learning-modules-title" className="text-xl font-semibold text-yellow-100">
+          Modules
+        </h2>
       </div>
 
       <Accordion
@@ -38,7 +43,11 @@ export function ModulesSidebar() {
         className="space-y-3"
       >
         {isBootstrapping && modules.length === 0 ? (
-          <div className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80">
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80"
+          >
             Loading learning modules...
           </div>
         ) : null}
@@ -74,6 +83,7 @@ export function ModulesSidebar() {
                         <button
                           type="button"
                           onClick={() => setActiveLesson(lesson.id)}
+                          aria-current={isActive ? 'step' : undefined}
                           className="truncate text-left text-yellow-50 hover:underline"
                         >
                           {lesson.title}

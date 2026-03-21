@@ -20,13 +20,18 @@ export function AchievementStars({ total, completed, size = 20, className = '' }
   const stars = useMemo(() => Array.from({ length: Math.max(total, 0) }), [total]);
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
+    <div
+      role="img"
+      aria-label={`${completed} of ${total} steps completed`}
+      className={`flex items-center gap-1 ${className}`}
+    >
       {stars.map((_, idx) => {
         const isFilled = idx < completed;
         const isNew = idx === highlightIndex;
         return (
           <svg
             key={idx}
+            aria-hidden="true"
             width={size}
             height={size}
             viewBox="0 0 24 24"

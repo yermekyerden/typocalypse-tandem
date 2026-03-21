@@ -98,9 +98,15 @@ export function LibraryScreen() {
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div className="flex flex-1 min-h-0 h-full flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50">
+    <div
+      aria-label="Lesson details and terminal"
+      className="flex h-full min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50"
+    >
       {apiError ? (
-        <div className="rounded border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+        <div
+          role="alert"
+          className="rounded border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+        >
           {apiError}
         </div>
       ) : null}
@@ -115,7 +121,11 @@ export function LibraryScreen() {
         />
       )}
       {!currentLesson && !isBootstrapping ? (
-        <section className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80">
+        <section
+          role="status"
+          aria-live="polite"
+          className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80"
+        >
           No lesson details available yet.
         </section>
       ) : null}
