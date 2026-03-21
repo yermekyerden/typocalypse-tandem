@@ -9,6 +9,7 @@ import { EngineModule } from './engine/engine.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AttemptsModule } from './attempts/attempts.module';
 import { ProgressModule } from './progress/progress.module';
+import { AssistantModule } from './assistant/assistant.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ProgressModule } from './progress/progress.module';
     EngineModule,
     AttemptsModule,
     ProgressModule,
+    AssistantModule,
   ],
   controllers: [AppController],
 })
