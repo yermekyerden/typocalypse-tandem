@@ -1,12 +1,14 @@
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { userData } from '@/mocks/user-data';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
+import { User } from 'lucide-react';
+import { useAuthStore } from '@/store/authStore';
 import { getInitials } from './utils';
 import { DashboardScreen } from '../dashboard/DashboardScreen';
+import { authService } from '@/api/authService';
 
 type TabType = 'user-data' | 'progress' | 'settings';
-type EditableField = 'username' | 'login' | 'email' | 'password' | null;
+type EditableField = 'username' | 'firstName' | 'lastName' | 'email' | 'password' | null;
 
 export function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('user-data');
@@ -22,6 +24,33 @@ export function ProfileScreen() {
   function handleCancel() {
     setEditingField(null);
     setEditValue('');
+  }
+
+  const user = useAuthStore((state) => state.user);
+
+  const hasName = user?.firstName || user?.lastName;
+
+  const fetchProfile = useAuthStore((s) => s.fetchProfile);
+
+  async function handleSave() {
+    if (!editingField || !user) return;
+
+    const updatedData = {
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+    };
+
+    if (editingField === 'firstName') updatedData.firstName = editValue;
+    if (editingField === 'lastName') updatedData.lastName = editValue;
+
+    try {
+      await authService.updateProfile(updatedData);
+      await fetchProfile();
+      setEditingField(null);
+      setEditValue('');
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   return (
@@ -90,13 +119,19 @@ export function ProfileScreen() {
           {activeTab === 'user-data' && (
             <>
               <h1 className="mb-8 text-4xl font-bold text-yellow-400">
-                {userData.userName}
+                {user?.firstName || user?.lastName
+                  ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+                  : user?.username}
               </h1>
 
               <div className="flex mb-8">
                 <Avatar className="h-24 w-24 ring-4 ring-yellow-400/50">
                   <AvatarFallback className="bg-[#2c2c2c] text-yellow-400 text-4xl">
-                    {getInitials()}
+                    {hasName ? (
+                      getInitials(user?.firstName || '', user?.lastName || '')
+                    ) : (
+                      <User size={40} />
+                    )}
                   </AvatarFallback>
                 </Avatar>
               </div>
@@ -121,38 +156,21 @@ export function ProfileScreen() {
                     />
                   ) : (
                     <span className="text-lg text-yellow-400 ml-auto">
-                      {userData.userName}
+                      {user?.username}
                     </span>
-                  )}
-
-                  {editingField === 'username' ? (
-                    <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={handleCancel}
-                    >
-                      <span>Save</span>
-                    </button>
-                  ) : (
-                    <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('username', userData.userName)}
-                    >
-                      <span>Edit</span>
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
-                    </button>
                   )}
                 </div>
 
                 <div
                   className={cn(
-                    'flex flex-col gap-2 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    Login
+                    First Name
                   </span>
-                  {editingField === 'login' ? (
+                  {editingField === 'firstName' ? (
                     <input
                       type="text"
                       value={editValue}
@@ -162,20 +180,60 @@ export function ProfileScreen() {
                     />
                   ) : (
                     <span className="text-lg text-yellow-400 ml-auto">
-                      {userData.login}
+                      {user?.firstName || '—'}
                     </span>
                   )}
-                  {editingField === 'login' ? (
+                  {editingField === 'firstName' ? (
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={handleCancel}
+                      onClick={handleSave}
                     >
                       <span>Save</span>
                     </button>
                   ) : (
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('login', userData.login)}
+                      onClick={() => handleEditClick('firstName', user?.firstName || '')}
+                    >
+                      <span>Edit</span>
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
+                    </button>
+                  )}
+                </div>
+
+                <div
+                  className={cn(
+                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'md:flex-row md:items-center max-w-150 w-full',
+                  )}
+                >
+                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                    Last Name
+                  </span>
+                  {editingField === 'lastName' ? (
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      autoFocus
+                    />
+                  ) : (
+                    <span className="text-lg text-yellow-400 ml-auto">
+                      {user?.lastName || '—'}
+                    </span>
+                  )}
+                  {editingField === 'lastName' ? (
+                    <button
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      onClick={handleSave}
+                    >
+                      <span>Save</span>
+                    </button>
+                  ) : (
+                    <button
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      onClick={() => handleEditClick('lastName', user?.lastName || '')}
                     >
                       <span>Edit</span>
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
@@ -201,9 +259,7 @@ export function ProfileScreen() {
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">
-                      {userData.email}
-                    </span>
+                    <span className="text-lg text-yellow-400 ml-auto">{user?.email}</span>
                   )}
                   {editingField === 'email' ? (
                     <button
@@ -215,7 +271,7 @@ export function ProfileScreen() {
                   ) : (
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('email', userData.email)}
+                      onClick={() => handleEditClick('email', user?.email || '')}
                     >
                       <span>Edit</span>
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
@@ -241,9 +297,7 @@ export function ProfileScreen() {
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">
-                      {userData.password}
-                    </span>
+                    <span className="text-lg text-yellow-400 ml-auto">••••••••</span>
                   )}
                   {editingField === 'password' ? (
                     <button
@@ -255,7 +309,7 @@ export function ProfileScreen() {
                   ) : (
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('password', userData.password)}
+                      onClick={() => handleEditClick('password', '')}
                     >
                       <span>Edit</span>
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>

@@ -23,6 +23,7 @@ interface AuthState {
   logout: () => void;
   refreshTokens: () => Promise<void>;
   clearError: () => void;
+  fetchProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -57,6 +58,20 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      fetchProfile: async () => {
+        try {
+          const user = await authService.getMe();
+
+          set({
+            user,
+            version: get().version + 1,
+          });
+        } catch (error) {
+          console.error('Fetch profile error:', error);
+          get().logout();
+        }
+      },
+
       register: async (username: string, email, password: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -88,7 +103,10 @@ export const useAuthStore = create<AuthState>()(
 
       refreshTokens: async () => {
         const { refreshToken } = get();
-        if (!refreshToken) return;
+        if (!refreshToken) {
+          get().logout();
+          return;
+        }
 
         try {
           const response = await authService.refreshToken(refreshToken);
