@@ -137,6 +137,29 @@ class AuthService {
 
     return response.json();
   }
+
+  async changePassword({
+    currentPassword,
+    newPassword,
+  }: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    const token = useAuthStore.getState().accessToken;
+    const response = await fetch(`${this.baseUrl}/profile/me/password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      throw new Error(data?.message || 'Failed to change password');
+    }
+  }
 }
 
 export const authService = new AuthService();

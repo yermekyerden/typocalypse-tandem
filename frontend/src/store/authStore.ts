@@ -145,3 +145,22 @@ export const useIsAuthenticated = () => {
 export const useUser = () => useAuthStore((state) => state.user);
 export const useAuthLoading = () => useAuthStore((state) => state.isLoading);
 export const useAuthError = () => useAuthStore((state) => state.error);
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'auth-storage' && event.newValue) {
+      try {
+        const newState = JSON.parse(event.newValue);
+        if (newState?.state) {
+          useAuthStore.setState({
+            user: newState.state.user ?? null,
+            accessToken: newState.state.accessToken ?? null,
+            refreshToken: newState.state.refreshToken ?? null,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to sync auth state across tabs', e);
+      }
+    }
+  });
+}
