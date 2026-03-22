@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { RouterProvider } from 'react-router-dom';
 import { beforeEach, describe, expect, it } from 'vitest';
-
+import { mockAuth } from './mockAuth';
 import { createAppRouter } from './compositionRoot';
 
 function renderRoute(hash: string) {
@@ -14,6 +14,11 @@ function renderRoute(hash: string) {
 describe('app routing', () => {
   beforeEach(() => {
     window.location.hash = '';
+    mockAuth({
+      id: '1',
+      username: 'test',
+      email: 'test@test.com',
+    });
   });
 
   it('renders the mission run screen for a mission route', async () => {
