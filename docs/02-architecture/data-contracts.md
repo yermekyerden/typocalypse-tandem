@@ -18,7 +18,7 @@ All API responses MUST include `contractsVersion`.
 - Breaking changes (rename/remove fields, meaning changes): bump **minor/major** + ADR
 
 ```ts
-export const CONTRACTS_VERSION = "0.1.0" as const;
+export const CONTRACTS_VERSION = "0.1.1" as const;
 export type ContractsVersion = typeof CONTRACTS_VERSION;
 ````
 
@@ -197,18 +197,26 @@ export type VfsBudgets = {
 ### Nodes
 
 ```ts
+export type VfsMetadata = {
+  owner?: string; // defaults to "student"
+  group?: string; // defaults to "dojo"
+  mode?: string;  // octal permission bits, e.g. "755" or "644"
+};
+
 export type VfsNode = VfsDirNode | VfsFileNode;
 
 export type VfsDirNode = {
   type: "dir";
   name: string; // "/" root represented by name: ""
   children: VfsNode[];
+  metadata?: VfsMetadata;
 };
 
 export type VfsFileNode = {
   type: "file";
   name: string;
   content: string; // bounded by budgets
+  metadata?: VfsMetadata;
 };
 ```
 
@@ -248,6 +256,7 @@ export type MissionCheck =
   | CheckCwdIs
   | CheckExitCodeIs
   | CheckPathExists
+  | CheckPathModeIs
   | CheckPathNotExists
   | CheckFileContentEquals
   | CheckFileContentMatches
@@ -268,6 +277,12 @@ export type CheckPathExists = MissionCheckBase & {
   type: "path_exists";
   path: PosixPath;
   expectedKind?: "file" | "dir"; // if omitted, any node kind passes
+};
+
+export type CheckPathModeIs = MissionCheckBase & {
+  type: "path_mode_is";
+  path: PosixPath;
+  expectedMode: string; // octal permission bits, e.g. "600"
 };
 
 export type CheckPathNotExists = MissionCheckBase & {
@@ -525,9 +540,11 @@ export type AttemptStatus = "in_progress" | "completed" | "abandoned";
 ### Attempt detail (full attempt with steps, for restore)
 
 ```ts
+export type AttemptTargetId = MissionId | `lesson:${string}`;
+
 export type AttemptDetail = {
   attemptId: AttemptId;
-  missionId: MissionId;
+  missionId: AttemptTargetId;
   missionVersion: number;
   status: AttemptStatus;
   currentCwd: PosixPath;
@@ -587,6 +604,47 @@ export type ProgressSnapshot = {
 };
 ```
 
+### Learning curriculum contracts
+
+```ts
+export type LessonStatus = "locked" | "active" | "completed";
+
+export type LearningLessonSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  order: number;
+  status: LessonStatus;
+};
+
+export type LearningModule = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  order: number;
+  lessons: LearningLessonSummary[];
+};
+
+export type LessonRuntime = {
+  expectedCommand: string;
+  expectedCwd?: PosixPath;
+  sampleOutput?: string;
+};
+
+export type LearningLessonDetail = {
+  id: string;
+  moduleId: string;
+  slug: string;
+  title: string;
+  order: number;
+  theoryMarkdown: string;
+  taskDescription: string;
+  hints?: string[];
+  runtime?: LessonRuntime;
+};
+```
+
 ---
 
 ## 10) Backend endpoints (contracts)
@@ -625,14 +683,52 @@ Create a new in-progress attempt. Requires authentication (JWT).
 
 ```ts
 export type PostAttemptsRequest = {
-  missionId: MissionId;
+  // Exactly one of missionId / lessonId MUST be provided.
+  missionId?: MissionId;
+  lessonId?: string;
 };
 
-export type PostAttemptsResponse = ApiOk<{
-  attemptId: AttemptId;
-  initialCwd: PosixPath;
-  initialFs: VfsSnapshot;
-  mission: MissionHeader;
+export type LessonAttemptHeader = {
+  id: string;
+  moduleId: string;
+  title: string;
+  order: number;
+};
+
+export type PostAttemptsResponse = ApiOk<
+  | {
+      attemptId: AttemptId;
+      initialCwd: PosixPath;
+      initialFs: VfsSnapshot;
+      mission: MissionHeader;
+    }
+  | {
+      attemptId: AttemptId;
+      initialCwd: PosixPath;
+      initialFs: VfsSnapshot;
+      lesson: LessonAttemptHeader;
+      runtime?: LessonRuntime;
+    }
+>;
+```
+
+### `GET /learning/overview`
+
+Returns module and lesson overview for the curriculum. Requires authentication (JWT).
+
+```ts
+export type GetLearningOverviewResponse = ApiOk<{
+  modules: LearningModule[];
+}>;
+```
+
+### `GET /lessons/:id`
+
+Returns full lesson detail content. Requires authentication (JWT).
+
+```ts
+export type GetLessonByIdResponse = ApiOk<{
+  lesson: LearningLessonDetail;
 }>;
 ```
 
