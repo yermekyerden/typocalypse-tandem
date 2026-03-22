@@ -91,7 +91,19 @@ class AuthService {
       throw new Error('Token refresh failed');
     }
 
-    return await response.json();
+    const data = await response.json();
+
+    if (data.accessToken && !data.tokens) {
+      return {
+        user: data.user ?? null,
+        tokens: {
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          expiresAt: data.expiresAt,
+        },
+      };
+    }
+    return data;
   }
 
   private async ensureFreshToken(): Promise<string | null> {
