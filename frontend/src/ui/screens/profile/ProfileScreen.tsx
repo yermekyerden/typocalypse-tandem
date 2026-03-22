@@ -86,10 +86,11 @@ export function ProfileScreen() {
     <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1">
       <div className="mx-auto h-full flex gap-3">
         <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2">
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('user-data')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -103,12 +104,13 @@ export function ProfileScreen() {
             >
               User data
             </span>
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('progress')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -122,12 +124,13 @@ export function ProfileScreen() {
             >
               Progress
             </span>
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('settings')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -141,7 +144,7 @@ export function ProfileScreen() {
             >
               Settings
             </span>
-          </div>
+          </button>
         </div>
 
         <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
@@ -214,14 +217,16 @@ export function ProfileScreen() {
                   )}
                   {editingField === 'firstName' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      type="button"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
                     >
                       <span>Save</span>
                     </button>
                   ) : (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      type="button"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('firstName', user?.firstName || '')}
                     >
                       <span>Edit</span>
@@ -254,14 +259,14 @@ export function ProfileScreen() {
                   )}
                   {editingField === 'lastName' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
                     >
                       <span>Save</span>
                     </button>
                   ) : (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('lastName', user?.lastName || '')}
                     >
                       <span>Edit</span>
@@ -322,13 +327,13 @@ export function ProfileScreen() {
                         <span className="text-red-500 text-sm">{passwordErrors}</span>
                       )}
                       <button
-                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer"
+                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                         onClick={handleSavePassword}
                       >
                         Save
                       </button>
                       <button
-                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer"
+                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                         onClick={() => {
                           setEditingField(null);
                           setCurrentPasswordInput('');
@@ -342,7 +347,7 @@ export function ProfileScreen() {
                   ) : (
                     <button
                       onClick={() => setEditingField('password')}
-                      className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer"
+                      className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                     >
                       Edit
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg" />

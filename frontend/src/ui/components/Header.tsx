@@ -21,8 +21,15 @@ export function Header() {
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
           {user && (
-            <div className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)]">
-              <Avatar onClick={() => setIsModalOpen(true)} />
+            <div className="flex items-center gap-3">
+              {(user.firstName || user.lastName) && (
+                <span className="text-2xl font-medium text-yellow-400">
+                  {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                </span>
+              )}
+              <div className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)]">
+                <Avatar onClick={() => setIsModalOpen(true)} />
+              </div>
             </div>
           )}
         </div>
