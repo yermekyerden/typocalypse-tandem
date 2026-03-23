@@ -145,6 +145,22 @@ class AuthService {
     return response;
   }
 
+  async updateProfile(data: { firstName?: string; lastName?: string }) {
+    const response = await this.fetchWithAuth(`${this.baseUrl}/profile/me`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile');
+    }
+
+    return response.json();
+  }
+
   async changePassword({
     currentPassword,
     newPassword,
@@ -164,25 +180,6 @@ class AuthService {
       const data = await response.json().catch(() => null);
       throw new Error(data?.message || 'Failed to change password');
     }
-  }
-
-  async updateProfile(data: { firstName?: string; lastName?: string }) {
-    const token = useAuthStore.getState().accessToken;
-
-    const response = await fetch(`${this.baseUrl}/profile/me`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update profile');
-    }
-
-    return response.json();
   }
 }
 
