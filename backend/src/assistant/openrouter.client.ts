@@ -9,6 +9,7 @@ import { AssistantChatMessage, OpenRouterChatCompletionResponse } from './assist
 @Injectable()
 export class OpenRouterClient {
   private readonly apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
+  private readonly timeoutMs = 15_000;
 
   public async createChatCompletion(messages: AssistantChatMessage[]) {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -17,6 +18,9 @@ export class OpenRouterClient {
     if (!apiKey) {
       throw new InternalServerErrorException('OPENROUTER_API_KEY is not configured.');
     }
+
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), this.timeoutMs);
 
     let response: Response;
 
@@ -32,9 +36,18 @@ export class OpenRouterClient {
           messages,
           max_tokens: 300,
         }),
+        signal: abortController.signal,
       });
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new ServiceUnavailableException(
+          `AI provider request timed out after ${this.timeoutMs} ms.`,
+        );
+      }
+
       throw new ServiceUnavailableException('Failed to reach the AI provider.');
+    } finally {
+      clearTimeout(timeoutId);
     }
 
     let responseJson: OpenRouterChatCompletionResponse;
