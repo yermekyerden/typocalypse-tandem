@@ -20,9 +20,10 @@ export class AssistantService {
   async askForAttempt(userId: string, attemptId: string, question: string) {
     const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
     const attempt = attemptData.attempt;
-    const mission = this.missionsService.getMissionById(attempt.missionId);
 
     this.assertAttemptIsInProgress(attempt.status);
+
+    const mission = this.missionsService.getMissionById(attempt.missionId);
 
     const context = this.createMessagesContext(
       {
