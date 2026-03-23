@@ -67,3 +67,41 @@ export type BuildAssistantMessagesContext = {
   steps: AssistantAttemptStepContext[];
   question: string;
 };
+
+export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
+
+export type AssistantAttemptContext = {
+  missionId: string;
+  currentCwd: string;
+  status: AssistantAttemptStatus;
+  steps: AssistantAttemptStepContext[];
+};
+
+export type AssistantAttemptLookupResult = {
+  attempt: AssistantAttemptContext;
+};
+
+export type AssistantMissionLookupResult = {
+  id: string;
+  title: string;
+  shortDescription: string;
+  allowedCommands?: string[];
+};
+
+export type AssistantCompletionResult = {
+  answer: string;
+  model: string;
+  usage: OpenRouterUsage | null;
+};
+
+export type AttemptsServiceMock = {
+  getAttempt: jest.Mock<Promise<AssistantAttemptLookupResult>, [string, string]>;
+};
+
+export type MissionsServiceMock = {
+  getMissionById: jest.Mock<AssistantMissionLookupResult, [string]>;
+};
+
+export type OpenRouterClientMock = {
+  createChatCompletion: jest.Mock<Promise<AssistantCompletionResult>, [AssistantChatMessage[]]>;
+};
