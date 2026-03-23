@@ -1,6 +1,7 @@
 # Frontend to Backend Contract
 
 Этот документ фиксирует, какие endpoint-ы и правила взаимодействия ожидает frontend после удаления локальных моков.
+Контракт ниже скорректирован под mission-centric backend: runtime и attempts остаются привязаны к `missionId`, а frontend получает mapping `lesson -> mission`.
 
 ## Base Rules
 
@@ -38,7 +39,8 @@
           "slug": "ls-home",
           "title": "List home directory",
           "order": 1,
-          "status": "active"
+          "status": "active",
+          "missionId": "ch01-m01-print-cwd"
         }
       ]
     }
@@ -51,6 +53,8 @@
 - `status` только один из: `locked | active | completed`
 - В одном curriculum должен быть максимум один `active` lesson
 - Модули и lessons должны приходить уже отсортированными по `order`
+- Каждый lesson, который можно запускать в terminal, должен содержать `missionId`
+- `missionId` должен быть стабильным идентификатором runtime-миссии для `POST /api/attempts`
 
 ### `GET /api/lessons/:id`
 
@@ -64,6 +68,7 @@
     "slug": "ls-home",
     "title": "List home directory",
     "order": 1,
+    "missionId": "ch01-m01-print-cwd",
     "theoryMarkdown": "The `ls` command prints files and folders.",
     "taskDescription": "Print the list of files in your home directory.",
     "hints": ["Try `ls` first."]
@@ -75,18 +80,19 @@
 
 - `id` должен совпадать с lesson из overview
 - `moduleId` должен совпадать с module из overview
+- `missionId` должен совпадать с `missionId` из overview для того же lesson
 - `theoryMarkdown` и `taskDescription` обязательны, даже если пустые строки
 - `hints` можно не возвращать, тогда frontend подставит пустой массив
 
 ### `POST /api/attempts`
 
-Нужен для старта terminal attempt из выбранного lesson.
+Нужен для старта terminal attempt по mission runtime, который связан с выбранным lesson.
 
 Ожидаемый request:
 
 ```json
 {
-  "lessonId": "ls-home"
+  "missionId": "ch01-m01-print-cwd"
 }
 ```
 
@@ -105,10 +111,11 @@
 
 Правила:
 
-- Frontend сейчас ожидает именно `lessonId`
-- Если backend хочет жить на `missionId`, нужен либо backward-compatible support, либо отдельный mapping endpoint
+- Backend остаётся mission-centric и принимает `missionId`
+- Frontend получает `missionId` из `learning/overview` или `lessons/:id`
 - `attemptId` должен быть стабильным UUID/string identifier
 - `initialCwd` обязателен
+- Если backend хочет вернуть дополнительные метаданные `mission`, frontend это не ломает
 
 ### `PATCH /api/attempts/:id/command`
 
@@ -159,7 +166,7 @@
 - `stdout` и `stderr` всегда должны быть строками
 - `attemptStatus` только `in_progress | completed | abandoned`
 - `validation.type` только `validation_ok | validation_failed`
-- При `validation_ok` frontend локально помечает lesson как `completed` и unlock-ит следующий
+- При `validation_ok` frontend локально помечает lesson, связанный с этим `missionId`, как `completed` и unlock-ит следующий
 
 ### `PATCH /api/attempts/:id/abandon`
 
@@ -188,3 +195,4 @@
 - Если `lessons/:id` не загрузился, frontend не падает и показывает `No lesson details available yet`
 - Если `attempts` endpoint недоступен, ошибка попадает в terminal output как `stderr`
 - После refresh страницы frontend заново запрашивает overview и details, локальные моки больше не используются
+- Frontend не должен сам придумывать mapping `lesson -> mission`, этот mapping должен приходить из backend API
