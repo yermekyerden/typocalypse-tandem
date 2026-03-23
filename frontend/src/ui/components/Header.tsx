@@ -21,23 +21,23 @@ export function Header() {
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
 
-          <div className="flex items-center gap-4">
-            <div className="flex gap-3 mr-4">
-              <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                Training
-              </Link>
-              <Link
-                to="/profile"
-                className="text-yellow-50 transition hover:text-yellow-400"
-              >
-                Profile
-              </Link>
-              <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                Settings
-              </Link>
-            </div>
+          {user && (
+            <div className="flex items-center gap-4">
+              <div className="flex gap-3 mr-4">
+                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                  Training
+                </Link>
+                <Link
+                  to="/profile"
+                  className="text-yellow-50 transition hover:text-yellow-400"
+                >
+                  Profile
+                </Link>
+                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                  Settings
+                </Link>
+              </div>
 
-            {user && (
               <div className="flex items-center gap-3 bg-mist-900 rounded-full">
                 {(user.firstName || user.lastName) && (
                   <span className="ml-4 text-2xl font-medium text-yellow-400">
@@ -52,8 +52,8 @@ export function Header() {
                   <Avatar />
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </header>
 
