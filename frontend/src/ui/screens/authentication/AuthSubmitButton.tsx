@@ -8,8 +8,8 @@ interface AuthSubmitButtonProps {
 
 export function AuthSubmitButton({ mode, isLoading, disabled }: AuthSubmitButtonProps) {
   const buttonText = {
-    login: isLoading ? 'Вход...' : 'Login',
-    register: isLoading ? 'Регистрация...' : 'Create account',
+    login: isLoading ? 'Signing in...' : 'Login',
+    register: isLoading ? 'Creating account...' : 'Create account',
   };
 
   return (

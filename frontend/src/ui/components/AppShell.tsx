@@ -3,6 +3,7 @@ import { Header } from './Header';
 import { Footer } from './Footer';
 import { useAuthStore } from '@/store/authStore';
 import { useEffect } from 'react';
+import { OfflineBanner } from './OfflineBanner';
 
 export function AppShell() {
   const user = useAuthStore((s) => s.user);
@@ -21,6 +22,7 @@ export function AppShell() {
 
       <main className="flex-1 w-full flex flex-col bg-mist-950 min-h-0 overflow-hidden">
         <Outlet />
+        <OfflineBanner />
       </main>
 
       <Footer />

@@ -17,6 +17,7 @@ export function ProfileScreen() {
   const [passwordErrors, setPasswordErrors] = useState<string | null>(null);
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   function handleEditClick(field: EditableField, currentValue: string) {
     if (!field) return;
@@ -53,6 +54,8 @@ export function ProfileScreen() {
     if (editingField === 'firstName') updatedData.firstName = editValue;
     if (editingField === 'lastName') updatedData.lastName = editValue;
 
+    setIsSaving(true);
+
     try {
       await authService.updateProfile(updatedData);
       await fetchProfile();
@@ -60,12 +63,14 @@ export function ProfileScreen() {
       setEditValue('');
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSaving(false);
     }
   }
 
   async function handleSavePassword() {
     if (!user || editingField !== 'password') return;
-
+    setIsSaving(true);
     try {
       await authService.changePassword({
         currentPassword: currentPasswordInput,
@@ -79,6 +84,8 @@ export function ProfileScreen() {
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : 'Failed to change password';
       setPasswordErrors(errorMessage);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -220,8 +227,9 @@ export function ProfileScreen() {
                       type="button"
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
+                      disabled={isSaving}
                     >
-                      <span>Save</span>
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
                     </button>
                   ) : (
                     <button
@@ -261,8 +269,9 @@ export function ProfileScreen() {
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
+                      disabled={isSaving}
                     >
-                      <span>Save</span>
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
                     </button>
                   ) : (
                     <button
@@ -330,7 +339,7 @@ export function ProfileScreen() {
                         className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                         onClick={handleSavePassword}
                       >
-                        Save
+                        {isSaving ? 'Saving...' : 'Save'}
                       </button>
                       <button
                         className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
