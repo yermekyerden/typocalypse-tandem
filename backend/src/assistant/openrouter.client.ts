@@ -1,44 +1,48 @@
-import {
-  BadGatewayException,
-  Injectable,
-  InternalServerErrorException,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { BadGatewayException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { AssistantChatMessage, OpenRouterChatCompletionResponse } from './assistant.types';
 
 @Injectable()
 export class OpenRouterClient {
   private readonly apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private readonly timeoutMs = 15_000;
+  private readonly apiKey: string;
+  private readonly model: string;
 
-  public async createChatCompletion(messages: AssistantChatMessage[]) {
+  constructor() {
     const apiKey = process.env.OPENROUTER_API_KEY;
-    const model = process.env.OPENROUTER_MODEL ?? 'openrouter/free';
 
     if (!apiKey) {
-      throw new InternalServerErrorException('OPENROUTER_API_KEY is not configured.');
+      throw new Error('OPENROUTER_API_KEY is not configured.');
     }
 
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), this.timeoutMs);
+    this.apiKey = apiKey;
+    this.model = process.env.OPENROUTER_MODEL ?? 'openrouter/free';
+  }
 
+  public async createChatCompletion(messages: AssistantChatMessage[]) {
     let response: Response;
 
     try {
       response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model,
+          model: this.model,
           messages,
           max_tokens: 300,
         }),
-        signal: abortController.signal,
+        signal: AbortSignal.timeout(this.timeoutMs),
       });
     } catch (error) {
+      if (error instanceof Error && error.name === 'TimeoutError') {
+        throw new ServiceUnavailableException(
+          `AI provider request timed out after ${this.timeoutMs} ms.`,
+        );
+      }
+
       if (error instanceof Error && error.name === 'AbortError') {
         throw new ServiceUnavailableException(
           `AI provider request timed out after ${this.timeoutMs} ms.`,
@@ -46,8 +50,6 @@ export class OpenRouterClient {
       }
 
       throw new ServiceUnavailableException('Failed to reach the AI provider.');
-    } finally {
-      clearTimeout(timeoutId);
     }
 
     let responseJson: OpenRouterChatCompletionResponse;
@@ -72,7 +74,7 @@ export class OpenRouterClient {
 
     return {
       answer,
-      model: responseJson.model ?? model,
+      model: responseJson.model ?? this.model,
       usage: responseJson.usage ?? null,
     };
   }
