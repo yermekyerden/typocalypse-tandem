@@ -46,6 +46,7 @@ export function AuthScreen() {
 
   const handleModeChange = (nextMode: AuthMode) => {
     setMode(nextMode);
+    clearError();
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
