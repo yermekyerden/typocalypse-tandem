@@ -3,7 +3,7 @@ import * as argon2 from 'argon2';
 import { existsSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { UsersStore } from '../users/users-store.service';
-import { User } from '../users/users.types';
+import { StoredUser, User } from '../users/users.types';
 
 export interface PublicProfile {
   id: string;
@@ -18,18 +18,14 @@ export class ProfileService {
   constructor(private readonly usersStore: UsersStore) {}
 
   getProfile(userId: string): User {
-    const stored = this.usersStore.findById(userId);
-    if (!stored) {
-      throw new NotFoundException('User not found');
-    }
+    const stored = this.getStoredUserOrThrow(userId);
+
     return this.usersStore.toPublicUser(stored);
   }
 
   getPublicProfile(userId: string): PublicProfile {
-    const stored = this.usersStore.findById(userId);
-    if (!stored) {
-      throw new NotFoundException('User not found');
-    }
+    const stored = this.getStoredUserOrThrow(userId);
+
     return {
       id: stored.id,
       username: stored.username,
@@ -40,6 +36,8 @@ export class ProfileService {
   }
 
   updateProfile(userId: string, fields: { firstName?: string; lastName?: string }): User {
+    this.getStoredUserOrThrow(userId);
+
     const updated = this.usersStore.update(userId, {
       ...fields,
       updatedAt: new Date().toISOString(),
@@ -52,10 +50,7 @@ export class ProfileService {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    const stored = this.usersStore.findById(userId);
-    if (!stored) {
-      throw new NotFoundException('User not found');
-    }
+    const stored = this.getStoredUserOrThrow(userId);
 
     const isValid = await argon2.verify(stored.passwordHash, currentPassword);
     if (!isValid) {
@@ -70,10 +65,7 @@ export class ProfileService {
   }
 
   updateAvatar(userId: string, filename: string): User {
-    const stored = this.usersStore.findById(userId);
-    if (!stored) {
-      throw new NotFoundException('User not found');
-    }
+    const stored = this.getStoredUserOrThrow(userId);
 
     if (stored.avatarUrl) {
       this.deleteAvatarFile(stored.avatarUrl);
@@ -88,10 +80,7 @@ export class ProfileService {
   }
 
   removeAvatar(userId: string): User {
-    const stored = this.usersStore.findById(userId);
-    if (!stored) {
-      throw new NotFoundException('User not found');
-    }
+    const stored = this.getStoredUserOrThrow(userId);
 
     if (stored.avatarUrl) {
       this.deleteAvatarFile(stored.avatarUrl);
@@ -102,6 +91,16 @@ export class ProfileService {
       updatedAt: new Date().toISOString(),
     });
     return this.usersStore.toPublicUser(updated);
+  }
+
+  private getStoredUserOrThrow(userId: string): StoredUser {
+    const stored = this.usersStore.findById(userId);
+
+    if (!stored) {
+      throw new NotFoundException('User not found');
+    }
+
+    return stored;
   }
 
   private deleteAvatarFile(avatarUrl: string): void {

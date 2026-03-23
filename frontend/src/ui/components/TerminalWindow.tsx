@@ -238,7 +238,7 @@ export function TerminalWindow({ height, className }: Props) {
         terminal dojo
       </div>
 
-      <div className="flex-1 min-h-0 max-h-full px-3 py-3">
+      <div className="flex-1 min-h-0 max-h-full px-3 py-3 scrollbar-thin">
         <div
           ref={containerRef}
           className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner"
