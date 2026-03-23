@@ -7,7 +7,7 @@
     "assets": [
       {
         "include": "**/*.mission.json",
-        "outDir": "dist/src",
+        "outDir": "dist",
         "watchAssets": true
       }
     ]

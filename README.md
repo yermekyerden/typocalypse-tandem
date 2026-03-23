@@ -150,6 +150,12 @@ Backend default URL:
 http://localhost:3001
 ```
 
+If the frontend runs on a non-default origin, start the backend with `CORS_ORIGIN`:
+
+```bash
+CORS_ORIGIN=http://localhost:3000 npm run start:dev
+```
+
 ---
 
 ## Quality checks ✅

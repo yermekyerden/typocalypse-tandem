@@ -11,13 +11,20 @@ NestJS REST API for the Typocalypse Tandem project.
 ## Getting started
 
 ```bash
+cd backend
 npm install
 npm run start:dev
 ```
 
 The API starts on `http://localhost:3001` by default (set `PORT` env var to change).
 
-> **Note:** The backend uses port 3001 to avoid conflicting with the frontend dev server, which defaults to port 3000.
+> **Note:** The backend uses port 3001 to avoid conflicting with the frontend Vite dev server, which defaults to port 5173 unless overridden.
+
+Set `CORS_ORIGIN` to allow a different frontend origin during local development or deployment:
+
+```bash
+CORS_ORIGIN=http://localhost:3000 npm run start:dev
+```
 
 ## Health check
 

@@ -294,12 +294,14 @@ export type CheckFileContentEquals = MissionCheckBase & {
   type: "file_content_equals";
   path: PosixPath;
   expectedText: string;
+  normalize?: TextNormalization;
 };
 
 export type CheckFileContentMatches = MissionCheckBase & {
   type: "file_content_matches";
   path: PosixPath;
   expected: RegexSpec;
+  normalize?: TextNormalization;
 };
 
 export type OutputStream = "stdout" | "stderr" | "both";
@@ -309,20 +311,6 @@ export type TextNormalization = {
   trim?: boolean;
   collapseWhitespace?: boolean;
   normalizeNewlines?: boolean; // recommended default true
-};
-
-export type CheckFileContentEquals = MissionCheckBase & {
-  type: "file_content_equals";
-  path: PosixPath;
-  expectedText: string;
-  normalize?: TextNormalization;
-};
-
-export type CheckFileContentMatches = MissionCheckBase & {
-  type: "file_content_matches";
-  path: PosixPath;
-  expected: RegexSpec;
-  normalize?: TextNormalization;
 };
 
 export type CheckOutputContains = MissionCheckBase & {
