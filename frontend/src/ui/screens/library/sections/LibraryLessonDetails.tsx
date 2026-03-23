@@ -1,5 +1,6 @@
 import { type Lesson } from '@/mocks/modules';
 import { AchievementStars } from '@/ui/components/AchievementStars';
+import { AiAssistant } from '@/ui/components/AiAssistant';
 
 type LibraryLessonDetailsProps = {
   lesson: Lesson;
@@ -46,6 +47,7 @@ export function LibraryLessonDetails({
           <p className="whitespace-pre-wrap text-yellow-100/80">{lesson.task || '—'}</p>
         </div>
       </div>
+      <AiAssistant />
     </section>
   );
 }
