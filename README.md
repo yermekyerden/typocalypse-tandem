@@ -116,7 +116,7 @@ Current frontend routing includes screens for:
 - 🏗️ Architecture: `docs/02-architecture/system-overview.md`
 - 📄 Contracts: `docs/02-architecture/data-contracts.md`
 - 🎨 Design (Figma): [Terminal Dojo Layout](https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1)
-- Week 5 Checkpoint: [Link to the video](https://youtu.be/6jiEXjk63fQ)
+- Week 5 Checkpoint: [Link to the video](https://youtu.be/uKDvLehNQkE)
 
 ---
 
