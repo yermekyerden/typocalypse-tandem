@@ -4,6 +4,8 @@ type userData = {
   login: string;
   email: string;
   password: string;
+  firstName: string;
+  lastName: string;
 };
 
 export const userData = {
@@ -12,4 +14,6 @@ export const userData = {
   login: 'ivan.petrov',
   email: 'ivan@example.com',
   password: '******',
+  firstName: 'Ivan',
+  lastName: 'Petrov',
 };

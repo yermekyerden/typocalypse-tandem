@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -14,6 +14,10 @@ export function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('user-data');
   const [editingField, setEditingField] = useState<EditableField>(null);
   const [editValue, setEditValue] = useState('');
+  const [passwordErrors, setPasswordErrors] = useState<string | null>(null);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState('');
+  const [newPasswordInput, setNewPasswordInput] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   function handleEditClick(field: EditableField, currentValue: string) {
     if (!field) return;
@@ -21,16 +25,23 @@ export function ProfileScreen() {
     setEditValue(currentValue);
   }
 
-  function handleCancel() {
-    setEditingField(null);
-    setEditValue('');
-  }
-
   const user = useAuthStore((state) => state.user);
 
   const hasName = user?.firstName || user?.lastName;
 
   const fetchProfile = useAuthStore((s) => s.fetchProfile);
+
+  const loadProfile = useCallback(async () => {
+    try {
+      await fetchProfile();
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  }, [fetchProfile]);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
 
   async function handleSave() {
     if (!editingField || !user) return;
@@ -43,6 +54,8 @@ export function ProfileScreen() {
     if (editingField === 'firstName') updatedData.firstName = editValue;
     if (editingField === 'lastName') updatedData.lastName = editValue;
 
+    setIsSaving(true);
+
     try {
       await authService.updateProfile(updatedData);
       await fetchProfile();
@@ -50,6 +63,29 @@ export function ProfileScreen() {
       setEditValue('');
     } catch (e) {
       console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function handleSavePassword() {
+    if (!user || editingField !== 'password') return;
+    setIsSaving(true);
+    try {
+      await authService.changePassword({
+        currentPassword: currentPasswordInput,
+        newPassword: newPasswordInput,
+      });
+
+      setEditingField(null);
+      setCurrentPasswordInput('');
+      setNewPasswordInput('');
+      setPasswordErrors(null);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Failed to change password';
+      setPasswordErrors(errorMessage);
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -57,10 +93,11 @@ export function ProfileScreen() {
     <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1">
       <div className="mx-auto h-full flex gap-3">
         <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2">
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('user-data')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -74,12 +111,13 @@ export function ProfileScreen() {
             >
               User data
             </span>
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('progress')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -93,12 +131,13 @@ export function ProfileScreen() {
             >
               Progress
             </span>
-          </div>
+          </button>
 
-          <div
+          <button
+            type="button"
             onClick={() => setActiveTab('settings')}
             className={cn(
-              'flex flex-col gap-2 rounded-lg bg-[#3f4044] p-4',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -112,7 +151,7 @@ export function ProfileScreen() {
             >
               Settings
             </span>
-          </div>
+          </button>
         </div>
 
         <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
@@ -185,14 +224,17 @@ export function ProfileScreen() {
                   )}
                   {editingField === 'firstName' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      type="button"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
+                      disabled={isSaving}
                     >
-                      <span>Save</span>
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
                     </button>
                   ) : (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      type="button"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('firstName', user?.firstName || '')}
                     >
                       <span>Edit</span>
@@ -225,14 +267,15 @@ export function ProfileScreen() {
                   )}
                   {editingField === 'lastName' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={handleSave}
+                      disabled={isSaving}
                     >
-                      <span>Save</span>
+                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
                     </button>
                   ) : (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('lastName', user?.lastName || '')}
                     >
                       <span>Edit</span>
@@ -261,22 +304,6 @@ export function ProfileScreen() {
                   ) : (
                     <span className="text-lg text-yellow-400 ml-auto">{user?.email}</span>
                   )}
-                  {editingField === 'email' ? (
-                    <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={handleCancel}
-                    >
-                      <span>Save</span>
-                    </button>
-                  ) : (
-                    <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('email', user?.email || '')}
-                    >
-                      <span>Edit</span>
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
-                    </button>
-                  )}
                 </div>
 
                 <div
@@ -289,30 +316,50 @@ export function ProfileScreen() {
                     Password
                   </span>
                   {editingField === 'password' ? (
-                    <input
-                      type="password"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      autoFocus
-                    />
+                    <div className="flex flex-col gap-2 w-full">
+                      <input
+                        type="password"
+                        placeholder="Current password"
+                        value={currentPasswordInput}
+                        onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                        className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        autoFocus
+                      />
+                      <input
+                        type="password"
+                        placeholder="New password"
+                        value={newPasswordInput}
+                        onChange={(e) => setNewPasswordInput(e.target.value)}
+                        className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      />
+                      {passwordErrors && (
+                        <span className="text-red-500 text-sm">{passwordErrors}</span>
+                      )}
+                      <button
+                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                        onClick={handleSavePassword}
+                      >
+                        {isSaving ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                        onClick={() => {
+                          setEditingField(null);
+                          setCurrentPasswordInput('');
+                          setNewPasswordInput('');
+                          setPasswordErrors(null);
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">••••••••</span>
-                  )}
-                  {editingField === 'password' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={handleCancel}
+                      onClick={() => setEditingField('password')}
+                      className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                     >
-                      <span>Save</span>
-                    </button>
-                  ) : (
-                    <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit"
-                      onClick={() => handleEditClick('password', '')}
-                    >
-                      <span>Edit</span>
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
+                      Edit
+                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg" />
                     </button>
                   )}
                 </div>
