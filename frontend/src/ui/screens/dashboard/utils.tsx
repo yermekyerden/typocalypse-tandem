@@ -16,17 +16,14 @@ const statuses = {
   ),
 };
 
-export function getStatus(index: number) {
-  let result;
-  switch (index) {
-    case 0:
-      result = statuses.completed;
-      break;
-    case 1:
-      result = statuses.active;
-      break;
+export function getStatus(status: LessonStatus) {
+  switch (status) {
+    case 'completed':
+      return statuses.completed;
+    case 'active':
+      return statuses.active;
     default:
-      result = statuses.pending;
+      return statuses.pending;
   }
-  return result;
 }
+import type { LessonStatus } from '@/features/learning/types';

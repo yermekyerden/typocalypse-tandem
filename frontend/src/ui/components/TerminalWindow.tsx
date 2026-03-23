@@ -142,7 +142,7 @@ export function TerminalWindow({ height, className }: Props) {
         inputRef.current = '';
         if (raw.trim().length > 0) {
           lastSubmittedCommandRef.current = raw;
-          runCommandRef.current(raw);
+          void runCommandRef.current(raw);
         } else {
           renderPrompt();
         }

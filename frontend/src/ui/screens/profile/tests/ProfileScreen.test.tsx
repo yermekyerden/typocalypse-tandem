@@ -1,11 +1,38 @@
 import { render, screen } from '@testing-library/react';
+import { beforeEach, vi } from 'vitest';
+
+import type { LearningModule } from '@/features/learning/types';
 import { ProfileScreen } from '../ProfileScreen';
-import { userData } from '@/mocks/user-data';
 import userEvent from '@testing-library/user-event';
-import { modules } from '@/mocks/modules';
-import { vi, beforeEach } from 'vitest';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/api/authService';
+
+const userData = {
+  userName: 'Ivan Petrov',
+  login: 'ivan.petrov',
+  email: 'ivan@example.com',
+  firstName: 'Ivan',
+  lastName: 'Petrov',
+};
+
+const modules: LearningModule[] = [
+  {
+    id: 'cmd-basics',
+    slug: 'cmd-basics',
+    title: 'Command Line Basics',
+    description: 'Core shell basics',
+    order: 1,
+    lessons: [
+      {
+        id: 'lesson-1',
+        slug: 'lesson-1',
+        title: 'List files',
+        order: 1,
+        status: 'completed',
+      },
+    ],
+  },
+];
 
 vi.mock('@/api/authService', () => ({
   authService: {
@@ -13,6 +40,16 @@ vi.mock('@/api/authService', () => ({
     updateProfile: vi.fn(),
     changePassword: vi.fn(),
   },
+}));
+
+vi.mock('@/store/terminalSession', () => ({
+  useTerminalSession: (
+    selector: (state: { modules: LearningModule[]; initialize: () => Promise<void> }) => unknown,
+  ) =>
+    selector({
+      modules,
+      initialize: vi.fn().mockResolvedValue(undefined),
+    }),
 }));
 
 beforeEach(() => {

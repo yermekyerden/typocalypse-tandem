@@ -1,8 +1,8 @@
-import { type Module } from '@/mocks/modules';
+import { type LearningModule } from '@/features/learning/types';
 import { AchievementStars } from '@/ui/components/AchievementStars';
 
 type LibraryCompletionModalProps = {
-  module: Module | null;
+  module: LearningModule | null;
   onAcknowledge: () => void;
 };
 
