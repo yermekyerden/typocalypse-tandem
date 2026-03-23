@@ -404,7 +404,11 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
       set((current) => ({
         output: [
           ...current.output,
-          createOutputLine('No active lesson selected.', 'system', current.activeLessonId),
+          createOutputLine(
+            'No active lesson selected.',
+            'system',
+            current.activeLessonId,
+          ),
         ],
       }));
       return;

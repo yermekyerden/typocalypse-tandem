@@ -44,7 +44,10 @@ vi.mock('@/api/authService', () => ({
 
 vi.mock('@/store/terminalSession', () => ({
   useTerminalSession: (
-    selector: (state: { modules: LearningModule[]; initialize: () => Promise<void> }) => unknown,
+    selector: (state: {
+      modules: LearningModule[];
+      initialize: () => Promise<void>;
+    }) => unknown,
   ) =>
     selector({
       modules,

@@ -22,7 +22,9 @@ export class ApiError extends Error {
 }
 
 export function getApiBaseUrl() {
-  return (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? DEFAULT_API_BASE_URL;
+  return (
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? DEFAULT_API_BASE_URL
+  );
 }
 
 function joinUrl(baseUrl: string, path: string) {
@@ -45,10 +47,14 @@ function getErrorMessage(payload: ErrorPayload | null, status: number) {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const text = await response.text();
-  const payload = text.length > 0 ? (JSON.parse(text) as T | ApiEnvelope<T> | ErrorPayload) : null;
+  const payload =
+    text.length > 0 ? (JSON.parse(text) as T | ApiEnvelope<T> | ErrorPayload) : null;
 
   if (!response.ok) {
-    throw new ApiError(getErrorMessage(payload as ErrorPayload | null, response.status), response.status);
+    throw new ApiError(
+      getErrorMessage(payload as ErrorPayload | null, response.status),
+      response.status,
+    );
   }
 
   if (
