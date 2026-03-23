@@ -1,6 +1,5 @@
-import { apiRequest } from '@/lib/api';
-
-import type { LearningLessonDetail, LearningModule } from './types';
+import { apiRequest } from '@/api/client';
+import type { LearningLessonDetail, LearningModule } from '@/features/learning/types';
 
 type LearningOverviewResponse = {
   modules: LearningModule[];

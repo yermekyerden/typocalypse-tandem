@@ -1,4 +1,4 @@
-import { apiRequest } from '@/lib/api';
+import { apiRequest } from '@/api/client';
 
 export type AttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 

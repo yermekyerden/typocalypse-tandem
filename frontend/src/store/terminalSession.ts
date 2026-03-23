@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { getLearningOverview, getLessonById } from '@/features/learning/api';
+import { getLearningOverview, getLessonById } from '@/api/learning';
 import type {
   LearningLessonDetail,
   LearningLessonSummary,
@@ -12,8 +12,8 @@ import {
   submitCommand,
   type AttemptStatus,
   type ValidationResult,
-} from '@/features/terminal/api';
-import { ApiError } from '@/lib/api';
+} from '@/api/attempts';
+import { ApiError } from '@/api/client';
 
 export type OutputKind = 'stdout' | 'stderr' | 'system';
 
