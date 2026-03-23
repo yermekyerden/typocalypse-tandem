@@ -21,32 +21,39 @@ export function Header() {
             <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
           </Link>
 
-          {user && (
-            <div className="flex items-center gap-4">
-              <div className="flex gap-3 mr-4">
-                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                  Training
-                </Link>
-                <Link
-                  to="/profile"
-                  className="text-yellow-50 transition hover:text-yellow-400"
-                >
-                  Profile
-                </Link>
-                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                  Settings
-                </Link>
-              </div>
-
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)] focus:outline-none focus:ring-2 focus:ring-yellow-400/70"
-                aria-label="Open profile menu"
+          <div className="flex items-center gap-4">
+            <div className="flex gap-3 mr-4">
+              <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                Training
+              </Link>
+              <Link
+                to="/profile"
+                className="text-yellow-50 transition hover:text-yellow-400"
               >
-                <Avatar />
-              </button>
+                Profile
+              </Link>
+              <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                Settings
+              </Link>
             </div>
-          )}
+
+            {user && (
+              <div className="flex items-center gap-3 bg-mist-900 rounded-full">
+                {(user.firstName || user.lastName) && (
+                  <span className="ml-4 text-2xl font-medium text-yellow-400">
+                    {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                  </span>
+                )}
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)] focus:outline-none focus:ring-2 focus:ring-yellow-400/70"
+                  aria-label="Open profile menu"
+                >
+                  <Avatar />
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 

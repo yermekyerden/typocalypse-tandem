@@ -1,8 +1,20 @@
 import { Outlet } from 'react-router-dom';
 import { Header } from './Header';
 import { Footer } from './Footer';
+import { useAuthStore } from '@/store/authStore';
+import { useEffect } from 'react';
 
 export function AppShell() {
+  const user = useAuthStore((s) => s.user);
+  const token = useAuthStore((s) => s.accessToken);
+  const fetchProfile = useAuthStore((s) => s.fetchProfile);
+
+  useEffect(() => {
+    if (!user && token) {
+      fetchProfile();
+    }
+  }, [user, token, fetchProfile]);
+
   return (
     <div className="h-dvh flex flex-col bg-mist-950 text-yellow-50 overflow-hidden">
       <Header />
