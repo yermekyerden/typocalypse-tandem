@@ -1,61 +1,88 @@
 import { useEffect } from 'react';
 
-import { modules } from '@/mocks/modules';
-import { useLessonSelection } from '@/store/lessonSelection';
+import { type Module, type Lesson } from '@/mocks/modules';
+import { useTerminalSession } from '@/store/terminalSession';
 
-export function LibraryScreen() {
-  const selectedLessonId = useLessonSelection((s) => s.selectedLessonId);
-  const selectLesson = useLessonSelection((s) => s.selectLesson);
+import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
+import { LibraryLessonDetails } from './sections/LibraryLessonDetails';
+import { LibraryTerminalSection } from './sections/LibraryTerminalSection';
 
-  const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
-  const currentLessonId = selectedLessonId ?? firstLessonId;
+type LessonProgress = {
+  completed: number;
+  total: number;
+};
 
-  let currentLesson = null;
-  let currentModule = null;
-  for (const module of modules) {
-    const lesson = module.lessons.find((l) => l.id === currentLessonId);
-    if (lesson) {
-      currentLesson = lesson;
-      currentModule = module;
-      break;
-    }
+function resolveCurrentModule(modules: Module[], lessonId: string | null) {
+  if (!lessonId) {
+    return null;
   }
 
+  return (
+    modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ??
+    null
+  );
+}
+
+function resolveCurrentLesson(
+  module: Module | null,
+  lessonId: string | null,
+): Lesson | null {
+  if (!module || !lessonId) {
+    return null;
+  }
+
+  return module.lessons.find((lesson) => lesson.id === lessonId) ?? null;
+}
+
+function resolveLessonProgress(module: Module | null): LessonProgress {
+  if (!module) {
+    return { completed: 0, total: 0 };
+  }
+
+  return {
+    completed: module.lessons.filter((lesson) => lesson.status === 'completed').length,
+    total: module.lessons.length,
+  };
+}
+
+export function LibraryScreen() {
+  const modules = useTerminalSession((s) => s.modules);
+  const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
+  const completedModuleId = useTerminalSession((s) => s.completedModuleId);
+  const acknowledgeModuleCompletion = useTerminalSession(
+    (s) => s.acknowledgeModuleCompletion,
+  );
+
+  const firstLessonId = modules[0]?.lessons[0]?.id ?? null;
+  const currentLessonId = activeLessonId ?? firstLessonId;
+  const currentModule = resolveCurrentModule(modules, currentLessonId);
+  const currentLesson = resolveCurrentLesson(currentModule, currentLessonId);
+  const currentProgress = resolveLessonProgress(currentModule);
+  const completedModule =
+    modules.find((module) => module.id === completedModuleId) ?? null;
+
   useEffect(() => {
-    if (!selectedLessonId && firstLessonId) {
-      selectLesson(firstLessonId);
+    if (!activeLessonId && firstLessonId) {
+      setActiveLesson(firstLessonId);
     }
-  }, [selectedLessonId, firstLessonId, selectLesson]);
+  }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div className="space-y-4">
-      <section className="rounded-lg border bg-card p-3 shadow-sm"></section>
+    <div className="flex flex-1 min-h-0 h-full flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50">
+      <LibraryTerminalSection />
 
       {currentLesson && currentModule && (
-        <section className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase font-semibold text-muted-foreground">
-                {currentModule.title}
-              </p>
-              <h2 className="text-xl font-semibold">{currentLesson.title}</h2>
-            </div>
-          </div>
-
-          <div className="mt-3 space-y-3 text-sm leading-relaxed">
-            <div>
-              <p className="font-semibold">Theory</p>
-              <p className="text-muted-foreground">{currentLesson.theory || '—'}</p>
-            </div>
-            <div>
-              <p className="font-semibold">Task</p>
-              <p className="text-muted-foreground whitespace-pre-wrap">
-                {currentLesson.task || '—'}
-              </p>
-            </div>
-          </div>
-        </section>
+        <LibraryLessonDetails
+          lesson={currentLesson}
+          moduleTitle={currentModule.title}
+          progress={currentProgress}
+        />
       )}
+      <LibraryCompletionModal
+        module={completedModule}
+        onAcknowledge={acknowledgeModuleCompletion}
+      />
     </div>
   );
 }

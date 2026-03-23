@@ -73,6 +73,7 @@ backend/tmp/
 backend/temp/
 backend/dev.db
 backend/prisma/dev.db
+backend/uploads/
 
 # =========================
 # Env files
