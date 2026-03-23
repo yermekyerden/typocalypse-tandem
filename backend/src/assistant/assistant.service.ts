@@ -22,6 +22,7 @@ export class AssistantService {
     const attempt = attemptData.attempt;
 
     this.assertAttemptIsInProgress(attempt.status);
+    this.assertMissionAttempt(attempt.missionId);
 
     const mission = this.missionsService.getMissionById(attempt.missionId);
 
@@ -50,6 +51,12 @@ export class AssistantService {
   private assertAttemptIsInProgress(status: string): void {
     if (status !== 'in_progress') {
       throw new ConflictException('Assistant is available only for in-progress attempts.');
+    }
+  }
+
+  private assertMissionAttempt(missionId: string): void {
+    if (missionId.startsWith('lesson:')) {
+      throw new ConflictException('Assistant is currently available only for mission attempts.');
     }
   }
 
