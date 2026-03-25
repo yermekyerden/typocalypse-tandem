@@ -1,11 +1,6 @@
 import { BadGatewayException, Injectable, ServiceUnavailableException } from '@nestjs/common';
-import {
-  AssistantChatMessage,
-  AssistantCompletionResult,
-  AssistantUsage,
-  OpenRouterApiUsage,
-  OpenRouterChatCompletionApiResponse,
-} from './assistant.types';
+import { AssistantChatMessage, AssistantCompletionResult, AssistantUsage } from './assistant.types';
+import { OpenRouterApiUsage, OpenRouterChatCompletionApiResponse } from './openrouter.types';
 
 @Injectable()
 export class OpenRouterClient {
