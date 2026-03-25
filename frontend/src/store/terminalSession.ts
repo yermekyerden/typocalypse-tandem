@@ -116,7 +116,10 @@ function normalizeModules(modules: LearningModule[]) {
       activeLessonId = firstLesson.id;
       normalizedModules[0] = {
         ...firstModule,
-        lessons: [{ ...firstLesson, status: 'active' as const }, ...firstModule.lessons.slice(1)],
+        lessons: [
+          { ...firstLesson, status: 'active' as const },
+          ...firstModule.lessons.slice(1),
+        ],
       };
     }
   }
