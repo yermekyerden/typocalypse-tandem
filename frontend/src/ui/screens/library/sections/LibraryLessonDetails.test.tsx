@@ -23,12 +23,13 @@ describe('LibraryLessonDetails', () => {
         progress={{ completed: 0, total: 3 }}
         lesson={{
           id: 'lesson-1',
+          slug: 'lesson-1',
           title: 'List files',
           order: 1,
           status: 'active',
-          theory: '',
-          task: '',
-          expectedCommand: 'ls',
+          theoryMarkdown: '',
+          taskDescription: '',
+          hints: [],
         }}
       />,
     );
