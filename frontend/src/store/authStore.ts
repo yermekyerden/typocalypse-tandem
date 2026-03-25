@@ -23,6 +23,7 @@ interface AuthState {
   logout: () => void;
   refreshTokens: () => Promise<void>;
   clearError: () => void;
+  fetchProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -57,6 +58,20 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      fetchProfile: async () => {
+        try {
+          const user = await authService.getMe();
+
+          set({
+            user,
+            version: get().version + 1,
+          });
+        } catch (error) {
+          console.error('Fetch profile error:', error);
+          get().logout();
+        }
+      },
+
       register: async (username: string, email, password: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -88,7 +103,10 @@ export const useAuthStore = create<AuthState>()(
 
       refreshTokens: async () => {
         const { refreshToken } = get();
-        if (!refreshToken) return;
+        if (!refreshToken) {
+          get().logout();
+          return;
+        }
 
         try {
           const response = await authService.refreshToken(refreshToken);
@@ -127,3 +145,22 @@ export const useIsAuthenticated = () => {
 export const useUser = () => useAuthStore((state) => state.user);
 export const useAuthLoading = () => useAuthStore((state) => state.isLoading);
 export const useAuthError = () => useAuthStore((state) => state.error);
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'auth-storage' && event.newValue) {
+      try {
+        const newState = JSON.parse(event.newValue);
+        if (newState?.state) {
+          useAuthStore.setState({
+            user: newState.state.user ?? null,
+            accessToken: newState.state.accessToken ?? null,
+            refreshToken: newState.state.refreshToken ?? null,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to sync auth state across tabs', e);
+      }
+    }
+  });
+}

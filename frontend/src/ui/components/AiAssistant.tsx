@@ -20,15 +20,7 @@ export function AiAssistant() {
     <>
       {!isOpen && (
         <button
-          className="
-            fixed bottom-10 right-10
-            bg-yellow-400 text-gray-950 
-            px-5 py-3 rounded-full shadow-lg 
-            transition-all duration-300 ease-in-out
-            hover:bg-gray-900 hover:text-yellow-400 
-            hover:shadow-[0_0_20px_rgba(250,204,21,0.8)]
-            cursor-pointer
-          "
+          className="fixed bottom-10 right-10 bg-yellow-400 text-gray-950 px-5 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)] cursor-pointer"
           onClick={() => setIsOpen(true)}
         >
           AI Assistant
@@ -55,10 +47,7 @@ export function AiAssistant() {
               <div
                 key={index}
                 className="
-                  bg-[#2C2C2C] text-gray-100 px-3 py-1 rounded-2xl break-words whitespace-normal
-                  opacity-0 transform translate-y-2
-                  animate-fade-in
-                "
+                  bg-[#2C2C2C] text-gray-100 px-3 py-1 rounded-2xl break-words whitespace-normal opacity-0 transform translate-y-2 animate-fade-in"
               >
                 {msg}
               </div>
