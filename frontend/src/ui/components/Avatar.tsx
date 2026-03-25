@@ -3,7 +3,8 @@ import { User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
 type AvatarProps = {
-  onClick: () => void;
+  onClick?: () => void;
+  className?: string;
 };
 
 export function Avatar({ onClick }: AvatarProps) {
