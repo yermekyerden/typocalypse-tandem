@@ -3,8 +3,10 @@ import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
 import { OpenRouterClient } from './openrouter.client';
 import {
+  AssistantAttemptStatus,
   AssistantAttemptStepContext,
   AssistantChatMessage,
+  AssistantCompletionResult,
   AssistantMissionContext,
   BuildAssistantMessagesContext,
 } from './assistant.types';
@@ -17,7 +19,11 @@ export class AssistantService {
     private readonly openRouterClient: OpenRouterClient,
   ) {}
 
-  async askForAttempt(userId: string, attemptId: string, question: string) {
+  async askForAttempt(
+    userId: string,
+    attemptId: string,
+    question: string,
+  ): Promise<AssistantCompletionResult> {
     const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
     const attempt = attemptData.attempt;
 
@@ -27,11 +33,7 @@ export class AssistantService {
     const mission = this.missionsService.getMissionById(attempt.missionId);
 
     const context = this.createMessagesContext(
-      {
-        title: mission.title,
-        shortDescription: mission.shortDescription,
-        allowedCommands: mission.allowedCommands,
-      },
+      mission,
       attempt.currentCwd,
       attempt.status,
       attempt.steps,
@@ -41,14 +43,10 @@ export class AssistantService {
     const messages = this.buildMessages(context);
     const completion = await this.openRouterClient.createChatCompletion(messages);
 
-    return {
-      answer: completion.answer,
-      model: completion.model,
-      usage: completion.usage,
-    };
+    return completion;
   }
 
-  private assertAttemptIsInProgress(status: string): void {
+  private assertAttemptIsInProgress(status: AssistantAttemptStatus): void {
     if (status !== 'in_progress') {
       throw new ConflictException('Assistant is available only for in-progress attempts.');
     }
@@ -63,7 +61,7 @@ export class AssistantService {
   private createMessagesContext(
     mission: AssistantMissionContext,
     currentWorkingDirectory: string,
-    attemptStatus: string,
+    attemptStatus: AssistantAttemptStatus,
     steps: AssistantAttemptStepContext[],
     question: string,
   ): BuildAssistantMessagesContext {
@@ -125,7 +123,7 @@ export class AssistantService {
 
   private buildAttemptSection(
     currentWorkingDirectory: string,
-    attemptStatus: string,
+    attemptStatus: AssistantAttemptStatus,
     steps: AssistantAttemptStepContext[],
   ): string {
     const lines = [

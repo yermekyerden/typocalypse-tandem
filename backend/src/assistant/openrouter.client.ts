@@ -1,5 +1,11 @@
 import { BadGatewayException, Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { AssistantChatMessage, OpenRouterChatCompletionResponse } from './assistant.types';
+import {
+  AssistantChatMessage,
+  AssistantCompletionResult,
+  AssistantUsage,
+  OpenRouterApiUsage,
+  OpenRouterChatCompletionApiResponse,
+} from './assistant.types';
 
 @Injectable()
 export class OpenRouterClient {
@@ -19,7 +25,9 @@ export class OpenRouterClient {
     this.model = process.env.OPENROUTER_MODEL ?? 'openrouter/free';
   }
 
-  public async createChatCompletion(messages: AssistantChatMessage[]) {
+  public async createChatCompletion(
+    messages: AssistantChatMessage[],
+  ): Promise<AssistantCompletionResult> {
     let response: Response;
 
     try {
@@ -52,10 +60,10 @@ export class OpenRouterClient {
       throw new ServiceUnavailableException('Failed to reach the AI provider.');
     }
 
-    let responseJson: OpenRouterChatCompletionResponse;
+    let responseJson: OpenRouterChatCompletionApiResponse;
 
     try {
-      responseJson = (await response.json()) as OpenRouterChatCompletionResponse;
+      responseJson = (await response.json()) as OpenRouterChatCompletionApiResponse;
     } catch {
       throw new BadGatewayException('AI provider returned an invalid response.');
     }
@@ -75,7 +83,18 @@ export class OpenRouterClient {
     return {
       answer,
       model: responseJson.model ?? this.model,
-      usage: responseJson.usage ?? null,
+      usage: this.normalizeUsage(responseJson.usage),
+    };
+  }
+
+  private normalizeUsage(usage?: OpenRouterApiUsage | null): AssistantUsage | null {
+    if (!usage) {
+      return null;
+    }
+
+    return {
+      cost: usage.cost,
+      totalTokens: usage.total_tokens,
     };
   }
 }

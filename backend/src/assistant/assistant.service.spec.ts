@@ -90,7 +90,7 @@ describe('AssistantService', () => {
       model: 'google/gemma-3-4b-it:free',
       usage: {
         cost: 0,
-        total_tokens: 42,
+        totalTokens: 42,
       },
     });
 
@@ -118,7 +118,7 @@ describe('AssistantService', () => {
       model: 'google/gemma-3-4b-it:free',
       usage: {
         cost: 0,
-        total_tokens: 42,
+        totalTokens: 42,
       },
     });
   });

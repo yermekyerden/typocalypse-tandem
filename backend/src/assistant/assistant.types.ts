@@ -5,7 +5,7 @@ export type AssistantChatMessage = {
   content: string;
 };
 
-export type OpenRouterUsage = {
+export type OpenRouterApiUsage = {
   cost?: number;
   total_tokens?: number;
 };
@@ -15,7 +15,7 @@ export type OpenRouterError = {
 };
 
 export type OpenRouterChoiceMessage = {
-  role?: string;
+  role?: AssistantChatRole | 'tool';
   content?: string;
 };
 
@@ -23,11 +23,16 @@ export type OpenRouterChoice = {
   message?: OpenRouterChoiceMessage;
 };
 
-export type OpenRouterChatCompletionResponse = {
+export type OpenRouterChatCompletionApiResponse = {
   model?: string;
   choices?: OpenRouterChoice[];
-  usage?: OpenRouterUsage;
+  usage?: OpenRouterApiUsage | null;
   error?: OpenRouterError;
+};
+
+export type AssistantUsage = {
+  cost?: number;
+  totalTokens?: number;
 };
 
 export type AssistantMissionContext = {
@@ -60,15 +65,15 @@ export type AssistantAttemptStepContext = {
   trace: AssistantStepTraceContext;
 };
 
+export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
+
 export type BuildAssistantMessagesContext = {
   mission: AssistantMissionContext;
   currentWorkingDirectory: string;
-  attemptStatus: string;
+  attemptStatus: AssistantAttemptStatus;
   steps: AssistantAttemptStepContext[];
   question: string;
 };
-
-export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 
 export type AssistantAttemptContext = {
   missionId: string;
@@ -81,27 +86,12 @@ export type AssistantAttemptLookupResult = {
   attempt: AssistantAttemptContext;
 };
 
-export type AssistantMissionLookupResult = {
+export type AssistantMissionLookupResult = AssistantMissionContext & {
   id: string;
-  title: string;
-  shortDescription: string;
-  allowedCommands?: string[];
 };
 
 export type AssistantCompletionResult = {
   answer: string;
   model: string;
-  usage: OpenRouterUsage | null;
-};
-
-export type AttemptsServiceMock = {
-  getAttempt: jest.Mock<Promise<AssistantAttemptLookupResult>, [string, string]>;
-};
-
-export type MissionsServiceMock = {
-  getMissionById: jest.Mock<AssistantMissionLookupResult, [string]>;
-};
-
-export type OpenRouterClientMock = {
-  createChatCompletion: jest.Mock<Promise<AssistantCompletionResult>, [AssistantChatMessage[]]>;
+  usage: AssistantUsage | null;
 };

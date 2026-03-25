@@ -95,7 +95,7 @@ describe('OpenRouterClient', () => {
       model: 'google/gemma-3-4b-it:free',
       usage: {
         cost: 0,
-        total_tokens: 24,
+        totalTokens: 24,
       },
     });
   });
