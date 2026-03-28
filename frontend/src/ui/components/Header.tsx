@@ -44,9 +44,8 @@ export function Header() {
                     {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
                   </span>
                 )}
-              
-                  <Avatar onClick={() => setIsModalOpen(true)} />
-                
+
+                <Avatar onClick={() => setIsModalOpen(true)} />
               </div>
             </div>
           )}

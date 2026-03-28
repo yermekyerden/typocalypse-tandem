@@ -198,7 +198,6 @@ class AuthService {
     });
     if (!response.ok) throw new Error('Failed to remove avatar');
   }
-
 }
 
 export const authService = new AuthService();
