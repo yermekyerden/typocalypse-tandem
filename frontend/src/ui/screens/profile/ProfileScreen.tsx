@@ -7,6 +7,7 @@ import { getInitials } from './utils';
 import { DashboardScreen } from '../dashboard/DashboardScreen';
 import { authService } from '@/api/authService';
 
+
 type TabType = 'user-data' | 'progress' | 'settings';
 type EditableField = 'username' | 'firstName' | 'lastName' | 'email' | 'password' | null;
 
@@ -18,6 +19,25 @@ export function ProfileScreen() {
   const [currentPasswordInput, setCurrentPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+const PRESET_AVATARS = [
+  '/typocalypse-tandem/avatars/avatar1.webp',
+  '/typocalypse-tandem/avatars/avatar2.webp',
+  '/typocalypse-tandem/avatars/avatar3.webp',
+  '/typocalypse-tandem/avatars/avatar4.webp',
+  '/typocalypse-tandem/avatars/avatar5.webp',
+  '/typocalypse-tandem/avatars/avatar6.webp',
+  '/typocalypse-tandem/avatars/avatar7.webp',
+  '/typocalypse-tandem/avatars/avatar8.webp',
+  '/typocalypse-tandem/avatars/avatar9.webp',
+  '/typocalypse-tandem/avatars/avatar10.webp',
+  '/typocalypse-tandem/avatars/avatar11.webp',
+  '/typocalypse-tandem/avatars/avatar12.webp',
+  '/typocalypse-tandem/avatars/avatar13.webp',
+  '/typocalypse-tandem/avatars/avatar14.webp',
+  '/typocalypse-tandem/avatars/avatar15.webp',
+];
 
   function handleEditClick(field: EditableField, currentValue: string) {
     if (!field) return;
@@ -86,6 +106,20 @@ export function ProfileScreen() {
       setPasswordErrors(errorMessage);
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleSelectAvatar(src: string) {
+    try {
+      const res = await fetch(src);
+      const blob = await res.blob();
+      const ext = blob.type.split('/')[1] || 'png';
+      const file = new File([blob], `avatar.${ext}`, { type: blob.type });
+      await authService.updateAvatar(file);
+      await fetchProfile();
+      setShowAvatarPicker(false);
+    } catch (e) {
+      console.error(e);
     }
   }
 
@@ -164,16 +198,58 @@ export function ProfileScreen() {
               </h1>
 
               <div className="flex mb-8">
-                <Avatar className="h-24 w-24 ring-4 ring-yellow-400/50">
-                  <AvatarFallback className="bg-[#2c2c2c] text-yellow-400 text-4xl">
-                    {hasName ? (
-                      getInitials(user?.firstName || '', user?.lastName || '')
-                    ) : (
-                      <User size={40} />
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+  <div className="relative w-fit">
+    <div className="h-24 w-24 rounded-full bg-gray-700 ring-4 ring-yellow-400/50 overflow-hidden flex items-center justify-center text-yellow-400 text-4xl">
+      {user?.avatarUrl ? (
+        <img src={`/api${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+      ) : hasName ? (
+        getInitials(user?.firstName || '', user?.lastName || '')
+      ) : (
+        <User size={40} />
+      )}
+    </div>
+    <button
+      type="button"
+      onClick={() => setShowAvatarPicker(true)}
+      className={cn('absolute bottom-0 right-0 h-7 w-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center',
+       'hover:bg-yellow-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 font-bold text-xl leading-none cursor-pointer')}
+    >
+      +
+    </button>
+  </div>
+</div>
+
+{showAvatarPicker && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="bg-[#2c2c2c] rounded-2xl p-6 flex flex-col gap-4 shadow-xl w-full max-w-sm max-h-[90vh]">
+      <h2 className="text-yellow-400 font-bold text-lg shrink-0">Choose avatar</h2>
+      <div className="overflow-y-auto flex-1">
+        <div className="grid grid-cols-3 gap-3">
+          {PRESET_AVATARS.map((src) => (
+            <button
+              key={src}
+              type="button"
+              onClick={() => handleSelectAvatar(src)}
+              className={cn(
+                'h-20 w-20 mx-auto rounded-full overflow-hidden ring-2 transition focus:outline-none cursor-pointer',
+                user?.avatarUrl === src ? 'ring-yellow-400' : 'ring-transparent hover:ring-yellow-400/50',
+              )}
+            >
+              <img src={src} alt="" className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowAvatarPicker(false)}
+        className="text-white/60 hover:text-white text-sm text-center shrink-0 cursor-pointer"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
 
               <div className="space-y-6">
                 <div
