@@ -1,0 +1,17 @@
+export const PRESET_AVATARS = [
+  '/typocalypse-tandem/avatars/avatar1.webp',
+  '/typocalypse-tandem/avatars/avatar2.webp',
+  '/typocalypse-tandem/avatars/avatar3.webp',
+  '/typocalypse-tandem/avatars/avatar4.webp',
+  '/typocalypse-tandem/avatars/avatar5.webp',
+  '/typocalypse-tandem/avatars/avatar6.webp',
+  '/typocalypse-tandem/avatars/avatar7.webp',
+  '/typocalypse-tandem/avatars/avatar8.webp',
+  '/typocalypse-tandem/avatars/avatar9.webp',
+  '/typocalypse-tandem/avatars/avatar10.webp',
+  '/typocalypse-tandem/avatars/avatar11.webp',
+  '/typocalypse-tandem/avatars/avatar12.webp',
+  '/typocalypse-tandem/avatars/avatar13.webp',
+  '/typocalypse-tandem/avatars/avatar14.webp',
+  '/typocalypse-tandem/avatars/avatar15.webp',
+];
