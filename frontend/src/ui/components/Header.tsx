@@ -32,7 +32,10 @@ export function Header() {
               {user && (
                 <>
                   <div className="flex gap-3 mr-4">
-                    <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                    <Link
+                      to="/"
+                      className="text-yellow-50 transition hover:text-yellow-400"
+                    >
                       {t('navigation.training')}
                     </Link>
                     <Link
@@ -41,7 +44,10 @@ export function Header() {
                     >
                       {t('navigation.profile')}
                     </Link>
-                    <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                    <Link
+                      to="/"
+                      className="text-yellow-50 transition hover:text-yellow-400"
+                    >
                       {t('navigation.settings')}
                     </Link>
                   </div>

@@ -13,9 +13,7 @@ export function LibraryTerminalSection() {
         <h2 className="text-2xl font-semibold text-yellow-50">
           {t('library.sandboxTitle')}
         </h2>
-        <p className="text-sm text-yellow-100/80">
-          {t('library.sandboxDescription')}
-        </p>
+        <p className="text-sm text-yellow-100/80">{t('library.sandboxDescription')}</p>
       </div>
 
       <div className="mt-4 flex min-h-0 flex-1 overflow-hidden">

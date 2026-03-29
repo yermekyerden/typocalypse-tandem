@@ -75,7 +75,9 @@ export function AuthScreen() {
         <div className="mx-auto h-full flex items-center justify-center">
           <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold text-yellow-400">{t('common.appName')}</h1>
+              <h1 className="text-4xl font-bold text-yellow-400">
+                {t('common.appName')}
+              </h1>
               <p className="text-white/60 mt-2">
                 {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
               </p>
