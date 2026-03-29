@@ -10,6 +10,7 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { buildOkResponse } from '../common/response.helper';
+import { ApiOkEnvelopeOf } from '../common/api-ok-envelope.dto';
 import { LearningLessonDetailResponseDto } from './dto/learning-lesson-detail-response.dto';
 import { LearningOverviewResponseDto } from './dto/learning-overview-response.dto';
 import { LearningContentService } from './learning-content.service';
@@ -27,7 +28,7 @@ export class LearningController {
 
   @Get('learning/overview')
   @ApiOperation({ summary: 'Get module and lesson overview with per-user lesson statuses' })
-  @ApiOkResponse({ type: LearningOverviewResponseDto })
+  @ApiOkResponse({ type: ApiOkEnvelopeOf(LearningOverviewResponseDto) })
   @ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired access token' })
   async getOverview(@CurrentUser() user: { id: string }) {
     const data = await this.learningOverviewService.getUserOverview(user.id);
@@ -36,7 +37,7 @@ export class LearningController {
 
   @Get('lessons/:id')
   @ApiOperation({ summary: 'Get lesson detail content by lesson identifier' })
-  @ApiOkResponse({ type: LearningLessonDetailResponseDto })
+  @ApiOkResponse({ type: ApiOkEnvelopeOf(LearningLessonDetailResponseDto) })
   @ApiUnauthorizedResponse({ description: 'Missing, invalid, or expired access token' })
   @ApiNotFoundResponse({ description: 'Lesson was not found' })
   getLessonById(@Param('id') lessonId: string) {

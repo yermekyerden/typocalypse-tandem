@@ -496,7 +496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LearningOverviewResponseDto"
+                  "$ref": "#/components/schemas/ApiOkEnvelope_LearningOverviewResponseDto"
                 }
               }
             }
@@ -535,7 +535,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LearningLessonDetailResponseDto"
+                  "$ref": "#/components/schemas/ApiOkEnvelope_LearningLessonDetailResponseDto"
                 }
               }
             }
@@ -614,7 +614,14 @@
         },
         "responses": {
           "201": {
-            "description": "Creates a new in-progress attempt."
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiOkEnvelope_CreateAttemptResponseDto"
+                }
+              }
+            }
           },
           "404": {
             "description": "Lesson not found."
@@ -1116,6 +1123,32 @@
           "modules"
         ]
       },
+      "ApiOkEnvelope_LearningOverviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
+            "type": "string",
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LearningOverviewResponseDto"
+          }
+        },
+        "required": [
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
+        ]
+      },
       "LessonDetailDto": {
         "type": "object",
         "properties": {
@@ -1178,6 +1211,32 @@
           "lesson"
         ]
       },
+      "ApiOkEnvelope_LearningLessonDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
+            "type": "string",
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LearningLessonDetailResponseDto"
+          }
+        },
+        "required": [
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
+        ]
+      },
       "CreateAttemptDto": {
         "type": "object",
         "properties": {
@@ -1188,6 +1247,56 @@
         },
         "required": [
           "lessonId"
+        ]
+      },
+      "CreateAttemptResponseDto": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "initialCwd": {
+            "type": "string",
+            "example": "/home"
+          },
+          "initialFs": {
+            "type": "object",
+            "description": "Initial virtual filesystem snapshot. Shape: { root: VfsDirNode }",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "attemptId",
+          "initialCwd",
+          "initialFs"
+        ]
+      },
+      "ApiOkEnvelope_CreateAttemptResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
+            "type": "string",
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateAttemptResponseDto"
+          }
+        },
+        "required": [
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
         ]
       },
       "SubmitCommandDto": {
