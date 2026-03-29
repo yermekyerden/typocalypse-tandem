@@ -39,6 +39,14 @@ async function bootstrap() {
     },
   });
 
+  app.enableCors({
+    // Array form compares request Origin against the list — only matching origins
+    // receive the header. Undefined in dev is intentional: the Vite proxy serves
+    // all requests same-origin, so CORS headers are never requested.
+    origin: process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : undefined,
+    credentials: true,
+  });
+
   await app.listen(process.env.PORT ?? 3001);
 }
 void bootstrap();
