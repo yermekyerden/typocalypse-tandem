@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useI18n } from '@/i18n/I18nProvider';
 
 export function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const { t } = useI18n();
   useEffect(() => {
     const handleOffline = () => setIsOffline(true);
     const handleOnline = () => setIsOffline(false);
@@ -15,7 +17,7 @@ export function OfflineBanner() {
   if (!isOffline) return null;
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/90 text-white text-sm text-center py-2">
-      No internet connection
+      {t('offline.noInternet')}
     </div>
   );
 }

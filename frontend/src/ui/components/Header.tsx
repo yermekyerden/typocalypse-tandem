@@ -4,10 +4,13 @@ import { Avatar } from './Avatar';
 import { useState } from 'react';
 import { ProfileModal } from './ui/ProfileModal';
 import { useAuthStore } from '@/store/authStore';
+import { useI18n } from '@/i18n/I18nProvider';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 export function Header() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
+  const { t } = useI18n();
 
   return (
     <div>
@@ -18,42 +21,49 @@ export function Header() {
             className="flex items-center gap-2 transition hover:drop-shadow-[0_0_10px_rgba(250,204,21,0.9)]"
           >
             <img src={Logo} alt="" className="h-8 w-8" />
-            <span className="font-semibold text-yellow-400 text-lg">Terminal Dojo</span>
+            <span className="font-semibold text-yellow-400 text-lg">
+              {t('common.appName')}
+            </span>
           </Link>
 
-          {user && (
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher />
             <div className="flex items-center gap-4">
-              <div className="flex gap-3 mr-4">
-                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                  Training
-                </Link>
-                <Link
-                  to="/profile"
-                  className="text-yellow-50 transition hover:text-yellow-400"
-                >
-                  Profile
-                </Link>
-                <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
-                  Settings
-                </Link>
-              </div>
+              {user && (
+                <>
+                  <div className="flex gap-3 mr-4">
+                    <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                      {t('navigation.training')}
+                    </Link>
+                    <Link
+                      to="/profile"
+                      className="text-yellow-50 transition hover:text-yellow-400"
+                    >
+                      {t('navigation.profile')}
+                    </Link>
+                    <Link to="/" className="text-yellow-50 transition hover:text-yellow-400">
+                      {t('navigation.settings')}
+                    </Link>
+                  </div>
 
-              <div className="flex items-center gap-3 bg-mist-900 rounded-full">
-                {(user.firstName || user.lastName) && (
-                  <span className="ml-4 text-2xl font-medium text-yellow-400">
-                    {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
-                  </span>
-                )}
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)] focus:outline-none focus:ring-2 focus:ring-yellow-400/70"
-                  aria-label="Open profile menu"
-                >
-                  <Avatar />
-                </button>
-              </div>
+                  <div className="flex items-center gap-3 bg-mist-900 rounded-full">
+                    {(user.firstName || user.lastName) && (
+                      <span className="ml-4 text-2xl font-medium text-yellow-400">
+                        {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setIsModalOpen(true)}
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)] focus:outline-none focus:ring-2 focus:ring-yellow-400/70"
+                      aria-label={t('navigation.openProfileMenu')}
+                    >
+                      <Avatar />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </header>
 

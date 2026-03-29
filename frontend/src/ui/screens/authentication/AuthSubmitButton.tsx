@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/i18n/I18nProvider';
 
 interface AuthSubmitButtonProps {
   mode: 'login' | 'register';
@@ -7,9 +8,11 @@ interface AuthSubmitButtonProps {
 }
 
 export function AuthSubmitButton({ mode, isLoading, disabled }: AuthSubmitButtonProps) {
+  const { t } = useI18n();
+
   const buttonText = {
-    login: isLoading ? 'Signing in...' : 'Login',
-    register: isLoading ? 'Creating account...' : 'Create account',
+    login: isLoading ? t('auth.signingIn') : t('auth.login'),
+    register: isLoading ? t('auth.creatingAccount') : t('auth.createAccountButton'),
   };
 
   return (

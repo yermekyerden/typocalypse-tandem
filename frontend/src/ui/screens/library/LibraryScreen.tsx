@@ -5,6 +5,7 @@ import type {
   LearningLessonView,
   LearningModule,
 } from '@/features/learning/types';
+import { useI18n } from '@/i18n/I18nProvider';
 import { useTerminalSession } from '@/store/terminalSession';
 
 import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
@@ -63,6 +64,7 @@ function resolveLessonProgress(module: LearningModule | null): LessonProgress {
 }
 
 export function LibraryScreen() {
+  const { t } = useI18n();
   const modules = useTerminalSession((s) => s.modules);
   const lessonDetailsById = useTerminalSession((s) => s.lessonDetailsById);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
@@ -99,7 +101,7 @@ export function LibraryScreen() {
 
   return (
     <div
-      aria-label="Lesson details and terminal"
+      aria-label={t('library.pageAriaLabel')}
       className="flex h-full min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50"
     >
       {apiError ? (
@@ -126,7 +128,7 @@ export function LibraryScreen() {
           aria-live="polite"
           className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80"
         >
-          No lesson details available yet.
+          {t('library.noLessonDetails')}
         </section>
       ) : null}
       <LibraryCompletionModal

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 
+import { useI18n } from '@/i18n/I18nProvider';
 import {
   Accordion,
   AccordionContent,
@@ -11,6 +12,7 @@ import { Progress } from '@/ui/components/ui/progress';
 import { getStatus } from './utils';
 
 export function DashboardScreen() {
+  const { t } = useI18n();
   const modules = useTerminalSession((state) => state.modules);
   const initialize = useTerminalSession((state) => state.initialize);
 
@@ -43,7 +45,7 @@ export function DashboardScreen() {
                 return (
                   <div key={lesson.id} className="flex justify-between mb-2">
                     <span>{lesson.title}</span>
-                    {getStatus(lesson.status)}
+                    {getStatus(lesson.status, t)}
                   </div>
                 );
               })}
