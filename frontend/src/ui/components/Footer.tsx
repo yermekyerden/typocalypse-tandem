@@ -2,15 +2,15 @@ import GitHubLogo from '@/assets/icons/GitHub.png';
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3">
+    <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3 dark:bg-none dark:bg-mist-300">
       <div className="mx-auto flex items-center justify-between max-w-8xl px-4">
-        <p className="text-sm">&copy; 2026 Terminal Dojo</p>
+        <p className="text-sm dark:text-mist-900">&copy; 2026 Terminal Dojo</p>
 
         <a
           href="https://rs.school/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm hover:text-yellow-400"
+          className="text-sm hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900"
         >
           The Rolling Scopes School
         </a>

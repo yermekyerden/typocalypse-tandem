@@ -9,15 +9,15 @@ type AuthTabsProps = {
 
 export function AuthTabs({ mode, onModeChange }: AuthTabsProps) {
   return (
-    <div className="flex gap-2 p-1 bg-[#3f4044] rounded-lg">
+    <div className="flex gap-2 p-1 bg-[#3f4044] rounded-lg dark:bg-mist-200">
       <button
         type="button"
         onClick={() => onModeChange('login')}
         className={cn(
           'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all cursor-pointer',
           mode === 'login'
-            ? 'bg-yellow-400 text-gray-900 shadow-sm'
-            : 'text-white/60 hover:text-white',
+            ? 'bg-yellow-400 text-gray-900 shadow-sm dark:bg-indigo-300'
+            : 'text-white/60 hover:text-white dark:text-mist-900 dark:hover:text-indigo-900',
         )}
       >
         Login
@@ -28,8 +28,8 @@ export function AuthTabs({ mode, onModeChange }: AuthTabsProps) {
         className={cn(
           'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all cursor-pointer',
           mode === 'register'
-            ? 'bg-yellow-400 text-gray-900 shadow-sm'
-            : 'text-white/60 hover:text-white',
+            ? 'bg-yellow-400 text-gray-900 shadow-sm dark:bg-indigo-300'
+            : 'text-white/60 hover:text-white dark:text-mist-900 dark:hover:text-indigo-900',
         )}
       >
         Register
