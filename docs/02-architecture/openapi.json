@@ -510,7 +510,7 @@
             "access-token": []
           }
         ],
-        "summary": "Get module and lesson overview for the curriculum",
+        "summary": "Get module and lesson overview with per-user lesson statuses",
         "tags": [
           "Learning"
         ]
@@ -613,8 +613,14 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Creates a new in-progress attempt."
+          },
+          "404": {
+            "description": "Lesson not found."
+          },
+          "422": {
+            "description": "Lesson exists but has no mission mapping."
           }
         },
         "security": [
@@ -755,6 +761,50 @@
         ],
         "tags": [
           "progress"
+        ]
+      }
+    },
+    "/assistant/attempts/{attemptId}": {
+      "post": {
+        "operationId": "AssistantController_askForAttempt",
+        "parameters": [
+          {
+            "name": "attemptId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskAssistantRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns an AI hint for the current attempt."
+          },
+          "404": {
+            "description": "Attempt or mission not found."
+          },
+          "409": {
+            "description": "Assistant is not available for completed or abandoned attempts."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "assistant"
         ]
       }
     }
@@ -1131,13 +1181,13 @@
       "CreateAttemptDto": {
         "type": "object",
         "properties": {
-          "missionId": {
+          "lessonId": {
             "type": "string",
-            "description": "The mission to attempt."
+            "description": "The lesson to start. Must exist in the learning content."
           }
         },
         "required": [
-          "missionId"
+          "lessonId"
         ]
       },
       "SubmitCommandDto": {
@@ -1155,6 +1205,19 @@
         "required": [
           "command",
           "clientCommandId"
+        ]
+      },
+      "AskAssistantRequestDto": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "User question for the assistant.",
+            "example": "Give me a hint without solving the mission."
+          }
+        },
+        "required": [
+          "question"
         ]
       }
     }
