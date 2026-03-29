@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { I18nContext } from './I18nContext';
-import {
-  fallbackLanguage,
-  translations,
-  type Language,
-  type TranslationKey,
-} from './translations';
+import { translate } from './translate';
+import { fallbackLanguage, type Language, type TranslationKey } from './translations';
 
 const LANGUAGE_STORAGE_KEY = 'typocalypse.language';
 
@@ -56,32 +52,4 @@ function getInitialLanguage(): Language {
   }
 
   return 'en';
-}
-
-function translate(language: Language, key: TranslationKey, params?: TranslateParams) {
-  const template = getTranslationValue(language, key);
-
-  if (!params) {
-    return template;
-  }
-
-  return template.replaceAll(/\{\{(\w+)\}\}/g, (_, token: string) => {
-    const value = params[token];
-    return value === undefined ? '' : String(value);
-  });
-}
-
-function getTranslationValue(language: Language, key: TranslationKey) {
-  const path = key.split('.');
-  let currentValue: unknown = translations[language];
-
-  for (const segment of path) {
-    if (!currentValue || typeof currentValue !== 'object' || !(segment in currentValue)) {
-      return key;
-    }
-
-    currentValue = (currentValue as Record<string, unknown>)[segment];
-  }
-
-  return typeof currentValue === 'string' ? currentValue : key;
 }
