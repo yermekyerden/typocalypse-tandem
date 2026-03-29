@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 
 export function MissionRunScreen() {
   const { missionId } = useParams();

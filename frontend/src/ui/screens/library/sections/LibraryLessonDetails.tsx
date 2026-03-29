@@ -1,5 +1,5 @@
 import { type LearningLessonView } from '@/features/learning/types';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 import { AchievementStars } from '@/ui/components/AchievementStars';
 import { AiAssistant } from '@/ui/components/AiAssistant';
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 import { AuthForm } from './AuthForm';
 import { AuthSubmitButton } from './AuthSubmitButton';
 import { AuthTabs } from './AuthTabs';

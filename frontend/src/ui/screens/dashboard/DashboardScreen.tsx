@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 import {
   Accordion,
   AccordionContent,

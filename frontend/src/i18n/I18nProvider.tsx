@@ -1,13 +1,12 @@
 import {
-  createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useState,
   type PropsWithChildren,
 } from 'react';
 
+import { I18nContext } from './I18nContext';
 import {
   fallbackLanguage,
   translations,
@@ -18,20 +17,6 @@ import {
 const LANGUAGE_STORAGE_KEY = 'typocalypse.language';
 
 type TranslateParams = Record<string, string | number | undefined>;
-
-type I18nContextValue = {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: (key: TranslationKey, params?: TranslateParams) => string;
-};
-
-const defaultContextValue: I18nContextValue = {
-  language: fallbackLanguage,
-  setLanguage: () => undefined,
-  t: (key, params) => translate(fallbackLanguage, key, params),
-};
-
-const I18nContext = createContext<I18nContextValue>(defaultContextValue);
 
 export function I18nProvider({ children }: PropsWithChildren) {
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
@@ -56,10 +41,6 @@ export function I18nProvider({ children }: PropsWithChildren) {
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
-}
-
-export function useI18n() {
-  return useContext(I18nContext);
 }
 
 function getInitialLanguage(): Language {

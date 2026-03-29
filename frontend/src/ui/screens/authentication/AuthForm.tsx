@@ -1,5 +1,5 @@
 import type { AuthFormValues } from './AuthScreen';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 
 interface AuthFormProps {
   values: AuthFormValues;

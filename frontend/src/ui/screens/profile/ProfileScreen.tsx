@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 import { useState, useEffect, useCallback } from 'react';
 import { Avatar, AvatarFallback } from '../../components/ui/avatar';
 import { User } from 'lucide-react';

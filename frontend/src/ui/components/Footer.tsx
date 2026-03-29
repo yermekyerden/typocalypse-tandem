@@ -1,5 +1,5 @@
 import GitHubLogo from '@/assets/icons/GitHub.png';
-import { useI18n } from '@/i18n/I18nProvider';
+import { useI18n } from '@/i18n/useI18n';
 
 export function Footer() {
   const { t } = useI18n();
