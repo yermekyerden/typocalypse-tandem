@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type PropsWithChildren,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 
 import { I18nContext } from './I18nContext';
 import {

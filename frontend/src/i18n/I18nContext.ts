@@ -1,10 +1,6 @@
 import { createContext } from 'react';
 
-import {
-  fallbackLanguage,
-  type Language,
-  type TranslationKey,
-} from './translations';
+import { fallbackLanguage, type Language, type TranslationKey } from './translations';
 
 type TranslateParams = Record<string, string | number | undefined>;
 
