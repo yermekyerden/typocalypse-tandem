@@ -7,7 +7,7 @@ import { DashboardScreen } from '../dashboard/DashboardScreen';
 import { authService } from '@/api/authService';
 import { PRESET_AVATARS } from './constants';
 
-type TabType = 'user-data' | 'progress' | 'settings';
+type TabType = 'user-data' | 'progress';
 type EditableField = 'username' | 'firstName' | 'lastName' | 'email' | 'password' | null;
 
 export function ProfileScreen() {
@@ -19,6 +19,7 @@ export function ProfileScreen() {
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [avatarPickerTab, setAvatarPickerTab] = useState<'preset' | 'upload'>('preset');
 
   function handleEditClick(field: EditableField, currentValue: string) {
     if (!field) return;
@@ -104,6 +105,19 @@ export function ProfileScreen() {
     }
   }
 
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      await authService.updateAvatar(file);
+      await fetchProfile();
+      setShowAvatarPicker(false);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   return (
     <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1">
       <div className="mx-auto h-full flex gap-3">
@@ -147,26 +161,6 @@ export function ProfileScreen() {
               Progress
             </span>
           </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('settings')}
-            className={cn(
-              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
-              'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
-            )}
-          >
-            <span
-              className={cn(
-                'text-sm uppercase tracking-wider text-white',
-                activeTab === 'settings'
-                  ? 'text-yellow-400'
-                  : 'text-white group-hover:text-yellow-400',
-              )}
-            >
-              Settings
-            </span>
-          </button>
         </div>
 
         <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
@@ -197,7 +191,7 @@ export function ProfileScreen() {
                     type="button"
                     onClick={() => setShowAvatarPicker(true)}
                     className={cn(
-                      'absolute bottom-0 right-0 h-7 w-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center',
+                      'absolute bottom-0 right-0 h-7 w-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center pb-0.5',
                       'hover:bg-yellow-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 font-bold text-xl leading-none cursor-pointer',
                     )}
                   >
@@ -209,35 +203,84 @@ export function ProfileScreen() {
               {showAvatarPicker && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
                   <div className="bg-[#2c2c2c] rounded-2xl p-6 flex flex-col gap-4 shadow-xl w-full max-w-sm max-h-[90vh]">
-                    <h2 className="text-yellow-400 font-bold text-lg shrink-0">
-                      Choose avatar
-                    </h2>
+                    <div className="flex gap-2 border-b border-white/10 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setAvatarPickerTab('preset')}
+                        className={cn(
+                          'pb-2 px-2 text-sm font-medium transition-colors cursor-pointer',
+                          avatarPickerTab === 'preset'
+                            ? 'text-yellow-400 border-b-2 border-yellow-400'
+                            : 'text-white/60 hover:text-white',
+                        )}
+                      >
+                        Preset avatars
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAvatarPickerTab('upload')}
+                        className={cn(
+                          'pb-2 px-2 text-sm font-medium transition-colors cursor-pointer',
+                          avatarPickerTab === 'upload'
+                            ? 'text-yellow-400 border-b-2 border-yellow-400'
+                            : 'text-white/60 hover:text-white',
+                        )}
+                      >
+                        Upload photo
+                      </button>
+                    </div>
                     <div className="overflow-y-auto flex-1">
-                      <div className="grid grid-cols-3 gap-3">
-                        {PRESET_AVATARS.map((src) => (
-                          <button
-                            key={src}
-                            type="button"
-                            onClick={() => handleSelectAvatar(src)}
+                      {avatarPickerTab === 'preset' ? (
+                        <div className="grid grid-cols-3 gap-3 pt-1 pb-1">
+                          {PRESET_AVATARS.map((src) => (
+                            <button
+                              key={src}
+                              type="button"
+                              onClick={() => handleSelectAvatar(src)}
+                              className={cn(
+                                'h-20 w-20 mx-auto rounded-full overflow-hidden ring-2 transition focus:outline-none cursor-pointer',
+                                user?.avatarUrl === src
+                                  ? 'ring-yellow-400'
+                                  : 'ring-transparent hover:ring-yellow-400/50',
+                              )}
+                            >
+                              <img
+                                src={src}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center gap-4 py-8">
+                          <label
+                            htmlFor="avatar-upload"
                             className={cn(
-                              'h-20 w-20 mx-auto rounded-full overflow-hidden ring-2 transition focus:outline-none cursor-pointer',
-                              user?.avatarUrl === src
-                                ? 'ring-yellow-400'
-                                : 'ring-transparent hover:ring-yellow-400/50',
+                              'cursor-pointer bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg',
+                              'hover:bg-yellow-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400',
                             )}
                           >
-                            <img
-                              src={src}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </button>
-                        ))}
-                      </div>
+                            Choose file
+                          </label>
+                          <input
+                            id="avatar-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                          />
+                          <p className="text-white/60 text-sm text-center">
+                            Supported formats: JPG, PNG, GIF
+                            <br />
+                            Max file size: 5MB
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between shrink-0 pt-2 border-t border-white/10">
-                      {user?.avatarUrl ? (
+                      {user?.avatarUrl && (
                         <button
                           type="button"
                           onClick={async () => {
@@ -253,13 +296,11 @@ export function ProfileScreen() {
                         >
                           Remove avatar
                         </button>
-                      ) : (
-                        <span />
                       )}
                       <button
                         type="button"
                         onClick={() => setShowAvatarPicker(false)}
-                        className="text-white/60 hover:text-white text-sm focus:outline-none cursor-pointer"
+                        className="text-white/60 hover:text-white text-sm focus:outline-none cursor-pointer ml-auto"
                       >
                         Cancel
                       </button>
