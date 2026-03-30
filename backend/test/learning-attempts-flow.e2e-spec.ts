@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { LESSON_MISSION_MAP } from '../src/learning-content/lesson-mission-mapping';
 
 // Constants sourced from lesson-mission-mapping.ts and the matching mission JSON.
 // The ls-home lesson maps to ch01-m03-list-home which starts with /home/dojo/projects/
@@ -127,11 +128,16 @@ describe('Learning → Attempts end-to-end flow (e2e)', () => {
     const completedLesson = allLessons2.find((l) => l['id'] === E2E_LESSON_ID);
     expect(completedLesson?.['status']).toBe('completed');
 
-    // If there is a next lesson it should be active; otherwise no active lesson (terminal state)
+    // The next *startable* lesson (one present in LESSON_MISSION_MAP) should become active.
+    // Display-only lessons between E2E_LESSON_ID and the next startable one stay locked.
+    // If no further startable lesson exists, the result is terminal state (no active lesson).
     const lessonIndex = allLessons2.findIndex((l) => l['id'] === E2E_LESSON_ID);
-    const nextLesson = allLessons2[lessonIndex + 1];
-    if (nextLesson) {
-      expect(nextLesson['status']).toBe('active');
+    const nextStartableLesson = allLessons2
+      .slice(lessonIndex + 1)
+      .find((l) => LESSON_MISSION_MAP.has(l['id'] as string));
+
+    if (nextStartableLesson) {
+      expect(nextStartableLesson['status']).toBe('active');
     } else {
       expect(allLessons2.some((l) => l['status'] === 'active')).toBe(false);
     }
