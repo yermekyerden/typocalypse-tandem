@@ -52,20 +52,15 @@ export function Header() {
                     </Link>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-mist-900 rounded-full">
-                    {(user.firstName || user.lastName) && (
-                      <span className="ml-4 text-2xl font-medium text-yellow-400">
-                        {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
-                      </span>
-                    )}
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-2 ring-yellow-400/50 transition hover:shadow-[0_0_15px_rgba(250,204,21,0.8)] focus:outline-none focus:ring-2 focus:ring-yellow-400/70"
-                      aria-label={t('navigation.openProfileMenu')}
-                    >
-                      <Avatar />
-                    </button>
-                  </div>
+              <div className="flex items-center gap-3 bg-mist-900 rounded-full">
+                {(user.firstName || user.lastName) && (
+                  <span className="ml-4 text-2xl font-medium text-yellow-400">
+                    {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                  </span>
+                )}
+
+                <Avatar onClick={() => setIsModalOpen(true)} />
+              </div>
                 </>
               )}
             </div>

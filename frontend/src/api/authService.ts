@@ -181,6 +181,23 @@ class AuthService {
       throw new Error(data?.message || 'Failed to change password');
     }
   }
+
+  async updateAvatar(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const response = await this.fetchWithAuth(`${this.baseUrl}/profile/me/avatar`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) throw new Error('Failed to update avatar');
+  }
+
+  async removeAvatar(): Promise<void> {
+    const response = await this.fetchWithAuth(`${this.baseUrl}/profile/me/avatar`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to remove avatar');
+  }
 }
 
 export const authService = new AuthService();
