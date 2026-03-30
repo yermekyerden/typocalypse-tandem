@@ -31,6 +31,7 @@ export function TerminalWindow({ height, className }: Props) {
   const cwd = useTerminalSession((s) => s.cwd);
   const runCommand = useTerminalSession((s) => s.runCommand);
   const history = useTerminalSession((s) => s.history);
+  const isTerminalBusy = useTerminalSession((s) => s.isTerminalBusy);
 
   const prompt = useMemo(() => `student@dojo:${formatPromptPath(cwd)}$ `, [cwd]);
 
@@ -42,6 +43,7 @@ export function TerminalWindow({ height, className }: Props) {
   const historyRef = useRef<string[]>(history);
   const runCommandRef = useRef(runCommand);
   const promptRef = useRef(prompt);
+  const isTerminalBusyRef = useRef(isTerminalBusy);
   const lastOutputIndexRef = useRef(0);
   const lastSubmittedCommandRef = useRef<string | null>(null);
 
@@ -52,6 +54,10 @@ export function TerminalWindow({ height, className }: Props) {
   useEffect(() => {
     runCommandRef.current = runCommand;
   }, [runCommand]);
+
+  useEffect(() => {
+    isTerminalBusyRef.current = isTerminalBusy;
+  }, [isTerminalBusy]);
 
   useEffect(() => {
     promptRef.current = prompt;
@@ -127,6 +133,10 @@ export function TerminalWindow({ height, className }: Props) {
     };
 
     const handleData = (data: string) => {
+      if (isTerminalBusyRef.current) {
+        return;
+      }
+
       if (data === '\u0003') {
         term.writeln('^C');
         inputRef.current = '';

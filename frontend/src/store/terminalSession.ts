@@ -114,7 +114,13 @@ function normalizeModules(modules: LearningModule[]) {
     if (firstModule && firstLesson) {
       activeModuleId = firstModule.id;
       activeLessonId = firstLesson.id;
-      firstLesson.status = 'active';
+      normalizedModules[0] = {
+        ...firstModule,
+        lessons: [
+          { ...firstLesson, status: 'active' as const },
+          ...firstModule.lessons.slice(1),
+        ],
+      };
     }
   }
 
@@ -460,31 +466,30 @@ export const useTerminalSession = create<TerminalState>((set, get) => ({
           completedModuleId = completion.completedModuleId ?? current.completedModuleId;
         }
 
+        const autoAdvanced = nextLessonId !== null && nextLessonId !== activeLessonId;
+
         return {
           modules,
           activeLessonId: nextLessonId,
           activeModuleId: nextModuleId,
           expandedModuleId: nextModuleId ?? current.expandedModuleId,
           completedModuleId,
-          cwd: response.cwdAfter,
-          output,
+          cwd: autoAdvanced ? '~' : response.cwdAfter,
+          history: autoAdvanced ? [] : current.history,
+          output: autoAdvanced ? [] : output,
           isTerminalBusy: false,
-          activeAttempt: {
-            ...attempt,
-            status: response.attemptStatus,
-          },
+          activeAttempt: autoAdvanced
+            ? null
+            : {
+                ...attempt,
+                status: response.attemptStatus,
+              },
         };
       });
 
       const nextActiveLessonId = useTerminalSession.getState().activeLessonId;
       if (nextActiveLessonId && nextActiveLessonId !== activeLessonId) {
         await ensureLessonLoaded(nextActiveLessonId);
-        useTerminalSession.setState({
-          cwd: '~',
-          history: [],
-          output: [],
-          activeAttempt: null,
-        });
       }
     } catch (error) {
       const message = getReadableError(error);
