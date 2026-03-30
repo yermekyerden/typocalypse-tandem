@@ -52,15 +52,15 @@ export function Header() {
                     </Link>
                   </div>
 
-              <div className="flex items-center gap-3 bg-mist-900 rounded-full">
-                {(user.firstName || user.lastName) && (
-                  <span className="ml-4 text-2xl font-medium text-yellow-400">
-                    {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
-                  </span>
-                )}
+                  <div className="flex items-center gap-3 bg-mist-900 rounded-full">
+                    {(user.firstName || user.lastName) && (
+                      <span className="ml-4 text-2xl font-medium text-yellow-400">
+                        {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
+                      </span>
+                    )}
 
-                <Avatar onClick={() => setIsModalOpen(true)} />
-              </div>
+                    <Avatar onClick={() => setIsModalOpen(true)} />
+                  </div>
                 </>
               )}
             </div>
