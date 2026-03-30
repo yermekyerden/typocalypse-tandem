@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/i18n/useI18n';
 
 type AuthMode = 'login' | 'register';
 
@@ -8,6 +9,8 @@ type AuthTabsProps = {
 };
 
 export function AuthTabs({ mode, onModeChange }: AuthTabsProps) {
+  const { t } = useI18n();
+
   return (
     <div className="flex gap-2 p-1 bg-[#3f4044] rounded-lg">
       <button
@@ -20,7 +23,7 @@ export function AuthTabs({ mode, onModeChange }: AuthTabsProps) {
             : 'text-white/60 hover:text-white',
         )}
       >
-        Login
+        {t('auth.login')}
       </button>
       <button
         type="button"
@@ -32,7 +35,7 @@ export function AuthTabs({ mode, onModeChange }: AuthTabsProps) {
             : 'text-white/60 hover:text-white',
         )}
       >
-        Register
+        {t('auth.register')}
       </button>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useI18n } from '@/i18n/useI18n';
 
 type ProfileModalProps = {
   onClose: () => void;
@@ -8,6 +9,7 @@ type ProfileModalProps = {
 export function ProfileModal({ onClose }: ProfileModalProps) {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
+  const { t } = useI18n();
 
   const handleProfileClick = () => {
     navigate('/profile');
@@ -26,19 +28,23 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
         className="absolute right-10 top-[72px] bg-mist-900 p-3 pl-4 pr-4 rounded-lg text-yellow-50 shadow-[0_0_10px_rgba(250,204,21,0.6)] flex flex-col gap-1"
         onClick={(e) => e.stopPropagation()}
       >
-        <button className="cursor-pointer hover:text-yellow-400">Training</button>
+        <button className="cursor-pointer hover:text-yellow-400">
+          {t('navigation.training')}
+        </button>
         <button
           className="cursor-pointer hover:text-yellow-400"
           onClick={handleProfileClick}
         >
-          Profile
+          {t('navigation.profile')}
         </button>
-        <button className="cursor-pointer hover:text-yellow-400">Settings</button>
+        <button className="cursor-pointer hover:text-yellow-400">
+          {t('navigation.settings')}
+        </button>
         <button
           className="cursor-pointer hover:text-yellow-400"
           onClick={handleLogoutClick}
         >
-          Logout
+          {t('navigation.logout')}
         </button>
       </div>
     </div>

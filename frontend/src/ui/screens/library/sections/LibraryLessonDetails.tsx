@@ -1,4 +1,5 @@
 import { type LearningLessonView } from '@/features/learning/types';
+import { useI18n } from '@/i18n/useI18n';
 import { AchievementStars } from '@/ui/components/AchievementStars';
 import { AiAssistant } from '@/ui/components/AiAssistant';
 
@@ -16,6 +17,8 @@ export function LibraryLessonDetails({
   moduleTitle,
   progress,
 }: LibraryLessonDetailsProps) {
+  const { t } = useI18n();
+
   return (
     <section
       aria-labelledby="library-lesson-title"
@@ -40,27 +43,30 @@ export function LibraryLessonDetails({
             aria-live="polite"
             className="text-[11px] uppercase tracking-[0.1em] text-amber-200/80"
           >
-            {progress.completed}/{progress.total} steps
+            {t('library.steps', {
+              completed: progress.completed,
+              total: progress.total,
+            })}
           </span>
         </div>
       </div>
 
       <div className="mt-4 space-y-4 text-sm leading-relaxed">
         <div className="space-y-1.5">
-          <p className="font-semibold text-yellow-100">Theory</p>
+          <p className="font-semibold text-yellow-100">{t('library.theory')}</p>
           <p className="whitespace-pre-wrap text-yellow-100/80">
-            {lesson.theoryMarkdown || '—'}
+            {lesson.theoryMarkdown || t('common.notSet')}
           </p>
         </div>
         <div className="space-y-1.5">
-          <p className="font-semibold text-yellow-100">Task</p>
+          <p className="font-semibold text-yellow-100">{t('library.task')}</p>
           <p className="whitespace-pre-wrap text-yellow-100/80">
-            {lesson.taskDescription || '—'}
+            {lesson.taskDescription || t('common.notSet')}
           </p>
         </div>
         {lesson.hints.length > 0 ? (
           <div className="space-y-1.5">
-            <p className="font-semibold text-yellow-100">Hints</p>
+            <p className="font-semibold text-yellow-100">{t('library.hints')}</p>
             <ul className="space-y-1 text-yellow-100/80">
               {lesson.hints.map((hint) => (
                 <li key={hint}>{hint}</li>

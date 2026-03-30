@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { type LessonStatus } from '@/features/learning/types';
+import { useI18n } from '@/i18n/useI18n';
 import { useTerminalSession } from '@/store/terminalSession';
 import {
   Accordion,
@@ -16,6 +17,7 @@ const statusStyles: Record<LessonStatus, string> = {
 };
 
 export function ModulesSidebar() {
+  const { t } = useI18n();
   const modules = useTerminalSession((s) => s.modules);
   const openId = useTerminalSession((s) => s.expandedModuleId);
   const selectedLessonId = useTerminalSession((s) => s.activeLessonId);
@@ -35,10 +37,10 @@ export function ModulesSidebar() {
     >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
-          Learning
+          {t('library.learning')}
         </p>
         <h2 id="learning-modules-title" className="text-xl font-semibold text-yellow-100">
-          Modules
+          {t('library.modules')}
         </h2>
       </div>
 
@@ -55,7 +57,7 @@ export function ModulesSidebar() {
             aria-live="polite"
             className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80"
           >
-            Loading learning modules...
+            {t('library.loadingModules')}
           </div>
         ) : null}
         {modules.map((module) => (
@@ -99,7 +101,7 @@ export function ModulesSidebar() {
                       <span
                         className={`border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
                       >
-                        {lesson.status}
+                        {t(`library.status.${lesson.status}`)}
                       </span>
                     </li>
                   );

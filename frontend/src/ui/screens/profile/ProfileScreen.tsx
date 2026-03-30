@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/i18n/useI18n';
 import { useState, useEffect, useCallback } from 'react';
 import { User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
@@ -11,6 +12,7 @@ type TabType = 'user-data' | 'progress';
 type EditableField = 'username' | 'firstName' | 'lastName' | 'email' | 'password' | null;
 
 export function ProfileScreen() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<TabType>('user-data');
   const [editingField, setEditingField] = useState<EditableField>(null);
   const [editValue, setEditValue] = useState('');
@@ -84,7 +86,8 @@ export function ProfileScreen() {
       setNewPasswordInput('');
       setPasswordErrors(null);
     } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : 'Failed to change password';
+      const errorMessage =
+        e instanceof Error ? e.message : t('profile.changePasswordFailed');
       setPasswordErrors(errorMessage);
     } finally {
       setIsSaving(false);
@@ -138,7 +141,7 @@ export function ProfileScreen() {
                   : 'text-white group-hover:text-yellow-400',
               )}
             >
-              User data
+              {t('profile.userData')}
             </span>
           </button>
 
@@ -158,7 +161,7 @@ export function ProfileScreen() {
                   : 'text-white group-hover:text-yellow-400',
               )}
             >
-              Progress
+              {t('profile.progress')}
             </span>
           </button>
         </div>
@@ -317,7 +320,7 @@ export function ProfileScreen() {
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    Username
+                    {t('profile.username')}
                   </span>
                   {editingField === 'username' ? (
                     <input
@@ -341,7 +344,7 @@ export function ProfileScreen() {
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    First Name
+                    {t('profile.firstName')}
                   </span>
                   {editingField === 'firstName' ? (
                     <input
@@ -363,7 +366,7 @@ export function ProfileScreen() {
                       onClick={handleSave}
                       disabled={isSaving}
                     >
-                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                      <span>{isSaving ? t('common.saving') : t('common.save')}</span>
                     </button>
                   ) : (
                     <button
@@ -371,7 +374,7 @@ export function ProfileScreen() {
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('firstName', user?.firstName || '')}
                     >
-                      <span>Edit</span>
+                      <span>{t('common.edit')}</span>
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
@@ -384,7 +387,7 @@ export function ProfileScreen() {
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    Last Name
+                    {t('profile.lastName')}
                   </span>
                   {editingField === 'lastName' ? (
                     <input
@@ -396,7 +399,7 @@ export function ProfileScreen() {
                     />
                   ) : (
                     <span className="text-lg text-yellow-400 ml-auto">
-                      {user?.lastName || '—'}
+                      {user?.lastName || t('common.notSet')}
                     </span>
                   )}
                   {editingField === 'lastName' ? (
@@ -405,14 +408,14 @@ export function ProfileScreen() {
                       onClick={handleSave}
                       disabled={isSaving}
                     >
-                      <span>{isSaving ? 'Saving...' : 'Save'}</span>
+                      <span>{isSaving ? t('common.saving') : t('common.save')}</span>
                     </button>
                   ) : (
                     <button
                       className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                       onClick={() => handleEditClick('lastName', user?.lastName || '')}
                     >
-                      <span>Edit</span>
+                      <span>{t('common.edit')}</span>
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
                     </button>
                   )}
@@ -425,7 +428,7 @@ export function ProfileScreen() {
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    Email
+                    {t('profile.email')}
                   </span>
                   {editingField === 'email' ? (
                     <input
@@ -447,13 +450,13 @@ export function ProfileScreen() {
                   )}
                 >
                   <span className="text-sm uppercase tracking-wider text-white flex-1">
-                    Password
+                    {t('profile.password')}
                   </span>
                   {editingField === 'password' ? (
                     <div className="flex flex-col gap-2 w-full">
                       <input
                         type="password"
-                        placeholder="Current password"
+                        placeholder={t('profile.currentPassword')}
                         value={currentPasswordInput}
                         onChange={(e) => setCurrentPasswordInput(e.target.value)}
                         className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -461,7 +464,7 @@ export function ProfileScreen() {
                       />
                       <input
                         type="password"
-                        placeholder="New password"
+                        placeholder={t('profile.newPassword')}
                         value={newPasswordInput}
                         onChange={(e) => setNewPasswordInput(e.target.value)}
                         className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
@@ -473,7 +476,7 @@ export function ProfileScreen() {
                         className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                         onClick={handleSavePassword}
                       >
-                        {isSaving ? 'Saving...' : 'Save'}
+                        {isSaving ? t('common.saving') : t('common.save')}
                       </button>
                       <button
                         className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
@@ -484,7 +487,7 @@ export function ProfileScreen() {
                           setPasswordErrors(null);
                         }}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </button>
                     </div>
                   ) : (
@@ -492,7 +495,7 @@ export function ProfileScreen() {
                       onClick={() => setEditingField('password')}
                       className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                     >
-                      Edit
+                      {t('common.edit')}
                       <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg" />
                     </button>
                   )}
