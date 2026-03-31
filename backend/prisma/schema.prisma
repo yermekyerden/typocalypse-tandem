@@ -10,6 +10,7 @@ datasource db {
 model Attempt {
   id             String    @id @default(uuid())
   userId         String
+  lessonId       String?   // null for rows predating this migration; no backfill
   missionId      String
   missionVersion Int
   status         String    // AttemptStatus: "in_progress" | "completed" | "abandoned"
@@ -24,6 +25,7 @@ model Attempt {
 
   @@index([userId])
   @@index([userId, missionId])
+  @@index([userId, lessonId])
 }
 
 model AttemptStep {
