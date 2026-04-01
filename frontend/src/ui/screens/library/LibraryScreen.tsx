@@ -100,7 +100,7 @@ export function LibraryScreen() {
   }, [activeLessonId, firstLessonId, setActiveLesson]);
 
   return (
-    <div
+    <section
       aria-label={t('library.pageAriaLabel')}
       className="flex h-full min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50"
     >
@@ -135,6 +135,6 @@ export function LibraryScreen() {
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}
       />
-    </div>
+    </section>
   );
 }
