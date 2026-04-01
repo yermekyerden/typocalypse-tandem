@@ -25,7 +25,7 @@ export function LibraryLessonDetails({
   return (
     <section
       aria-labelledby="library-lesson-title"
-      className="flex max-h-[320px] min-h-[220px] shrink-0 flex-col overflow-auto border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg scrollbar-thin"
+      className="flex max-h-[320px] min-h-[220px] shrink-0 flex-col overflow-auto border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg scrollbar-thin dark:bg-none dark:bg-mist-300 dark:border-mist-300"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">

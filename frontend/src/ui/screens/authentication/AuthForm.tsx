@@ -34,7 +34,10 @@ export function AuthForm({ values, onChange, disabled, mode }: AuthFormProps) {
 
       {mode === 'register' && (
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-white/60 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-white/60 mb-1 dark:text-mist-900"
+          >
             {t('auth.email')}
           </label>
           <input

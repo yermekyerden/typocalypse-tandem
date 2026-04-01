@@ -164,23 +164,28 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 8px;
+  width: 80px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
   background: #1f1f1f;
-  border-radius: 9999px;
+  border-radius: 999px;
+  margin: 2px 0;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: #facc15;
-  border-radius: 9999px;
+  border-radius: 999px;
   border: 2px solid #1f1f1f;
 }
 
 .scrollbar-thin {
   scrollbar-width: thin;
   scrollbar-color: #facc15 #1f1f1f;
+}
+
+.dark .scrollbar-thin {
+  scrollbar-color: #e3e7e8 #d0d6d8;
 }
 
 @keyframes fade-in {

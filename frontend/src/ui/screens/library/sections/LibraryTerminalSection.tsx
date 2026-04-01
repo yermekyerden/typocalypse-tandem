@@ -7,7 +7,7 @@ export function LibraryTerminalSection() {
   return (
     <section
       aria-labelledby="library-terminal-title"
-      className="flex flex-1 min-h-0 flex-col overflow-hidden border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg"
+      className="flex flex-1 min-h-0 flex-col overflow-hidden border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg dark:bg-none dark:bg-mist-300 dark:border-mist-300"
     >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">

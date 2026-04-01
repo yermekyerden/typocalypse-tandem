@@ -240,7 +240,7 @@ export function TerminalWindow({ height, className }: Props) {
 
   return (
     <div
-      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
+      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 dark:bg-mist-200 dark:border-mist-200 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
       style={height ? { height } : undefined}
     >
       <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80">

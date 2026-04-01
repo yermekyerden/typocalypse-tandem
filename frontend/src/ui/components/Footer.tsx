@@ -7,7 +7,7 @@ export function Footer() {
   return (
     <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3 dark:bg-none dark:bg-mist-300">
       <div className="mx-auto flex items-center justify-between max-w-8xl px-4">
-        <p className="text-sm">&copy; 2026 {t('common.appName')}</p>
+        <p className="text-sm dark:text-mist-900">&copy; 2026 {t('common.appName')}</p>
 
         <a
           href="https://rs.school/"
@@ -25,7 +25,11 @@ export function Footer() {
           className="flex items-center gap-2 text-sm hover:text-yellow-400"
           aria-label={t('navigation.githubRepository')}
         >
-          <img src={GitHubLogo} alt="" className="h-6 w-6" />
+          <img
+            src={GitHubLogo}
+            alt=""
+            className="h-6 w-6 dark:drop-shadow-[0_0_10px_rgba(99,102,241,0.9)]"
+          />
         </a>
       </div>
     </footer>
