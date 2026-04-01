@@ -89,4 +89,17 @@ describe('validateLessonMissionMapping', () => {
       ),
     ).toThrow(/duplicate lessonId.*lesson-a/i);
   });
+
+  it('throws for duplicate missionId in entries', () => {
+    expect(() =>
+      validateLessonMissionMapping(
+        [
+          ['lesson-a', 'mission-x'],
+          ['lesson-b', 'mission-x'],
+        ],
+        knownLessons,
+        knownMissions,
+      ),
+    ).toThrow(/duplicate missionId.*mission-x/i);
+  });
 });

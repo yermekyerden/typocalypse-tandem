@@ -12,8 +12,10 @@ import {
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { buildOkResponse } from '../common/response.helper';
+import { ApiOkEnvelopeOf } from '../common/api-ok-envelope.dto';
 import { AttemptsService } from './attempts.service';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
+import { CreateAttemptResponseDto } from './dto/create-attempt-response.dto';
 import { SubmitCommandDto } from './dto/submit-command.dto';
 
 @ApiTags('attempts')
@@ -24,7 +26,7 @@ export class AttemptsController {
   constructor(private readonly attemptsService: AttemptsService) {}
 
   @Post()
-  @ApiCreatedResponse({ description: 'Creates a new in-progress attempt.' })
+  @ApiCreatedResponse({ type: ApiOkEnvelopeOf(CreateAttemptResponseDto) })
   @ApiNotFoundResponse({ description: 'Lesson not found.' })
   @ApiUnprocessableEntityResponse({ description: 'Lesson exists but has no mission mapping.' })
   async createAttempt(@CurrentUser() user: { id: string }, @Body() dto: CreateAttemptDto) {

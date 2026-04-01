@@ -6,9 +6,8 @@ import { App } from 'supertest/types';
 
 import { AppModule } from '../src/app.module';
 
-// The two seed missions defined in ch-01-basics
-const MISSION_PWD_ID = 'ch01-m01-print-cwd';
-const MISSION_MKDIR_ID = 'ch01-m02-create-dirs';
+// Lesson ID mapped to ch01-m03-list-home. The `ls` command completes this mission in one step.
+const LESSON_LS_HOME = 'ls-home';
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object') throw new Error('Expected object');
@@ -49,66 +48,79 @@ describe('Attempts & Progress (e2e)', () => {
 
   // ── POST /attempts ──────────────────────────────────────────────────────
 
-  it('POST /attempts → 201 with attemptId and initialState', async () => {
+  it('POST /attempts → 201 with attemptId and initialState, no mission field', async () => {
     const res = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_PWD_ID });
+      .send({ lessonId: LESSON_LS_HOME });
 
     expect(res.status).toBe(201);
-    const data = toRecord(toRecord(res.body)['data']);
+    const body = toRecord(res.body);
+    expect(body['contractsVersion']).toBeDefined();
+    expect(typeof body['serverTimeUtc']).toBe('string');
+    const data = toRecord(body['data']);
     expect(typeof data['attemptId']).toBe('string');
     expect(data['initialCwd']).toBe('/home/dojo');
     expect(data['initialFs']).toBeDefined();
-    expect(toRecord(data['mission'])['id']).toBe(MISSION_PWD_ID);
+    expect(data['mission']).toBeUndefined();
   });
 
   it('POST /attempts → 401 without token', async () => {
     const res = await request(app.getHttpServer())
       .post('/attempts')
-      .send({ missionId: MISSION_PWD_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     expect(res.status).toBe(401);
   });
 
-  it('POST /attempts → 404 for unknown missionId', async () => {
+  it('POST /attempts → 404 for unknown lessonId', async () => {
     const res = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: 'nonexistent-mission' });
+      .send({ lessonId: 'nonexistent-lesson' });
     expect(res.status).toBe(404);
+  });
+
+  it('POST /attempts → 422 for lessonId that exists but has no mission mapping', async () => {
+    // cat-mission is a real lesson in learning content but not in LESSON_MISSION_MAP
+    const res = await request(app.getHttpServer())
+      .post('/attempts')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ lessonId: 'cat-mission' });
+    expect(res.status).toBe(422);
   });
 
   // ── PATCH /attempts/:id/command ─────────────────────────────────────────
 
   it('PATCH /attempts/:id/command → 200 with stdout and validation', async () => {
-    // Create attempt for pwd mission
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_PWD_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     const res = await request(app.getHttpServer())
       .patch(`/attempts/${attemptId}/command`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ command: 'pwd', clientCommandId: randomUUID() });
+      .send({ command: 'ls', clientCommandId: randomUUID() });
 
     expect(res.status).toBe(200);
     const data = toRecord(toRecord(res.body)['data']);
     expect(data['exitCode']).toBe(0);
-    expect(String(data['stdout'])).toContain('dojo');
+    expect(String(data['stdout'])).toContain('projects');
     expect(data['validation']).toBeDefined();
     expect(data['trace']).toBeDefined();
-    expect(data['attemptStatus']).toBe('completed'); // pwd mission completes in one step
+    expect(data['attemptStatus']).toBe('completed'); // ls-home mission completes in one step
   });
 
-  it('PATCH /attempts/:id/command → idempotent on repeat clientCommandId', async () => {
+  it('PATCH /attempts/:id/command → idempotent on repeat clientCommandId, including after completion', async () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_MKDIR_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
+    // `ls` completes the mission. Re-submitting the same clientCommandId after
+    // completion should return the cached result (200), not 409.
     const cmdId = randomUUID();
     const first = await request(app.getHttpServer())
       .patch(`/attempts/${attemptId}/command`)
@@ -122,30 +134,33 @@ describe('Attempts & Progress (e2e)', () => {
 
     expect(first.status).toBe(200);
     expect(second.status).toBe(200);
-    // Both responses should have the same stdout
+    // Both responses should have the same stdout (cached idempotency)
     expect(toRecord(toRecord(first.body)['data'])['stdout']).toBe(
       toRecord(toRecord(second.body)['data'])['stdout'],
     );
+    // Both should report completed since the first call completed the attempt
+    expect(toRecord(toRecord(first.body)['data'])['attemptStatus']).toBe('completed');
+    expect(toRecord(toRecord(second.body)['data'])['attemptStatus']).toBe('completed');
   });
 
   it('PATCH /attempts/:id/command → 409 on completed attempt', async () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_PWD_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
-    // Complete it
+    // Complete the ls-home attempt
     await request(app.getHttpServer())
       .patch(`/attempts/${attemptId}/command`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ command: 'pwd', clientCommandId: randomUUID() });
+      .send({ command: 'ls', clientCommandId: randomUUID() });
 
-    // Try to submit again
+    // Try to submit again with a new clientCommandId — must get 409
     const res = await request(app.getHttpServer())
       .patch(`/attempts/${attemptId}/command`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ command: 'pwd', clientCommandId: randomUUID() });
+      .send({ command: 'ls', clientCommandId: randomUUID() });
 
     expect(res.status).toBe(409);
   });
@@ -154,7 +169,7 @@ describe('Attempts & Progress (e2e)', () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_MKDIR_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     // Register second user
@@ -182,7 +197,7 @@ describe('Attempts & Progress (e2e)', () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_MKDIR_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     await request(app.getHttpServer())
@@ -207,7 +222,7 @@ describe('Attempts & Progress (e2e)', () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_MKDIR_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     const res = await request(app.getHttpServer())
@@ -222,7 +237,7 @@ describe('Attempts & Progress (e2e)', () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_MKDIR_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     await request(app.getHttpServer())
@@ -253,13 +268,13 @@ describe('Attempts & Progress (e2e)', () => {
     const createRes = await request(app.getHttpServer())
       .post('/attempts')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ missionId: MISSION_PWD_ID });
+      .send({ lessonId: LESSON_LS_HOME });
     const attemptId = toRecord(toRecord(createRes.body)['data'])['attemptId'] as string;
 
     await request(app.getHttpServer())
       .patch(`/attempts/${attemptId}/command`)
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ command: 'pwd', clientCommandId: randomUUID() });
+      .send({ command: 'ls', clientCommandId: randomUUID() });
 
     const res = await request(app.getHttpServer())
       .get('/progress')
@@ -270,7 +285,7 @@ describe('Attempts & Progress (e2e)', () => {
       'missions'
     ] as Array<Record<string, unknown>>;
     expect(missions.length).toBe(1);
-    expect(missions[0]['missionId']).toBe(MISSION_PWD_ID);
+    expect(missions[0]['missionId']).toBe('ch01-m03-list-home');
     expect(missions[0]['status']).toBe('completed');
   });
 
