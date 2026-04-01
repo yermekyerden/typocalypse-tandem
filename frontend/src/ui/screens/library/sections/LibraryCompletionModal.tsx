@@ -18,11 +18,11 @@ export function LibraryCompletionModal({
   const descriptionId = useId();
   const actionButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  if (!module) {
-    return null;
-  }
-
   useEffect(() => {
+    if (!module) {
+      return;
+    }
+
     const previousActiveElement =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
@@ -41,7 +41,11 @@ export function LibraryCompletionModal({
       document.removeEventListener('keydown', handleKeyDown);
       previousActiveElement?.focus();
     };
-  }, [onAcknowledge]);
+  }, [module, onAcknowledge]);
+
+  if (!module) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
