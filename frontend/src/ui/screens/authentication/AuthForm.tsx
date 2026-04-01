@@ -1,4 +1,5 @@
 import type { AuthFormValues } from './AuthScreen';
+import { useI18n } from '@/i18n/useI18n';
 
 interface AuthFormProps {
   values: AuthFormValues;
@@ -8,6 +9,8 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ values, onChange, disabled, mode }: AuthFormProps) {
+  const { t } = useI18n();
+
   return (
     <div className="space-y-4">
       <div>
@@ -15,12 +18,12 @@ export function AuthForm({ values, onChange, disabled, mode }: AuthFormProps) {
           htmlFor="username"
           className="block text-sm font-medium text-white/60 mb-1 dark:text-mist-900"
         >
-          Username
+          {t('auth.username')}
         </label>
         <input
           type="text"
           id="username"
-          placeholder="Enter your username"
+          placeholder={t('auth.usernamePlaceholder')}
           value={values.username}
           onChange={(e) => onChange('username', e.target.value)}
           disabled={disabled}
@@ -31,16 +34,13 @@ export function AuthForm({ values, onChange, disabled, mode }: AuthFormProps) {
 
       {mode === 'register' && (
         <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-white/60 mb-1 dark:text-mist-900"
-          >
-            Email
+          <label htmlFor="email" className="block text-sm font-medium text-white/60 mb-1">
+            {t('auth.email')}
           </label>
           <input
             type="email"
             id="email"
-            placeholder="Enter your email"
+            placeholder={t('auth.emailPlaceholder')}
             value={values.email || ''}
             onChange={(e) => onChange('email', e.target.value)}
             disabled={disabled}
@@ -55,12 +55,12 @@ export function AuthForm({ values, onChange, disabled, mode }: AuthFormProps) {
           htmlFor="password"
           className="block text-sm font-medium text-white/60 mb-1 dark:text-mist-900"
         >
-          Password
+          {t('auth.password')}
         </label>
         <input
           type="password"
           id="password"
-          placeholder="Enter your password"
+          placeholder={t('auth.passwordPlaceholder')}
           value={values.password}
           onChange={(e) => onChange('password', e.target.value)}
           disabled={disabled}
