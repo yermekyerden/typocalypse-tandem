@@ -66,7 +66,7 @@ export function ModulesSidebar() {
             value={module.id}
             className="overflow-hidden border border-yellow-400/20 bg-white/5 backdrop-blur-sm"
           >
-            <AccordionTrigger className="px-3 py-2 text-left text-yellow-50 hover:bg-yellow-400/10 data-[state=open]:bg-yellow-400/15">
+            <AccordionTrigger className="px-3 py-2 text-left text-yellow-50 hover:bg-yellow-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-950 data-[state=open]:bg-yellow-400/15">
               <div className="space-y-0.5 pr-3">
                 <p className="text-sm font-semibold">{module.title}</p>
                 <p className="text-xs text-yellow-100/80">{module.description}</p>
@@ -93,7 +93,8 @@ export function ModulesSidebar() {
                           type="button"
                           onClick={() => void setActiveLesson(lesson.id)}
                           aria-current={isActive ? 'step' : undefined}
-                          className="truncate text-left text-yellow-50 hover:underline"
+                          aria-label={`${lesson.order}. ${lesson.title}. ${t(`library.status.${lesson.status}`)}`}
+                          className="truncate text-left text-yellow-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-900"
                         >
                           {lesson.title}
                         </button>
