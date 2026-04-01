@@ -5,8 +5,8 @@
 Ниже собраны мои личные фичи для self-assessment.
 | Category | Feature | Points | What I Did | Code / Notes | PR Link |
 | --- | --- | ---: | --- | --- | --- |
-| Complex Component | Code Runner | 25 | Реализовал компонент запуска и отображения результатов выполнения команд в игровом процессе. | `frontend/` | [PR #55](https://github.com/yermekyerden/typocalypse-tandem/pull/55) |
-| Rich UI Screen | Library modules | 20 | Реализовал компонент аккордеон для модулей уроков. | [PR #41](https://github.com/yermekyerden/typocalypse-tandem/pull/41) |
+| Complex Component | Code Runner | 25 | Реализовал компонент запуска и отображения результатов выполнения команд в игровом процессе. | `frontend/src/` | [PR #55](https://github.com/yermekyerden/typocalypse-tandem/pull/55) |
+| Rich UI Screen | Library modules | 20 | Реализовал компонент аккордеон для модулей уроков. | `frontend/src/` |[PR #41](https://github.com/yermekyerden/typocalypse-tandem/pull/41) |
 | Leaderboard | Leaderboard achievements | 5 | Сделал таблицу рекордов с сохранением результатов между сессиями. | `frontend/` | [PR #56](https://github.com/yermekyerden/typocalypse-tandem/pull/56) |
 | UI & Interaction | i18n | 10 | Добавил локализацию интерфейса и переключение языков. | `frontend/src/` | [PR #94](https://github.com/yermekyerden/typocalypse-tandem/pull/94) |
 | UI & Interaction | Accessibility (a11y) | 10 | Улучшил доступность интерфейса: навигацию, читаемость и UX для пользователей. | `frontend/src/` | [PR #100](https://github.com/yermekyerden/typocalypse-tandem/pull/100) |
