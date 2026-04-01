@@ -36,5 +36,5 @@
 Если коротко, я делал фронтенд не только визуально, но и с точки зрения структуры, состояния и пользовательского сценария. Самым сложным для меня было удерживать баланс между новой функциональностью и чистотой кода, чтобы проект не начал разваливаться по мере роста. С нуля я лично реализовывал и развивал учебный терминальный интерфейс, логику прогресса внутри модулей и часть архитектуры фронтенда.
 
 ## Link to self-assessment PR
-[https://github.com/yermekyerden/typocalypse-tandem/pull/99](https://github.com/yermekyerden/typocalypse-tandem/pull/99)
+![https://github.com/yermekyerden/typocalypse-tandem/pull/99](https://github.com/yermekyerden/typocalypse-tandem/pull/99)
 
