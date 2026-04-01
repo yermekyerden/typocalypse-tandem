@@ -18,7 +18,7 @@ All API responses MUST include `contractsVersion`.
 - Breaking changes (rename/remove fields, meaning changes): bump **minor/major** + ADR
 
 ```ts
-export const CONTRACTS_VERSION = "0.1.0" as const;
+export const CONTRACTS_VERSION = "0.2.0" as const;
 export type ContractsVersion = typeof CONTRACTS_VERSION;
 ````
 
@@ -49,6 +49,7 @@ export type UserId = string;     // UUID v4
 export type MissionId = string;  // UUID v4 (or stable slug, but pick ONE)
 export type AttemptId = string;  // UUID v4
 export type TraceId = string;    // UUID v4
+export type LessonId = string;   // stable content slug (e.g. "ls-home")
 ```
 
 ### Paths
@@ -95,6 +96,8 @@ export type ApiErrorCode =
   | "validation_error"
   | "not_found"
   | "conflict"
+  | "forbidden"
+  | "not_executable"
   | "rate_limited"
   | "internal_error";
 ```
@@ -516,6 +519,48 @@ export type TraceEffect =
 Attempts are owned by authenticated users (JWT). The backend is the authoritative owner of
 attempt state — `cwd`, VFS snapshot, status, and the immutable step log.
 
+### Lesson status
+
+```ts
+export type LessonStatus = "locked" | "active" | "completed";
+```
+
+### Lesson and module summary (learning overview)
+
+```ts
+export type LessonSummary = {
+  id: LessonId;
+  slug: string;
+  title: string;
+  order: number;
+  status: LessonStatus;
+};
+
+export type ModuleSummary = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  order: number;
+  lessons: LessonSummary[];
+};
+```
+
+### Lesson detail (full lesson content)
+
+```ts
+export type LessonDetail = {
+  id: LessonId;
+  moduleId: string;
+  slug: string;
+  title: string;
+  order: number;
+  theoryMarkdown: string;
+  taskDescription: string;
+  hints?: string[];
+};
+```
+
 ### Attempt status
 
 ```ts
@@ -591,6 +636,27 @@ export type ProgressSnapshot = {
 
 ## 10) Backend endpoints (contracts)
 
+### `GET /api/learning/overview`
+
+Returns ordered modules with per-user lesson statuses. Requires authentication (JWT).
+
+```ts
+export type GetLearningOverviewResponse = ApiOk<{
+  modules: ModuleSummary[];
+}>;
+```
+
+### `GET /api/lessons/:id`
+
+Returns full lesson content by lesson ID. Requires authentication (JWT).
+Returns 404 if the lesson is unknown.
+
+```ts
+export type GetLessonByIdResponse = ApiOk<{
+  lesson: LessonDetail;
+}>;
+```
+
 ### `GET /api/version`
 
 ```ts
@@ -623,16 +689,18 @@ export type GetMissionByIdResponse = ApiOk<{
 
 Create a new in-progress attempt. Requires authentication (JWT).
 
+Returns 404 if the lesson is unknown. Returns 422 if the lesson exists but has no
+mission mapping (display-only, not executable in this phase).
+
 ```ts
 export type PostAttemptsRequest = {
-  missionId: MissionId;
+  lessonId: LessonId;
 };
 
 export type PostAttemptsResponse = ApiOk<{
   attemptId: AttemptId;
   initialCwd: PosixPath;
   initialFs: VfsSnapshot;
-  mission: MissionHeader;
 }>;
 ```
 

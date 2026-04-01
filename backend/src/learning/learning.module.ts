@@ -4,10 +4,12 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UsersModule } from '../users/users.module';
 import { LearningController } from './learning.controller';
 import { LearningContentService } from './learning-content.service';
+import { LearningOverviewService } from './learning-overview.service';
 
 @Module({
   imports: [JwtModule.register({}), UsersModule],
   controllers: [LearningController],
-  providers: [LearningContentService, JwtAuthGuard],
+  providers: [LearningContentService, LearningOverviewService, JwtAuthGuard],
+  exports: [LearningContentService],
 })
 export class LearningModule {}

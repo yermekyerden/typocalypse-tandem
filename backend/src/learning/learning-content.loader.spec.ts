@@ -1,5 +1,6 @@
 import { learningContentSource } from '../learning-content/learning-content.registry';
 import { LearningContentSource } from '../learning-content/learning-content.types';
+import { validateLessonMissionMapping } from '../learning-content/lesson-mission-mapping';
 import { loadLearningContent } from './learning-content.loader';
 
 describe('loadLearningContent', () => {
@@ -47,5 +48,45 @@ describe('loadLearningContent', () => {
     source.lessons[0].order = 99;
 
     expect(() => loadLearningContent(source)).toThrow(/sequential/i);
+  });
+});
+
+describe('validateLessonMissionMapping', () => {
+  const knownLessons = new Set(['lesson-a', 'lesson-b']);
+  const knownMissions = new Set(['mission-x', 'mission-y']);
+
+  it('passes for valid entries', () => {
+    expect(() =>
+      validateLessonMissionMapping([['lesson-a', 'mission-x']], knownLessons, knownMissions),
+    ).not.toThrow();
+  });
+
+  it('passes for an empty entries array', () => {
+    expect(() => validateLessonMissionMapping([], knownLessons, knownMissions)).not.toThrow();
+  });
+
+  it('throws for an entry with an unknown lessonId', () => {
+    expect(() =>
+      validateLessonMissionMapping([['unknown-lesson', 'mission-x']], knownLessons, knownMissions),
+    ).toThrow(/unknown lessonId.*unknown-lesson/i);
+  });
+
+  it('throws for an entry with an unknown missionId', () => {
+    expect(() =>
+      validateLessonMissionMapping([['lesson-a', 'unknown-mission']], knownLessons, knownMissions),
+    ).toThrow(/unknown missionId.*unknown-mission/i);
+  });
+
+  it('throws for duplicate lessonId in entries', () => {
+    expect(() =>
+      validateLessonMissionMapping(
+        [
+          ['lesson-a', 'mission-x'],
+          ['lesson-a', 'mission-y'],
+        ],
+        knownLessons,
+        knownMissions,
+      ),
+    ).toThrow(/duplicate lessonId.*lesson-a/i);
   });
 });
