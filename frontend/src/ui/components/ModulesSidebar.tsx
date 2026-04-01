@@ -33,7 +33,7 @@ export function ModulesSidebar() {
   return (
     <aside
       aria-labelledby="learning-modules-title"
-      className="h-full min-h-[calc(100vh-170px)] w-[460px] shrink-0 space-y-4 overflow-y-auto border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 text-yellow-50 shadow-lg scrollbar-thin"
+      className="w-full shrink-0 space-y-4 overflow-y-auto rounded-xl border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 text-yellow-50 shadow-lg scrollbar-thin max-lg:max-h-[32vh] lg:h-full lg:min-h-[calc(100vh-170px)] lg:w-[460px]"
     >
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
@@ -79,14 +79,14 @@ export function ModulesSidebar() {
                   return (
                     <li
                       key={lesson.id}
-                      className={`flex items-center justify-between gap-2 border px-2 py-1 transition ${
+                      className={`flex items-start justify-between gap-2 border px-2 py-1 transition sm:items-center ${
                         isActive
                           ? 'border-yellow-400/60 bg-yellow-400/10 shadow-[0_0_0_1px_rgba(250,204,21,0.15)]'
                           : 'border-yellow-400/10 hover:border-yellow-400/30 hover:bg-yellow-400/5'
                       }`}
                     >
-                      <div className="flex items-center gap-2 truncate">
-                        <span className="text-xs text-yellow-200/80">
+                      <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
+                        <span className="shrink-0 text-xs text-yellow-200/80">
                           {lesson.order}.
                         </span>
                         <button
@@ -94,13 +94,13 @@ export function ModulesSidebar() {
                           onClick={() => void setActiveLesson(lesson.id)}
                           aria-current={isActive ? 'step' : undefined}
                           aria-label={`${lesson.order}. ${lesson.title}. ${t(`library.status.${lesson.status}`)}`}
-                          className="truncate text-left text-yellow-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-900"
+                          className="min-w-0 flex-1 text-left text-yellow-50 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-900 sm:truncate"
                         >
                           {lesson.title}
                         </button>
                       </div>
                       <span
-                        className={`border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
+                        className={`shrink-0 border px-2 py-0.5 text-[10px] uppercase tracking-wide ${statusStyles[lesson.status]}`}
                       >
                         {t(`library.status.${lesson.status}`)}
                       </span>

@@ -3,10 +3,10 @@ import { ModulesSidebar } from './ModulesSidebar';
 
 export function LearningLayout() {
   return (
-    <div className="flex h-full w-full gap-6 px-6 py-6 min-h-0 bg-mist-950 overflow-hidden">
+    <div className="flex h-full min-h-0 w-full flex-col gap-4 overflow-x-hidden overflow-y-auto bg-mist-950 px-4 py-4 sm:px-5 sm:py-5 lg:flex-row lg:gap-6 lg:overflow-hidden lg:px-6 lg:py-6">
       <ModulesSidebar />
 
-      <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <main className="flex flex-1 flex-col min-h-0 overflow-visible">
         <Outlet />
       </main>
     </div>
