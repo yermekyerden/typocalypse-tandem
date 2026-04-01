@@ -5,14 +5,14 @@
 Ниже собраны мои личные фичи для self-assessment.
 | Category | Feature | Points | What I Did | Code / Notes | PR Link |
 | --- | --- | ---: | --- | --- | --- |
-| My Components | Code Runner | 25 | Реализовал компонент запуска и отображения результатов выполнения команд в игровом процессе. | `frontend/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/41], https://github.com/yermekyerden/typocalypse-tandem/pull/55` |
-| Game | Leaderboard | 5 | Сделал таблицу рекордов с сохранением результатов между сессиями. | `frontend/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/56]` |
-| UI & Interaction | i18n | 10 | Добавил локализацию интерфейса и переключение языков. | `frontend/src/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/94]` |
+| My Components | Code Runner | 25 | Реализовал компонент запуска и отображения результатов выполнения команд в игровом процессе. | `frontend/` | [PR #41](https://github.com/yermekyerden/typocalypse-tandem/pull/41)<br>[PR #55](https://github.com/yermekyerden/typocalypse-tandem/pull/55) |
+| Game | Leaderboard | 5 | Сделал таблицу рекордов с сохранением результатов между сессиями. | `frontend/` | [PR #56](https://github.com/yermekyerden/typocalypse-tandem/pull/56) |
+| UI & Interaction | i18n | 10 | Добавил локализацию интерфейса и переключение языков. | `frontend/src/` | [PR #94](https://github.com/yermekyerden/typocalypse-tandem/pull/94) |
 | UI & Interaction | Accessibility (a11y) | 10 | Улучшил доступность интерфейса: навигацию, читаемость и UX для пользователей. | `frontend/src/` | `[add PR link]` |
-| Quality | Unit Tests (Basic, 20%+) | 10 | Написал unit-тесты для своей части проекта с базовым покрытием. | `frontend/src/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/68]` |
-| Architecture | Zustand | 10 | Использовал Zustand для управления состоянием приложения. | `frontend/src/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/31]` |
-| Architecture | API Layer | 10 | Выделил слой работы с API отдельно от UI-компонентов. | `frontend/src/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/85/changes]` |
-| Frameworks | React | 5 | Разрабатывал пользовательский интерфейс на React. | `frontend/src/` | `[https://github.com/yermekyerden/typocalypse-tandem/pull/53]` |
+| Quality | Unit Tests (Basic, 20%+) | 10 | Написал unit-тесты для своей части проекта с базовым покрытием. | `frontend/src/` | [PR #68](https://github.com/yermekyerden/typocalypse-tandem/pull/68) |
+| Architecture | Zustand | 10 | Использовал Zustand для управления состоянием приложения. | `frontend/src/` | [PR #31](https://github.com/yermekyerden/typocalypse-tandem/pull/31) |
+| Architecture | API Layer | 10 | Выделил слой работы с API отдельно от UI-компонентов. | `frontend/src/` | [PR #85](https://github.com/yermekyerden/typocalypse-tandem/pull/85) |
+| Frameworks | React | 5 | Разрабатывал пользовательский интерфейс на React. | `frontend/src/` | [PR #53](https://github.com/yermekyerden/typocalypse-tandem/pull/53) |
 |  | **Total** | **85** |  |  |  |
 
 ## Personal Feature Components
