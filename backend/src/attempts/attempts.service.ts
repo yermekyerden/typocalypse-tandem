@@ -3,11 +3,14 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { AttemptStep } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { MissionsService } from '../missions/missions.service';
 import { EngineService } from '../engine/engine.service';
+import { LearningContentService } from '../learning/learning-content.service';
+import { LESSON_MISSION_MAP } from '../learning-content/lesson-mission-mapping';
 import { ExecutionTrace, ValidationResult, VfsSnapshot } from '../engine/engine.types';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
 import { SubmitCommandDto } from './dto/submit-command.dto';
@@ -20,14 +23,27 @@ export class AttemptsService {
     private readonly prisma: PrismaService,
     private readonly missions: MissionsService,
     private readonly engine: EngineService,
+    private readonly learningContent: LearningContentService,
   ) {}
 
   async createAttempt(userId: string, dto: CreateAttemptDto) {
-    const mission = this.missions.getMissionById(dto.missionId);
+    // Validate lesson exists in learning content (404 if not)
+    this.learningContent.getLessonById(dto.lessonId);
+
+    // Validate lesson has a mission mapping (422 if not — lesson exists but is not executable)
+    const missionId = LESSON_MISSION_MAP.get(dto.lessonId);
+    if (!missionId) {
+      throw new UnprocessableEntityException(
+        `Lesson "${dto.lessonId}" exists but has no mission mapping. It is display-only and cannot be started in this phase.`,
+      );
+    }
+
+    const mission = this.missions.getMissionById(missionId);
 
     const attempt = await this.prisma.attempt.create({
       data: {
         userId,
+        lessonId: dto.lessonId,
         missionId: mission.id,
         missionVersion: mission.version,
         status: 'in_progress' satisfies AttemptStatus,
@@ -41,16 +57,6 @@ export class AttemptsService {
       attemptId: attempt.id,
       initialCwd: mission.initialCwd,
       initialFs: mission.initialFs,
-      mission: {
-        id: mission.id,
-        version: mission.version,
-        chapterId: mission.chapterId,
-        title: mission.title,
-        difficulty: mission.difficulty,
-        estimatedMinutes: mission.estimatedMinutes,
-        shortDescription: mission.shortDescription,
-        ...(mission.tags ? { tags: mission.tags } : {}),
-      },
     };
   }
 
@@ -82,9 +88,9 @@ export class AttemptsService {
   async submitCommand(userId: string, attemptId: string, dto: SubmitCommandDto) {
     const attempt = await this.getOwnedAttemptOrThrow(userId, attemptId);
 
-    this.assertAttemptInProgress(attempt.status as AttemptStatus, 'submit more commands');
-
-    // Idempotency: if this clientCommandId was already recorded, return its result
+    // Idempotency check runs before the status guard so that re-submitting the
+    // completing command after the attempt is already 'completed' returns the
+    // cached result rather than 409.
     const existing = await this.prisma.attemptStep.findUnique({
       where: {
         attemptId_clientCommandId: {
@@ -106,6 +112,8 @@ export class AttemptsService {
         progressChanged: false,
       };
     }
+
+    this.assertAttemptInProgress(attempt.status as AttemptStatus, 'submit more commands');
 
     // Load current VFS + mission checks
     const mission = this.missions.getMissionById(attempt.missionId);
