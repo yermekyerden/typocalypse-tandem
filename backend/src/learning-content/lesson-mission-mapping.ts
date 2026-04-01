@@ -33,6 +33,7 @@ export function validateLessonMissionMapping(
   knownMissionIds: ReadonlySet<string>,
 ): void {
   const seenLessonIds = new Set<string>();
+  const seenMissionIds = new Set<string>();
 
   for (const [lessonId, missionId] of entries) {
     if (seenLessonIds.has(lessonId)) {
@@ -41,6 +42,13 @@ export function validateLessonMissionMapping(
       );
     }
     seenLessonIds.add(lessonId);
+
+    if (seenMissionIds.has(missionId)) {
+      throw new Error(
+        `Duplicate missionId in LESSON_MISSION_ENTRIES: "${missionId}" (for lesson "${lessonId}"). Each mission may appear at most once — duplicate missionIds corrupt the reverse mission→lesson lookup.`,
+      );
+    }
+    seenMissionIds.add(missionId);
 
     if (!knownLessonIds.has(lessonId)) {
       throw new Error(
