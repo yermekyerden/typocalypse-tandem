@@ -80,14 +80,9 @@ describe('Attempts & Progress (e2e)', () => {
     expect(res.status).toBe(404);
   });
 
-  it('POST /attempts → 422 for lessonId that exists but has no mission mapping', async () => {
-    // cat-mission is a real lesson in learning content but not in LESSON_MISSION_MAP
-    const res = await request(app.getHttpServer())
-      .post('/attempts')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ lessonId: 'cat-mission' });
-    expect(res.status).toBe(422);
-  });
+  // NOTE: The 422 path (lesson exists but has no mission mapping) is covered in
+  // attempts.service.spec.ts. Every lesson in the curriculum is mapped, so there
+  // is no real lessonId that triggers 422 in e2e — the unit spec is the right home.
 
   // ── PATCH /attempts/:id/command ─────────────────────────────────────────
 
