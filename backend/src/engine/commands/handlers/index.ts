@@ -1,5 +1,6 @@
 export { catHandler } from './cat';
 export { cdHandler } from './cd';
+export { chmodHandler } from './chmod';
 export { echoHandler } from './echo';
 export { helpHandler } from './help';
 export { lsHandler } from './ls';

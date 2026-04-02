@@ -3,6 +3,7 @@ import { CommandHandler, HandlerConstraints } from './command-handler.types';
 import {
   catHandler,
   cdHandler,
+  chmodHandler,
   echoHandler,
   helpHandler,
   lsHandler,
@@ -17,6 +18,7 @@ const REGISTRY = new Map<string, CommandHandler>([
   ['ls', lsHandler],
   ['cd', cdHandler],
   ['cat', catHandler],
+  ['chmod', chmodHandler],
   ['echo', echoHandler],
   ['mkdir', mkdirHandler],
   ['touch', touchHandler],
