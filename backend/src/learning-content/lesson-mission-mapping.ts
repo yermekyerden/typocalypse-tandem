@@ -2,7 +2,7 @@
 //   E2E_LESSON_ID = 'ls-home'
 //   E2E_COMPLETION_COMMANDS = ['ls']
 //
-// The mapped mission (ch01-m03-list-home) starts with /home/dojo/projects/ in the
+// The mapped mission (ch01-m01-list-home) starts with /home/dojo/projects/ in the
 // initial VFS. Running `ls` from /home/dojo produces "projects" on stdout, which
 // satisfies the output_contains check.
 
@@ -14,7 +14,36 @@
  * any validator can inspect them.
  */
 export const LESSON_MISSION_ENTRIES: ReadonlyArray<readonly [string, string]> = [
-  ['ls-home', 'ch01-m03-list-home'],
+  // cmd-basics
+  ['ls-home', 'ch01-m01-list-home'],
+  ['cat-mission', 'ch01-m02-cat-mission'],
+  ['ls-hidden', 'ch01-m03-ls-hidden'],
+  ['cat-hidden', 'ch01-m04-cat-hidden'],
+  ['pwd', 'ch01-m05-pwd'],
+  ['cd-training', 'ch01-m06-cd-training'],
+  ['cat-history', 'ch01-m07-cat-history'],
+  ['mkdir-practice', 'ch01-m08-mkdir-practice'],
+  ['touch-first-task', 'ch01-m09-touch-first-task'],
+  // fs-basics
+  ['cd-abs', 'ch02-m01-cd-abs'],
+  ['cd-rel', 'ch02-m02-cd-rel'],
+  ['archive-read', 'ch02-m03-archive-read'],
+  ['cd-up', 'ch02-m04-cd-up'],
+  ['cd-multi-up', 'ch02-m05-cd-multi-up'],
+  ['archive-history', 'ch02-m06-archive-history'],
+  // permissions
+  ['ls-perms', 'ch03-m01-ls-perms'],
+  ['chmod-owner', 'ch03-m02-chmod-owner'],
+  ['cat-protected', 'ch03-m03-cat-protected'],
+  ['ls-check', 'ch03-m04-ls-check'],
+  ['cat-after', 'ch03-m05-cat-after'],
+  // file-ops
+  ['nano-rsschool-notes', 'ch04-m01-nano-rsschool-notes'],
+  ['cat-rsschool-notes', 'ch04-m02-cat-rsschool-notes'],
+  ['echo-mentor-message', 'ch04-m03-echo-mentor-message'],
+  ['cat-create-journey', 'ch04-m04-cat-create-journey'],
+  ['cat-rsschool-journey', 'ch04-m05-cat-rsschool-journey'],
+  ['create-rsschool-stack', 'ch04-m06-create-rsschool-stack'],
 ] as const;
 
 /**

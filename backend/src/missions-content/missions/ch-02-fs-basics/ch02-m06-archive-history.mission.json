@@ -1,0 +1,63 @@
+{
+  "id": "ch02-m06-archive-history",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Read history with an absolute path",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Read .bash_history using its absolute path.",
+  "descriptionMd": "## Absolute paths to hidden files\n\nRead `.bash_history` from any directory using its full absolute path.",
+  "goalMd": "Run `cat /home/dojo/.bash_history`.",
+  "initialCwd": "/home/dojo/projects",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": []
+                },
+                {
+                  "type": "file",
+                  "name": ".bash_history",
+                  "content": "cd /home/dojo/projects\nls\npwd\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "projects"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cat /home/dojo/.bash_history` — the full path works from any directory."
+    }
+  ],
+  "allowedCommands": ["cat", "ls", "pwd", "help"]
+}

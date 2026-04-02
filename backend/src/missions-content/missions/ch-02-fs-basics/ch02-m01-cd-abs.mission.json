@@ -1,0 +1,57 @@
+{
+  "id": "ch02-m01-cd-abs",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Absolute paths",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Navigate using an absolute path.",
+  "descriptionMd": "## Absolute paths\n\nAn absolute path starts with `/`. Use it to navigate anywhere from any location.\n\nNavigate to `/home/dojo/projects`.",
+  "goalMd": "Run `cd /home/dojo/projects`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo/projects"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cd /home/dojo/projects` (absolute path starting with `/`)."
+    }
+  ],
+  "allowedCommands": ["cd", "pwd", "ls", "help"]
+}

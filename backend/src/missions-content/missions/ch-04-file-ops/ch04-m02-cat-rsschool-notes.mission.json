@@ -1,13 +1,13 @@
 {
-  "id": "ch01-m01-print-cwd",
+  "id": "ch04-m02-cat-rsschool-notes",
   "version": 1,
-  "chapterId": "ch-01-basics",
-  "title": "Print your working directory",
+  "chapterId": "ch-04-file-ops",
+  "title": "Display your notes",
   "difficulty": "easy",
   "estimatedMinutes": 2,
-  "shortDescription": "Use pwd to find out where you are in the filesystem.",
-  "descriptionMd": "## Where am I?\n\nEvery shell session starts somewhere in the filesystem. The `pwd` command (**p**rint **w**orking **d**irectory) prints the absolute path of your current location.\n\nRun `pwd` and read the output.",
-  "goalMd": "Run `pwd` successfully.",
+  "shortDescription": "Read notes.txt with cat.",
+  "descriptionMd": "## Read your notes\n\nUse `cat notes.txt` to display the pre-seeded notes content.",
+  "goalMd": "Run `cat notes.txt`.",
   "initialCwd": "/home/dojo",
   "initialFs": {
     "root": {
@@ -21,7 +21,13 @@
             {
               "type": "dir",
               "name": "dojo",
-              "children": []
+              "children": [
+                {
+                  "type": "file",
+                  "name": "notes.txt",
+                  "content": "RS School Node.js course notes\nStarted: today\n"
+                }
+              ]
             }
           ]
         }
@@ -38,15 +44,15 @@
       "id": "check-02",
       "type": "output_contains",
       "stream": "stdout",
-      "text": "dojo"
+      "text": "RS School"
     }
   ],
   "hints": [
     {
       "id": "hint-01",
       "order": 1,
-      "textMd": "Type `pwd` and press Enter."
+      "textMd": "Use `cat notes.txt`."
     }
   ],
-  "allowedCommands": ["pwd", "help"]
+  "allowedCommands": ["cat", "ls", "help"]
 }

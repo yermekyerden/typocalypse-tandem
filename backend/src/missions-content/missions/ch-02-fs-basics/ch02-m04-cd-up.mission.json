@@ -1,0 +1,57 @@
+{
+  "id": "ch02-m04-cd-up",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Navigate up one level",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use cd .. to go to the parent directory.",
+  "descriptionMd": "## Going up\n\n`..` is the parent directory. `cd ..` moves you one level up.",
+  "goalMd": "Run `cd ..` from /home/dojo/projects to reach /home/dojo.",
+  "initialCwd": "/home/dojo/projects",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cd ..` to go to the parent directory."
+    }
+  ],
+  "allowedCommands": ["cd", "pwd", "ls", "help"]
+}

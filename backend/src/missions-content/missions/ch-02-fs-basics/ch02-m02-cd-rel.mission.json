@@ -1,0 +1,57 @@
+{
+  "id": "ch02-m02-cd-rel",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Relative paths",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Navigate using a relative path.",
+  "descriptionMd": "## Relative paths\n\nA relative path is resolved from your current directory. Navigate into `projects` without specifying the full path.",
+  "goalMd": "Run `cd projects`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo/projects"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cd projects` (no leading slash)."
+    }
+  ],
+  "allowedCommands": ["cd", "pwd", "ls", "help"]
+}

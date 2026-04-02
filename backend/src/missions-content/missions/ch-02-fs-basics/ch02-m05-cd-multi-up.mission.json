@@ -1,0 +1,63 @@
+{
+  "id": "ch02-m05-cd-multi-up",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Navigate multiple levels up",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use cd ../.. to go up two levels.",
+  "descriptionMd": "## Multiple levels\n\n`../..` goes up two levels at once. Starting from `/home/dojo/projects/src`, `cd ../..` takes you to `/home/dojo`.",
+  "goalMd": "Run `cd ../..` from /home/dojo/projects/src.",
+  "initialCwd": "/home/dojo/projects/src",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": [
+                    {
+                      "type": "dir",
+                      "name": "src",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cd ../..` to move two levels up."
+    }
+  ],
+  "allowedCommands": ["cd", "pwd", "ls", "help"]
+}

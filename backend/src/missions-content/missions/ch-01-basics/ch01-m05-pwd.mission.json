@@ -1,0 +1,55 @@
+{
+  "id": "ch01-m05-pwd",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Print working directory",
+  "difficulty": "easy",
+  "estimatedMinutes": 1,
+  "shortDescription": "Use pwd to see your current location.",
+  "descriptionMd": "## Where are you?\n\n`pwd` prints the absolute path of your current directory.",
+  "goalMd": "Run `pwd` to verify you are in /home/dojo.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "/home/dojo"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `pwd` and press Enter."
+    }
+  ],
+  "allowedCommands": [
+    "pwd",
+    "help"
+  ]
+}
