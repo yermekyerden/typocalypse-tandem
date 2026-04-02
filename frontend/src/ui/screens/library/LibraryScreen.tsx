@@ -102,7 +102,7 @@ export function LibraryScreen() {
   return (
     <section
       aria-label={t('library.pageAriaLabel')}
-      className="flex h-full min-h-0 flex-1 flex-col gap-6 overflow-hidden bg-mist-950 text-yellow-50"
+      className="flex h-full min-h-0 flex-1 flex-col gap-4 overflow-visible bg-mist-950 text-yellow-50 lg:gap-6 lg:overflow-hidden"
     >
       {apiError ? (
         <div

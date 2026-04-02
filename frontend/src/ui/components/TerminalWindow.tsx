@@ -35,6 +35,7 @@ export function TerminalWindow({ height, className }: Props) {
 
   const prompt = useMemo(() => `student@dojo:${formatPromptPath(cwd)}$ `, [cwd]);
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
@@ -92,8 +93,27 @@ export function TerminalWindow({ height, className }: Props) {
     fitAddon.fit();
     term.focus();
 
-    const handleResize = () => fitAddon.fit();
+    const fitTerminal = () => {
+      window.requestAnimationFrame(() => {
+        fitAddon.fit();
+      });
+    };
+    const handleResize = () => fitTerminal();
     window.addEventListener('resize', handleResize);
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            fitTerminal();
+          });
+
+    if (resizeObserver && rootRef.current) {
+      resizeObserver.observe(rootRef.current);
+    }
+    if (resizeObserver && containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
     const renderPrompt = () => {
       term.write('\r');
@@ -190,6 +210,7 @@ export function TerminalWindow({ height, className }: Props) {
     return () => {
       dataDisposable.dispose();
       window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
       term.dispose();
       termRef.current = null;
       fitAddonRef.current = null;
@@ -240,6 +261,7 @@ export function TerminalWindow({ height, className }: Props) {
 
   return (
     <div
+      ref={rootRef}
       className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
       style={height ? { height } : undefined}
     >
