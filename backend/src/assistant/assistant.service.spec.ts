@@ -168,6 +168,42 @@ describe('AssistantService', () => {
     });
   });
 
+  it('returns a localized refusal without calling OpenRouter for an obvious off-topic question', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([]);
+
+    const result = await assistantService.askForAttempt(
+      'user-1',
+      'attempt-1',
+      'Can you give me a cookie recipe?',
+      'en',
+    );
+
+    expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
+
+    expect(result).toEqual({
+      answer: 'I can only help with the current mission and terminal learning tasks.',
+      model: 'assistant-local-guard',
+      usage: null,
+    });
+
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
+      attemptId: 'attempt-1',
+      role: 'user',
+      content: 'Can you give me a cookie recipe?',
+    });
+
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
+      attemptId: 'attempt-1',
+      role: 'assistant',
+      content: 'I can only help with the current mission and terminal learning tasks.',
+    });
+  });
+
   it('includes only the last 5 steps in the assistant prompt', async () => {
     attemptsServiceMock.getAttempt.mockResolvedValue({
       attempt: createAttempt({

@@ -6,6 +6,11 @@ import { OpenRouterClient } from './openrouter.client';
 import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
 import type { AssistantChatHistoryRepository } from './history/assistant-chat-history.repository';
 import {
+  getAssistantOffTopicRefusal,
+  normalizeAssistantLocale,
+} from './prompt/assistant-localization';
+import { isAssistantQuestionOffTopic } from './prompt/assistant-offtopic.guard';
+import {
   AssistantAttemptStatus,
   AssistantAttemptStepContext,
   AssistantChatMessage,
@@ -31,6 +36,7 @@ export class AssistantService {
     userId: string,
     attemptId: string,
     question: string,
+    locale?: string,
   ): Promise<AssistantCompletionResult> {
     const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
     const attempt = attemptData.attempt;
@@ -64,6 +70,24 @@ export class AssistantService {
       role: 'user',
       content: question,
     });
+
+    const assistantLocale = normalizeAssistantLocale(locale);
+
+    if (isAssistantQuestionOffTopic(question)) {
+      const refusalAnswer = getAssistantOffTopicRefusal(assistantLocale);
+
+      this.chatHistoryRepository.appendMessage({
+        attemptId,
+        role: 'assistant',
+        content: refusalAnswer,
+      });
+
+      return {
+        answer: refusalAnswer,
+        model: 'assistant-local-guard',
+        usage: null,
+      };
+    }
 
     const messages = this.buildMessages(context);
     const completion = await this.openRouterClient.createChatCompletion(messages);

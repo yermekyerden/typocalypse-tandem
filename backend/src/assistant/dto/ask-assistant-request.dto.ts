@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MaxLength, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class AskAssistantRequestDto {
   @ApiProperty({
@@ -10,4 +10,14 @@ export class AskAssistantRequestDto {
   @MinLength(1)
   @MaxLength(1000)
   question!: string;
+
+  @ApiPropertyOptional({
+    description: 'Preferred UI locale for the assistant response.',
+    enum: ['en', 'kk', 'ru'],
+    example: 'en',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(['en', 'kk', 'ru'])
+  locale?: string;
 }

@@ -30,7 +30,12 @@ export class AssistantController {
     @Param('attemptId') attemptId: string,
     @Body() dto: AskAssistantRequestDto,
   ) {
-    const data = await this.assistantService.askForAttempt(user.id, attemptId, dto.question);
+    const data = await this.assistantService.askForAttempt(
+      user.id,
+      attemptId,
+      dto.question,
+      dto.locale,
+    );
 
     return { ok: true, data };
   }
