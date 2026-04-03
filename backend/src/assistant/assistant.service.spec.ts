@@ -58,6 +58,8 @@ describe('AssistantService', () => {
       summary: null,
     });
 
+    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([]);
+
     assistantService = new AssistantService(
       attemptsServiceMock as unknown as AttemptsService,
       missionsServiceMock as unknown as MissionsService,
@@ -80,6 +82,7 @@ describe('AssistantService', () => {
     expect(missionsServiceMock.getMissionById).not.toHaveBeenCalled();
     expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.getRecentMessages).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
   });
 
@@ -127,11 +130,17 @@ describe('AssistantService', () => {
     expect(attemptsServiceMock.getAttempt).toHaveBeenCalledWith('user-1', 'attempt-1');
     expect(missionsServiceMock.getMissionById).toHaveBeenCalledWith('ch01-m01-print-cwd');
     expect(assistantChatHistoryRepositoryMock.getOrCreateSession).toHaveBeenCalledWith('attempt-1');
+    expect(assistantChatHistoryRepositoryMock.getRecentMessages).toHaveBeenCalledWith(
+      'attempt-1',
+      6,
+    );
+
     expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
       attemptId: 'attempt-1',
       role: 'user',
       content: 'Give me a hint without solving the mission.',
     });
+
     expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
       attemptId: 'attempt-1',
       role: 'assistant',
@@ -317,6 +326,7 @@ describe('AssistantService', () => {
     expect(missionsServiceMock.getMissionById).not.toHaveBeenCalled();
     expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.getRecentMessages).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
   });
 
@@ -327,28 +337,24 @@ describe('AssistantService', () => {
 
     missionsServiceMock.getMissionById.mockReturnValue(createMission());
 
-    assistantChatHistoryRepositoryMock.getOrCreateSession.mockReturnValue({
-      attemptId: 'attempt-1',
-      summary: null,
-      messages: [
-        {
-          id: 'message-1',
-          attemptId: 'attempt-1',
-          role: 'user',
-          content: 'What does pwd do?',
-          status: 'completed',
-          createdAtIso: '2026-04-04T10:00:00.000Z',
-        },
-        {
-          id: 'message-2',
-          attemptId: 'attempt-1',
-          role: 'assistant',
-          content: 'It prints the current working directory.',
-          status: 'completed',
-          createdAtIso: '2026-04-04T10:00:01.000Z',
-        },
-      ],
-    });
+    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([
+      {
+        id: 'message-1',
+        attemptId: 'attempt-1',
+        role: 'user',
+        content: 'What does pwd do?',
+        status: 'completed',
+        createdAtIso: '2026-04-04T10:00:00.000Z',
+      },
+      {
+        id: 'message-2',
+        attemptId: 'attempt-1',
+        role: 'assistant',
+        content: 'It prints the current working directory.',
+        status: 'completed',
+        createdAtIso: '2026-04-04T10:00:01.000Z',
+      },
+    ]);
 
     openRouterClientMock.createChatCompletion.mockResolvedValue(
       createCompletionResult({

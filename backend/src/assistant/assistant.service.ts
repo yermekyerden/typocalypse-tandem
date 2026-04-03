@@ -3,7 +3,6 @@ import { ConflictException, Injectable, Inject } from '@nestjs/common';
 import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
 import { OpenRouterClient } from './openrouter.client';
-import { AssistantChatHistoryMessage } from './history/assistant-chat-history.types';
 import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
 import type { AssistantChatHistoryRepository } from './history/assistant-chat-history.repository';
 import {
@@ -41,8 +40,15 @@ export class AssistantService {
 
     const mission = this.missionsService.getMissionById(attempt.missionId);
 
-    const session = this.chatHistoryRepository.getOrCreateSession(attemptId);
-    const recentConversationMessages = this.getRecentConversationMessages(session.messages);
+    this.chatHistoryRepository.getOrCreateSession(attemptId);
+
+    const recentConversationMessages: AssistantConversationContextMessage[] =
+      this.chatHistoryRepository
+        .getRecentMessages(attemptId, this.recentConversationMessageLimit)
+        .map((message) => ({
+          role: message.role,
+          content: message.content,
+        }));
 
     const context = this.createMessagesContext(
       mission,
@@ -203,14 +209,5 @@ export class AssistantService {
     }
 
     return lines.join('\n');
-  }
-
-  private getRecentConversationMessages(
-    historyMessages: AssistantChatHistoryMessage[],
-  ): AssistantConversationContextMessage[] {
-    return historyMessages.slice(-this.recentConversationMessageLimit).map((message) => ({
-      role: message.role,
-      content: message.content,
-    }));
   }
 }
