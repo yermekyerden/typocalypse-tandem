@@ -1,0 +1,52 @@
+{
+  "id": "ch04-m01-nano-rsschool-notes",
+  "version": 1,
+  "chapterId": "ch-04-file-ops",
+  "title": "Create a notes file",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Create notes.txt with touch.",
+  "descriptionMd": "## Creating files\n\nUse `touch notes.txt` to create an empty file. In a real terminal you would then open it in `nano` to write content.",
+  "goalMd": "Run `touch notes.txt`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "path_exists",
+      "path": "/home/dojo/notes.txt",
+      "expectedKind": "file"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `touch notes.txt`."
+    }
+  ],
+  "allowedCommands": ["touch", "ls", "help"]
+}

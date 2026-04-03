@@ -6,23 +6,21 @@ import { OpenRouterApiUsage, OpenRouterChatCompletionApiResponse } from './openr
 export class OpenRouterClient {
   private readonly apiUrl = 'https://openrouter.ai/api/v1/chat/completions';
   private readonly timeoutMs = 15_000;
-  private readonly apiKey: string;
+  private readonly apiKey: string | null;
   private readonly model: string;
 
   constructor() {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-
-    if (!apiKey) {
-      throw new Error('OPENROUTER_API_KEY is not configured.');
-    }
-
-    this.apiKey = apiKey;
+    this.apiKey = process.env.OPENROUTER_API_KEY ?? null;
     this.model = process.env.OPENROUTER_MODEL ?? 'openrouter/free';
   }
 
   public async createChatCompletion(
     messages: AssistantChatMessage[],
   ): Promise<AssistantCompletionResult> {
+    if (!this.apiKey) {
+      throw new ServiceUnavailableException('AI assistant is not configured for this environment.');
+    }
+
     let response: Response;
 
     try {

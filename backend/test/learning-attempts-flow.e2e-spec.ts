@@ -7,7 +7,7 @@ import { AppModule } from '../src/app.module';
 import { LESSON_MISSION_MAP } from '../src/learning-content/lesson-mission-mapping';
 
 // Constants sourced from lesson-mission-mapping.ts and the matching mission JSON.
-// The ls-home lesson maps to ch01-m03-list-home which starts with /home/dojo/projects/
+// The ls-home lesson maps to the first executable list-home mission, which starts with /home/dojo
 // and requires `ls` to produce "projects" on stdout.
 const E2E_LESSON_ID = 'ls-home';
 const E2E_COMPLETION_COMMANDS = ['ls'];

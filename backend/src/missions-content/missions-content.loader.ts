@@ -1,6 +1,12 @@
 import { plainToInstance } from 'class-transformer';
 import { ValidationError, validateSync } from 'class-validator';
-import type { MissionCheck, VfsDirNode, VfsNode, VfsSnapshot } from '../engine/engine.types';
+import type {
+  MissionCheck,
+  VfsDirNode,
+  VfsFileNode,
+  VfsNode,
+  VfsSnapshot,
+} from '../engine/engine.types';
 import { MissionDefinition, MissionContentSource } from './missions-content.types';
 
 export type MissionHint = {
@@ -160,7 +166,11 @@ function assertValidVfsDirNode(raw: unknown, path: string): VfsDirNode {
     assertValidVfsNode(child, `${path}.children[${i}]`),
   );
 
-  return { type: 'dir', name: node['name'], children };
+  const dirNode: VfsDirNode = { type: 'dir', name: node['name'], children };
+  if (typeof node['permissions'] === 'string') {
+    dirNode.permissions = node['permissions'];
+  }
+  return dirNode;
 }
 
 function assertValidVfsNode(raw: unknown, path: string): VfsNode {
@@ -181,7 +191,11 @@ function assertValidVfsNode(raw: unknown, path: string): VfsNode {
     if (typeof node['content'] !== 'string') {
       throw new Error(`${path}.content must be a string`);
     }
-    return { type: 'file', name: node['name'], content: node['content'] };
+    const fileNode: VfsFileNode = { type: 'file', name: node['name'], content: node['content'] };
+    if (typeof node['permissions'] === 'string') {
+      fileNode.permissions = node['permissions'];
+    }
+    return fileNode;
   }
 
   throw new Error(`${path}.type must be "dir" or "file", got: ${String(node['type'])}`);

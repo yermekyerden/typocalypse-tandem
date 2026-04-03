@@ -5,8 +5,11 @@ import { AttemptsService } from './attempts.service';
 // targets service-level business logic only.
 
 const KNOWN_LESSON_ID = 'ls-home';
-const MAPPED_MISSION_ID = 'ch01-m03-list-home';
-const UNMAPPED_LESSON_ID = 'cat-mission'; // exists in learning content, not in the map
+const MAPPED_MISSION_ID = 'ch01-m01-list-home';
+// A lesson ID that is known to learning content but intentionally has no mission mapping.
+// This is a stub value — the mock getLessonById returns it as known, and the real
+// LESSON_MISSION_MAP will not contain it (it is not a real lesson).
+const UNMAPPED_LESSON_ID = 'display-only-lesson';
 
 const MOCK_MISSION = {
   id: MAPPED_MISSION_ID,

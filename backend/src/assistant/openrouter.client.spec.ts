@@ -17,10 +17,27 @@ describe('OpenRouterClient', () => {
     process.env.OPENROUTER_MODEL = originalModel;
   });
 
-  it('throws at construction time when OPENROUTER_API_KEY is missing', () => {
+  it('does not throw at construction time when OPENROUTER_API_KEY is missing', () => {
     delete process.env.OPENROUTER_API_KEY;
 
-    expect(() => new OpenRouterClient()).toThrow('OPENROUTER_API_KEY is not configured.');
+    expect(() => new OpenRouterClient()).not.toThrow();
+  });
+
+  it('throws ServiceUnavailableException when OPENROUTER_API_KEY is missing at request time', async () => {
+    delete process.env.OPENROUTER_API_KEY;
+    const fetchSpy = jest.spyOn(global, 'fetch');
+
+    const client = new OpenRouterClient();
+
+    await expect(client.createChatCompletion([createUserMessage('Help me.')])).rejects.toThrow(
+      ServiceUnavailableException,
+    );
+
+    await expect(client.createChatCompletion([createUserMessage('Help me.')])).rejects.toThrow(
+      'AI assistant is not configured for this environment.',
+    );
+
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it('uses default model when OPENROUTER_MODEL is not set', async () => {

@@ -12,12 +12,16 @@ export type VfsDirNode = {
   type: 'dir';
   name: string;
   children: VfsNode[];
+  /** POSIX octal permission string (e.g. '755'). Absent means default '755'. */
+  permissions?: string;
 };
 
 export type VfsFileNode = {
   type: 'file';
   name: string;
   content: string;
+  /** POSIX octal permission string (e.g. '644'). Absent means default '644'. */
+  permissions?: string;
 };
 
 export type VfsNode = VfsDirNode | VfsFileNode;
