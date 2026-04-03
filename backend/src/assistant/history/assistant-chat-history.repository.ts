@@ -2,7 +2,7 @@ import type {
   AssistantChatHistoryMessage,
   AssistantChatSession,
   CreateAssistantChatMessageParams,
-} from '../assistant.types';
+} from './assistant-chat-history.types';
 
 export const ASSISTANT_CHAT_HISTORY_REPOSITORY = Symbol('ASSISTANT_CHAT_HISTORY_REPOSITORY');
 

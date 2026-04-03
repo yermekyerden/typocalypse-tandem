@@ -1,7 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, Inject } from '@nestjs/common';
+
 import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
 import { OpenRouterClient } from './openrouter.client';
+import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
+import type { AssistantChatHistoryRepository } from './history/assistant-chat-history.repository';
 import {
   AssistantAttemptStatus,
   AssistantAttemptStepContext,
@@ -17,6 +20,8 @@ export class AssistantService {
     private readonly attemptsService: AttemptsService,
     private readonly missionsService: MissionsService,
     private readonly openRouterClient: OpenRouterClient,
+    @Inject(ASSISTANT_CHAT_HISTORY_REPOSITORY)
+    private readonly chatHistoryRepository: AssistantChatHistoryRepository,
   ) {}
 
   async askForAttempt(
@@ -32,6 +37,13 @@ export class AssistantService {
 
     const mission = this.missionsService.getMissionById(attempt.missionId);
 
+    this.chatHistoryRepository.getOrCreateSession(attemptId);
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'user',
+      content: question,
+    });
+
     const context = this.createMessagesContext(
       mission,
       attempt.currentCwd,
@@ -42,6 +54,12 @@ export class AssistantService {
 
     const messages = this.buildMessages(context);
     const completion = await this.openRouterClient.createChatCompletion(messages);
+
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'assistant',
+      content: completion.answer,
+    });
 
     return completion;
   }

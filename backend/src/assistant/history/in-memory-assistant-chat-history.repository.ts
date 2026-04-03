@@ -3,7 +3,7 @@ import type {
   AssistantChatHistoryMessage,
   AssistantChatSession,
   CreateAssistantChatMessageParams,
-} from '../assistant.types';
+} from './assistant-chat-history.types';
 import { AssistantChatHistoryRepository } from './assistant-chat-history.repository';
 
 @Injectable()

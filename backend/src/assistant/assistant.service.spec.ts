@@ -12,10 +12,16 @@ import {
   AssistantMissionLookupResult,
 } from './assistant.types';
 import {
+  AssistantChatHistoryRepositoryMock,
   AttemptsServiceMock,
   MissionsServiceMock,
   OpenRouterClientMock,
 } from './assistant.test-types';
+import type {
+  AssistantChatHistoryMessage,
+  AssistantChatSession,
+  CreateAssistantChatMessageParams,
+} from './history/assistant-chat-history.types';
 
 describe('AssistantService', () => {
   let assistantService: AssistantService;
@@ -23,6 +29,7 @@ describe('AssistantService', () => {
   let attemptsServiceMock: AttemptsServiceMock;
   let missionsServiceMock: MissionsServiceMock;
   let openRouterClientMock: OpenRouterClientMock;
+  let assistantChatHistoryRepositoryMock: AssistantChatHistoryRepositoryMock;
 
   beforeEach(() => {
     attemptsServiceMock = {
@@ -37,10 +44,24 @@ describe('AssistantService', () => {
       createChatCompletion: jest.fn<Promise<AssistantCompletionResult>, [AssistantChatMessage[]]>(),
     };
 
+    assistantChatHistoryRepositoryMock = {
+      getOrCreateSession: jest.fn<AssistantChatSession, [string]>(),
+      getSession: jest.fn<AssistantChatSession | null, [string]>(),
+      appendMessage: jest.fn<AssistantChatHistoryMessage, [CreateAssistantChatMessageParams]>(),
+      clearSession: jest.fn<void, [string]>(),
+    };
+
+    assistantChatHistoryRepositoryMock.getOrCreateSession.mockReturnValue({
+      attemptId: 'attempt-1',
+      messages: [],
+      summary: null,
+    });
+
     assistantService = new AssistantService(
       attemptsServiceMock as unknown as AttemptsService,
       missionsServiceMock as unknown as MissionsService,
       openRouterClientMock as unknown as OpenRouterClient,
+      assistantChatHistoryRepositoryMock,
     );
   });
 
@@ -57,6 +78,8 @@ describe('AssistantService', () => {
 
     expect(missionsServiceMock.getMissionById).not.toHaveBeenCalled();
     expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
   });
 
   it('returns OpenRouter response data for a valid in-progress mission attempt', async () => {
@@ -102,6 +125,17 @@ describe('AssistantService', () => {
 
     expect(attemptsServiceMock.getAttempt).toHaveBeenCalledWith('user-1', 'attempt-1');
     expect(missionsServiceMock.getMissionById).toHaveBeenCalledWith('ch01-m01-print-cwd');
+    expect(assistantChatHistoryRepositoryMock.getOrCreateSession).toHaveBeenCalledWith('attempt-1');
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
+      attemptId: 'attempt-1',
+      role: 'user',
+      content: 'Give me a hint without solving the mission.',
+    });
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
+      attemptId: 'attempt-1',
+      role: 'assistant',
+      content: 'Try checking the command that prints the current directory.',
+    });
 
     const userPrompt = getUserPrompt(openRouterClientMock);
 
@@ -280,6 +314,8 @@ describe('AssistantService', () => {
 
     expect(missionsServiceMock.getMissionById).not.toHaveBeenCalled();
     expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
+    expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
   });
 });
 
