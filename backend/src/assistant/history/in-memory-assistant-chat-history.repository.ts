@@ -9,6 +9,7 @@ import { AssistantChatHistoryRepository } from './assistant-chat-history.reposit
 @Injectable()
 export class InMemoryAssistantChatHistoryRepository implements AssistantChatHistoryRepository {
   private readonly sessionsByAttemptId = new Map<string, AssistantChatSession>();
+  private readonly maxMessagesPerSession = 12;
 
   public getOrCreateSession(attemptId: string): AssistantChatSession {
     const existingSession = this.sessionsByAttemptId.get(attemptId);
@@ -32,6 +33,16 @@ export class InMemoryAssistantChatHistoryRepository implements AssistantChatHist
     return this.sessionsByAttemptId.get(attemptId) ?? null;
   }
 
+  public getRecentMessages(attemptId: string, limit: number): AssistantChatHistoryMessage[] {
+    const session = this.sessionsByAttemptId.get(attemptId);
+
+    if (!session) {
+      return [];
+    }
+
+    return session.messages.slice(-limit);
+  }
+
   public appendMessage(params: CreateAssistantChatMessageParams): AssistantChatHistoryMessage {
     const session = this.getOrCreateSession(params.attemptId);
 
@@ -45,12 +56,21 @@ export class InMemoryAssistantChatHistoryRepository implements AssistantChatHist
     };
 
     session.messages.push(createdMessage);
+    this.trimSessionMessages(session);
 
     return createdMessage;
   }
 
   public clearSession(attemptId: string): void {
     this.sessionsByAttemptId.delete(attemptId);
+  }
+
+  private trimSessionMessages(session: AssistantChatSession): void {
+    if (session.messages.length <= this.maxMessagesPerSession) {
+      return;
+    }
+
+    session.messages = session.messages.slice(-this.maxMessagesPerSession);
   }
 
   private createMessageId(): string {

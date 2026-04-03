@@ -25,6 +25,7 @@ export type OpenRouterClientMock = {
 export type AssistantChatHistoryRepositoryMock = {
   getOrCreateSession: jest.Mock<AssistantChatSession, [string]>;
   getSession: jest.Mock<AssistantChatSession | null, [string]>;
+  getRecentMessages: jest.Mock<AssistantChatHistoryMessage[], [string, number]>;
   appendMessage: jest.Mock<AssistantChatHistoryMessage, [CreateAssistantChatMessageParams]>;
   clearSession: jest.Mock<void, [string]>;
 };

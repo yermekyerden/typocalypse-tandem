@@ -47,6 +47,7 @@ describe('AssistantService', () => {
     assistantChatHistoryRepositoryMock = {
       getOrCreateSession: jest.fn<AssistantChatSession, [string]>(),
       getSession: jest.fn<AssistantChatSession | null, [string]>(),
+      getRecentMessages: jest.fn<AssistantChatHistoryMessage[], [string, number]>(),
       appendMessage: jest.fn<AssistantChatHistoryMessage, [CreateAssistantChatMessageParams]>(),
       clearSession: jest.fn<void, [string]>(),
     };
