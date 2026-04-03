@@ -1,3 +1,5 @@
+import type { AssistantConversationRole } from './history/assistant-chat-history.types';
+
 export type AssistantChatRole = 'system' | 'user' | 'assistant';
 
 export type AssistantChatMessage = {
@@ -43,7 +45,7 @@ export type AssistantAttemptStepContext = {
 export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 
 export type AssistantConversationContextMessage = {
-  role: 'user' | 'assistant';
+  role: AssistantConversationRole;
   content: string;
 };
 

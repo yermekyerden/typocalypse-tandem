@@ -3,6 +3,7 @@ import { ConflictException, Injectable, Inject } from '@nestjs/common';
 import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
 import { OpenRouterClient } from './openrouter.client';
+import { AssistantChatHistoryMessage } from './history/assistant-chat-history.types';
 import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
 import type { AssistantChatHistoryRepository } from './history/assistant-chat-history.repository';
 import {
@@ -205,10 +206,7 @@ export class AssistantService {
   }
 
   private getRecentConversationMessages(
-    historyMessages: {
-      role: 'user' | 'assistant';
-      content: string;
-    }[],
+    historyMessages: AssistantChatHistoryMessage[],
   ): AssistantConversationContextMessage[] {
     return historyMessages.slice(-this.recentConversationMessageLimit).map((message) => ({
       role: message.role,
