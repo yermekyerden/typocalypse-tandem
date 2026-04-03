@@ -5,9 +5,15 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 
 import { AppModule } from '../src/app.module';
+import { LESSON_MISSION_MAP } from '../src/learning-content/lesson-mission-mapping';
 
-// Lesson ID mapped to ch01-m03-list-home. The `ls` command completes this mission in one step.
+// Lesson ID mapped to the first executable "ls-home" mission. The `ls` command completes it in one step.
 const LESSON_LS_HOME = 'ls-home';
+const LESSON_LS_HOME_MISSION_ID = LESSON_MISSION_MAP.get(LESSON_LS_HOME);
+
+if (!LESSON_LS_HOME_MISSION_ID) {
+  throw new Error(`Missing mission mapping for lesson "${LESSON_LS_HOME}"`);
+}
 
 function toRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object') throw new Error('Expected object');
@@ -280,7 +286,7 @@ describe('Attempts & Progress (e2e)', () => {
       'missions'
     ] as Array<Record<string, unknown>>;
     expect(missions.length).toBe(1);
-    expect(missions[0]['missionId']).toBe('ch01-m03-list-home');
+    expect(missions[0]['missionId']).toBe(LESSON_LS_HOME_MISSION_ID);
     expect(missions[0]['status']).toBe('completed');
   });
 
