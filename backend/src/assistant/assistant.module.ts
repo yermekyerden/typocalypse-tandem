@@ -5,11 +5,21 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { MissionsModule } from '../missions/missions.module';
 import { AssistantController } from './assistant.controller';
 import { AssistantService } from './assistant.service';
+import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
+import { InMemoryAssistantChatHistoryRepository } from './history/in-memory-assistant-chat-history.repository';
 import { OpenRouterClient } from './openrouter.client';
 
 @Module({
   imports: [JwtModule.register({}), AttemptsModule, MissionsModule],
   controllers: [AssistantController],
-  providers: [AssistantService, OpenRouterClient, JwtAuthGuard],
+  providers: [
+    AssistantService,
+    OpenRouterClient,
+    JwtAuthGuard,
+    {
+      provide: ASSISTANT_CHAT_HISTORY_REPOSITORY,
+      useClass: InMemoryAssistantChatHistoryRepository,
+    },
+  ],
 })
 export class AssistantModule {}
