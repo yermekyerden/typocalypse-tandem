@@ -42,11 +42,17 @@ export type AssistantAttemptStepContext = {
 
 export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 
+export type AssistantConversationContextMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export type BuildAssistantMessagesContext = {
   mission: AssistantMissionContext;
   currentWorkingDirectory: string;
   attemptStatus: AssistantAttemptStatus;
   steps: AssistantAttemptStepContext[];
+  recentConversationMessages: AssistantConversationContextMessage[];
   question: string;
 };
 

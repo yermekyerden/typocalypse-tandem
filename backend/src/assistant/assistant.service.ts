@@ -10,12 +10,15 @@ import {
   AssistantAttemptStepContext,
   AssistantChatMessage,
   AssistantCompletionResult,
+  AssistantConversationContextMessage,
   AssistantMissionContext,
   BuildAssistantMessagesContext,
 } from './assistant.types';
 
 @Injectable()
 export class AssistantService {
+  private readonly recentConversationMessageLimit = 6;
+
   constructor(
     private readonly attemptsService: AttemptsService,
     private readonly missionsService: MissionsService,
@@ -37,20 +40,23 @@ export class AssistantService {
 
     const mission = this.missionsService.getMissionById(attempt.missionId);
 
-    this.chatHistoryRepository.getOrCreateSession(attemptId);
-    this.chatHistoryRepository.appendMessage({
-      attemptId,
-      role: 'user',
-      content: question,
-    });
+    const session = this.chatHistoryRepository.getOrCreateSession(attemptId);
+    const recentConversationMessages = this.getRecentConversationMessages(session.messages);
 
     const context = this.createMessagesContext(
       mission,
       attempt.currentCwd,
       attempt.status,
       attempt.steps,
+      recentConversationMessages,
       question,
     );
+
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'user',
+      content: question,
+    });
 
     const messages = this.buildMessages(context);
     const completion = await this.openRouterClient.createChatCompletion(messages);
@@ -81,6 +87,7 @@ export class AssistantService {
     currentWorkingDirectory: string,
     attemptStatus: AssistantAttemptStatus,
     steps: AssistantAttemptStepContext[],
+    recentConversationMessages: AssistantConversationContextMessage[],
     question: string,
   ): BuildAssistantMessagesContext {
     return {
@@ -88,21 +95,29 @@ export class AssistantService {
       currentWorkingDirectory,
       attemptStatus,
       steps,
+      recentConversationMessages,
       question,
     };
   }
 
   private buildMessages(context: BuildAssistantMessagesContext): AssistantChatMessage[] {
-    return [
+    const messages: AssistantChatMessage[] = [
       {
         role: 'system',
         content: this.buildSystemPrompt(),
       },
       {
         role: 'user',
-        content: this.buildUserPrompt(context),
+        content: this.buildEnvironmentContextPrompt(context),
+      },
+      ...context.recentConversationMessages,
+      {
+        role: 'user',
+        content: context.question,
       },
     ];
+
+    return messages;
   }
 
   private buildSystemPrompt(): string {
@@ -115,7 +130,7 @@ export class AssistantService {
     ].join(' ');
   }
 
-  private buildUserPrompt(context: BuildAssistantMessagesContext): string {
+  private buildEnvironmentContextPrompt(context: BuildAssistantMessagesContext): string {
     const sections = [
       this.buildMissionSection(context.mission),
       this.buildAttemptSection(
@@ -123,7 +138,6 @@ export class AssistantService {
         context.attemptStatus,
         context.steps,
       ),
-      `Learner question: ${context.question}`,
     ];
 
     return sections.join('\n\n');
@@ -188,5 +202,17 @@ export class AssistantService {
     }
 
     return lines.join('\n');
+  }
+
+  private getRecentConversationMessages(
+    historyMessages: {
+      role: 'user' | 'assistant';
+      content: string;
+    }[],
+  ): AssistantConversationContextMessage[] {
+    return historyMessages.slice(-this.recentConversationMessageLimit).map((message) => ({
+      role: message.role,
+      content: message.content,
+    }));
   }
 }

@@ -137,15 +137,16 @@ describe('AssistantService', () => {
       content: 'Try checking the command that prints the current directory.',
     });
 
-    const userPrompt = getUserPrompt(openRouterClientMock);
+    const environmentContextPrompt = getEnvironmentContextPrompt(openRouterClientMock);
+    const lastUserQuestion = getLastUserQuestion(openRouterClientMock);
 
-    expect(userPrompt).toContain('Mission title: Print your working directory');
-    expect(userPrompt).toContain(
+    expect(environmentContextPrompt).toContain('Mission title: Print your working directory');
+    expect(environmentContextPrompt).toContain(
       'Mission short description: Use pwd to find out where you are in the filesystem.',
     );
-    expect(userPrompt).toContain('Allowed commands: pwd');
-    expect(userPrompt).toContain('Current working directory: /home/dojo');
-    expect(userPrompt).toContain('Learner question: Give me a hint without solving the mission.');
+    expect(environmentContextPrompt).toContain('Allowed commands: pwd');
+    expect(environmentContextPrompt).toContain('Current working directory: /home/dojo');
+    expect(lastUserQuestion).toBe('Give me a hint without solving the mission.');
 
     expect(result).toEqual({
       answer: 'Try checking the command that prints the current directory.',
@@ -224,7 +225,7 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'Help me.');
 
-    const userPrompt = getUserPrompt(openRouterClientMock);
+    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
     expect(userPrompt).not.toContain('Step 1');
     expect(userPrompt).not.toContain('Command: command-1');
@@ -269,7 +270,7 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'What went wrong?');
 
-    const userPrompt = getUserPrompt(openRouterClientMock);
+    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
     expect(userPrompt).toContain('Execution error: No such file or directory');
   });
@@ -296,7 +297,7 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'Help me.');
 
-    const userPrompt = getUserPrompt(openRouterClientMock);
+    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
     expect(userPrompt).toContain('Allowed commands: not restricted');
   });
@@ -316,6 +317,64 @@ describe('AssistantService', () => {
     expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
+  });
+
+  it('includes recent conversation messages before the current question', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+
+    assistantChatHistoryRepositoryMock.getOrCreateSession.mockReturnValue({
+      attemptId: 'attempt-1',
+      summary: null,
+      messages: [
+        {
+          id: 'message-1',
+          attemptId: 'attempt-1',
+          role: 'user',
+          content: 'What does pwd do?',
+          status: 'completed',
+          createdAtIso: '2026-04-04T10:00:00.000Z',
+        },
+        {
+          id: 'message-2',
+          attemptId: 'attempt-1',
+          role: 'assistant',
+          content: 'It prints the current working directory.',
+          status: 'completed',
+          createdAtIso: '2026-04-04T10:00:01.000Z',
+        },
+      ],
+    });
+
+    openRouterClientMock.createChatCompletion.mockResolvedValue(
+      createCompletionResult({
+        answer: 'Hint',
+      }),
+    );
+
+    await assistantService.askForAttempt('user-1', 'attempt-1', 'What should I try next?');
+
+    const sentMessages = getSentMessages(openRouterClientMock);
+
+    expect(sentMessages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          role: 'user',
+          content: 'What does pwd do?',
+        }),
+        expect.objectContaining({
+          role: 'assistant',
+          content: 'It prints the current working directory.',
+        }),
+        expect.objectContaining({
+          role: 'user',
+          content: 'What should I try next?',
+        }),
+      ]),
+    );
   });
 });
 
@@ -393,13 +452,25 @@ function getSentMessages(openRouterClientMock: OpenRouterClientMock): AssistantC
   return firstCall[0];
 }
 
-function getUserPrompt(openRouterClientMock: OpenRouterClientMock): string {
+function getEnvironmentContextPrompt(openRouterClientMock: OpenRouterClientMock): string {
   const messages = getSentMessages(openRouterClientMock);
-  const userMessage = messages.find((message) => message.role === 'user');
+  const firstUserMessage = messages.find((message) => message.role === 'user');
 
-  if (!userMessage) {
-    throw new Error('User message was not sent to OpenRouterClient.');
+  if (!firstUserMessage) {
+    throw new Error('Environment context user message was not sent to OpenRouterClient.');
   }
 
-  return userMessage.content;
+  return firstUserMessage.content;
+}
+
+function getLastUserQuestion(openRouterClientMock: OpenRouterClientMock): string {
+  const messages = getSentMessages(openRouterClientMock);
+  const userMessages = messages.filter((message) => message.role === 'user');
+  const lastUserMessage = userMessages.at(-1);
+
+  if (!lastUserMessage) {
+    throw new Error('Final user question message was not sent to OpenRouterClient.');
+  }
+
+  return lastUserMessage.content;
 }
