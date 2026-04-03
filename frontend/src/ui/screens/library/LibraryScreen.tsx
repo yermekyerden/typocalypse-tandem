@@ -8,6 +8,7 @@ import type {
 import { useI18n } from '@/i18n/useI18n';
 import { useTerminalSession } from '@/store/terminalSession';
 
+import { LibraryAssistantOverlay } from './sections/LibraryAssistantOverlay';
 import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
 import { LibraryLessonDetails } from './sections/LibraryLessonDetails';
 import { LibraryTerminalSection } from './sections/LibraryTerminalSection';
@@ -131,6 +132,9 @@ export function LibraryScreen() {
           {t('library.noLessonDetails')}
         </section>
       ) : null}
+
+      <LibraryAssistantOverlay lessonId={currentLessonId} />
+
       <LibraryCompletionModal
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}
