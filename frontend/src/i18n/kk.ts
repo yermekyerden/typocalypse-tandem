@@ -63,11 +63,6 @@ export const kk = {
       action: 'Оқуды жалғастыру',
     },
   },
-  assistant: {
-    title: 'AI Көмекші',
-    greeting: 'Қалай көмектесе аламын?',
-    placeholder: 'Хабарламаңызды жазыңыз...',
-  },
   profile: {
     userData: 'Пайдаланушы деректері',
     progress: 'Прогресс',

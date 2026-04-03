@@ -62,11 +62,6 @@ export const en = {
       action: 'Continue learning',
     },
   },
-  assistant: {
-    title: 'AI Assistant',
-    greeting: 'How can I help you?',
-    placeholder: 'Type your message...',
-  },
   profile: {
     userData: 'User data',
     progress: 'Progress',

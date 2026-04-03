@@ -62,11 +62,6 @@ export const ru = {
       action: 'Продолжить обучение',
     },
   },
-  assistant: {
-    title: 'AI Ассистент',
-    greeting: 'Чем я могу помочь?',
-    placeholder: 'Введите сообщение...',
-  },
   profile: {
     userData: 'Данные пользователя',
     progress: 'Прогресс',
