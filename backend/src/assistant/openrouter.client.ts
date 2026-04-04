@@ -147,6 +147,8 @@ export class OpenRouterClient {
     let buffer = '';
     let answer = '';
     let responseModel = this.model;
+    let didReceiveDoneSignal = false;
+    let didReceiveTextDelta = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -170,6 +172,7 @@ export class OpenRouterClient {
         const data = line.slice(5).trim();
 
         if (data === '[DONE]') {
+          didReceiveDoneSignal = true;
           continue;
         }
 
@@ -179,6 +182,12 @@ export class OpenRouterClient {
           chunk = JSON.parse(data) as OpenRouterStreamChunkApiResponse;
         } catch {
           continue;
+        }
+
+        const finishReason = chunk.choices?.[0]?.finish_reason ?? null;
+
+        if (finishReason) {
+          didReceiveDoneSignal = true;
         }
 
         const delta = chunk.choices?.[0]?.delta?.content ?? '';
@@ -191,6 +200,7 @@ export class OpenRouterClient {
           continue;
         }
 
+        didReceiveTextDelta = true;
         answer += delta;
         onDelta(delta);
       }
@@ -198,7 +208,11 @@ export class OpenRouterClient {
 
     const trimmedAnswer = answer.trim();
 
-    if (!trimmedAnswer) {
+    if (!didReceiveDoneSignal) {
+      throw new ServiceUnavailableException('AI provider stream ended before completion.');
+    }
+
+    if (!didReceiveTextDelta || !trimmedAnswer) {
       throw new BadGatewayException('AI provider returned an empty answer.');
     }
 

@@ -74,6 +74,7 @@ export async function streamAssistant(
   const decoder = new TextDecoder();
 
   let buffer = '';
+  let didReceiveTerminalEvent = false;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -111,14 +112,20 @@ export async function streamAssistant(
       }
 
       if (event.type === 'complete') {
+        didReceiveTerminalEvent = true;
         handlers.onComplete(event);
         continue;
       }
 
       if (event.type === 'error') {
+        didReceiveTerminalEvent = true;
         handlers.onError(event);
         return;
       }
     }
+  }
+
+  if (!didReceiveTerminalEvent) {
+    throw new ApiError('Assistant stream ended before completion.', 502);
   }
 }

@@ -105,6 +105,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const autoScrollMode = sessionState?.autoScrollMode ?? 'sticky-bottom';
   const hasUnreadAssistantDelta = sessionState?.hasUnreadAssistantDelta ?? false;
 
+  const lastUserQuestion =
+    [...messages].reverse().find((message) => message.role === 'user')?.content ?? null;
+
   const lastMessage = messages.at(-1) ?? null;
   const lastMessageFingerprint = lastMessage
     ? `${lastMessage.id}:${lastMessage.content.length}:${lastMessage.status}`
@@ -112,6 +115,12 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
 
   const isAssistantAvailable = attemptId !== null;
   const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
+
+  const canRetryLastQuestion =
+    Boolean(attemptId) &&
+    Boolean(lastUserQuestion) &&
+    !isRequestInFlight &&
+    !isHistoryLoading;
 
   const shouldShowJumpToLatest =
     isAssistantAvailable && autoScrollMode === 'detached' && messages.length > 0;
@@ -183,21 +192,29 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     });
   }, [isOpen, autoScrollMode, lastMessageFingerprint]);
 
-  const handleSend = async (): Promise<void> => {
-    const normalizedDraft = draft.trim();
+  const sendQuestion = async (
+    question: string,
+    options?: {
+      clearDraft?: boolean;
+    },
+  ): Promise<void> => {
+    const normalizedQuestion = question.trim();
 
-    if (!normalizedDraft || !attemptId || isRequestInFlight) {
+    if (!normalizedQuestion || !attemptId || isRequestInFlight) {
       return;
     }
 
-    addUserMessage(attemptId, createMessage('user', normalizedDraft, 'completed'));
-    setDraft(attemptId, '');
+    addUserMessage(attemptId, createMessage('user', normalizedQuestion, 'completed'));
+
+    if (options?.clearDraft !== false) {
+      setDraft(attemptId, '');
+    }
 
     const assistantMessage = createMessage('assistant', '', 'thinking');
     startAssistantMessage(attemptId, assistantMessage);
 
     try {
-      await streamAssistant(attemptId, normalizedDraft, language, {
+      await streamAssistant(attemptId, normalizedQuestion, language, {
         onDelta: (event) => {
           appendAssistantDelta(attemptId, event.delta);
         },
@@ -211,6 +228,22 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     } catch (error) {
       failAssistantMessage(attemptId, getAssistantErrorMessage(error));
     }
+  };
+
+  const handleSend = async (): Promise<void> => {
+    await sendQuestion(draft, {
+      clearDraft: true,
+    });
+  };
+
+  const handleRetryLastQuestion = async (): Promise<void> => {
+    if (!lastUserQuestion) {
+      return;
+    }
+
+    await sendQuestion(lastUserQuestion, {
+      clearDraft: false,
+    });
   };
 
   const handleTextareaKeyDown = (
@@ -341,7 +374,19 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       <footer className="border-t border-yellow-500/10 px-3 py-3">
         {errorMessage ? (
           <div className="mb-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {errorMessage}
+            <p>{errorMessage}</p>
+
+            {canRetryLastQuestion ? (
+              <button
+                type="button"
+                onClick={() => {
+                  void handleRetryLastQuestion();
+                }}
+                className="mt-3 rounded-full border border-red-300/30 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:border-red-200/50 hover:bg-slate-800"
+              >
+                Retry
+              </button>
+            ) : null}
           </div>
         ) : null}
 
