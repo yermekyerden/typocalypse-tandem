@@ -31,7 +31,7 @@ export function Header() {
             <div className="flex items-center gap-4">
               {user && (
                 <>
-                  <div className="flex gap-3 mr-4">
+                  <div className="hidden md:flex gap-3 mr-4">
                     <Link
                       to="/"
                       className="text-yellow-50 transition hover:text-yellow-400"

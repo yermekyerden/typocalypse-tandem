@@ -55,7 +55,7 @@ export function DashboardScreen() {
 
   return (
     <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8 p-6">
-      <div className="flex-1 md:w-full">
+      <div className="flex-1 w-[80%]">
         <Accordion
           type="multiple"
           className="lg:max-w-lg md:w-full"
