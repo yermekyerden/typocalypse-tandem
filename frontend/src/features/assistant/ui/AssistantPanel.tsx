@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useI18n } from '@/i18n/useI18n';
 
-import { askAssistant, getAssistantHistory } from '../api/assistantApi';
+import { getAssistantHistory } from '../api/assistantApi';
+import { streamAssistant } from '../api/assistantStreamApi';
 import type { AssistantMessage } from '../model/assistant.interfaces';
 import { useAssistantStore } from '../model/assistantStore';
 import type { AssistantPanelProps, AssistantUiPhase } from '../model/assistant.types';
@@ -159,10 +160,17 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     startAssistantMessage(attemptId, assistantMessage);
 
     try {
-      const response = await askAssistant(attemptId, normalizedDraft, language);
-
-      appendAssistantDelta(attemptId, response.answer);
-      completeAssistantMessage(attemptId);
+      await streamAssistant(attemptId, normalizedDraft, language, {
+        onDelta: (event) => {
+          appendAssistantDelta(attemptId, event.delta);
+        },
+        onComplete: () => {
+          completeAssistantMessage(attemptId);
+        },
+        onError: (event) => {
+          failAssistantMessage(attemptId, event.message);
+        },
+      });
     } catch (error) {
       failAssistantMessage(attemptId, getAssistantErrorMessage(error));
     }
