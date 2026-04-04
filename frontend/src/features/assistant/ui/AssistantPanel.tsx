@@ -113,6 +113,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const isAssistantAvailable = attemptId !== null;
   const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
 
+  const shouldShowJumpToLatest =
+    isAssistantAvailable && autoScrollMode === 'detached' && messages.length > 0;
+
   const statusLabel = useMemo(() => {
     if (isHistoryLoading) {
       return 'Loading...';
@@ -241,6 +244,19 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     setAutoScrollMode(attemptId, nextAutoScrollMode);
   };
 
+  const handleJumpToLatest = (): void => {
+    if (!attemptId || !bottomAnchorRef.current) {
+      return;
+    }
+
+    setAutoScrollMode(attemptId, 'sticky-bottom');
+
+    bottomAnchorRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    });
+  };
+
   if (!isOpen) {
     return (
       <button
@@ -304,6 +320,19 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 </p>
               </article>
             ))}
+
+            {shouldShowJumpToLatest ? (
+              <div className="sticky bottom-0 z-10 flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={handleJumpToLatest}
+                  className="rounded-full border border-yellow-500/30 bg-slate-900/95 px-3 py-2 text-xs font-medium text-yellow-200 shadow-lg transition hover:border-yellow-400/50 hover:bg-slate-800"
+                >
+                  {hasUnreadAssistantDelta ? 'Jump to latest • New' : 'Jump to latest'}
+                </button>
+              </div>
+            ) : null}
+
             <div ref={bottomAnchorRef} />
           </div>
         )}
