@@ -17,6 +17,7 @@ import {
   AssistantCompletionResult,
   AssistantConversationContextMessage,
   AssistantMissionContext,
+  AssistantHistoryResponse,
   BuildAssistantMessagesContext,
 } from './assistant.types';
 
@@ -32,7 +33,7 @@ export class AssistantService {
     private readonly chatHistoryRepository: AssistantChatHistoryRepository,
   ) {}
 
-  async askForAttempt(
+  public async askForAttempt(
     userId: string,
     attemptId: string,
     question: string,
@@ -99,6 +100,28 @@ export class AssistantService {
     });
 
     return completion;
+  }
+
+  public async getHistoryForAttempt(
+    userId: string,
+    attemptId: string,
+  ): Promise<AssistantHistoryResponse> {
+    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
+    const attempt = attemptData.attempt;
+
+    this.assertMissionAttempt(attempt.missionId);
+
+    const session = this.chatHistoryRepository.getOrCreateSession(attemptId);
+
+    return {
+      attemptId,
+      messages: session.messages.map((message) => ({
+        id: message.id,
+        role: message.role,
+        content: message.content,
+        createdAtIso: message.createdAtIso,
+      })),
+    };
   }
 
   private assertAttemptIsInProgress(status: AssistantAttemptStatus): void {

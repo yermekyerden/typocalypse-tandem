@@ -78,3 +78,15 @@ export type AssistantCompletionResult = {
   model: string;
   usage: AssistantUsage | null;
 };
+
+export type AssistantHistoryMessageView = {
+  id: string;
+  role: AssistantConversationRole;
+  content: string;
+  createdAtIso: string;
+};
+
+export type AssistantHistoryResponse = {
+  attemptId: string;
+  messages: AssistantHistoryMessageView[];
+};
