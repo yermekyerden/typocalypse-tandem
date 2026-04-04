@@ -29,7 +29,7 @@ export function LibraryLessonDetails({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80 dark:text-mist-900">
             {moduleTitle}
           </p>
           <h2

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { SunIcon } from '@/components/ui/sunIcon';
+import { SunIcon } from '@/components/ui/SunIcon';
 import { MoonIcon } from '@/components/ui/MoonIcon';
 
 type Theme = 'light' | 'dark';
