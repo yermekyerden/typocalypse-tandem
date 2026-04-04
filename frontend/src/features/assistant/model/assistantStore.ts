@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 
 import type {
-  AssistantAutoScrollMode,
+  AssistantHydratedMessage,
   AssistantMessage,
   AssistantSessionState,
   AssistantStore,
-} from './assistant.types';
+} from './assistant.interfaces';
+import type { AssistantAutoScrollMode } from './assistant.types';
 
 const createEmptySessionState = (attemptId: string): AssistantSessionState => ({
   attemptId,
@@ -39,10 +40,20 @@ const updateSessionState = (
   };
 };
 
+const hydrateMessagesAsCompleted = (
+  messages: AssistantHydratedMessage[],
+): AssistantMessage[] => {
+  return messages.map((message) => ({
+    ...message,
+    status: 'completed',
+  }));
+};
+
 export const useAssistantStore = create<AssistantStore>((set) => ({
   activeAttemptId: null,
   sessionsByAttemptId: {},
 
+  // Session lifecycle
   setActiveAttemptId: (attemptId: string): void => {
     set((state) => ({
       activeAttemptId: attemptId,
@@ -64,6 +75,40 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     }));
   },
 
+  hydrateSessionMessages: (
+    attemptId: string,
+    messages: AssistantHydratedMessage[],
+  ): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          messages: hydrateMessagesAsCompleted(messages),
+          phase: 'idle',
+          errorMessage: null,
+          activeStreamingMessageId: null,
+          hasUnreadAssistantDelta: false,
+        }),
+      ),
+    }));
+  },
+
+  clearSession: (attemptId: string): void => {
+    set((state) => {
+      const nextSessionsByAttemptId = { ...state.sessionsByAttemptId };
+      delete nextSessionsByAttemptId[attemptId];
+
+      return {
+        sessionsByAttemptId: nextSessionsByAttemptId,
+        activeAttemptId:
+          state.activeAttemptId === attemptId ? null : state.activeAttemptId,
+      };
+    });
+  },
+
+  // Draft
   setDraft: (attemptId: string, draft: string): void => {
     set((state) => ({
       sessionsByAttemptId: updateSessionState(
@@ -77,6 +122,7 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     }));
   },
 
+  // Request lifecycle
   addUserMessage: (attemptId: string, message: AssistantMessage): void => {
     set((state) => ({
       sessionsByAttemptId: updateSessionState(
@@ -214,6 +260,7 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     }));
   },
 
+  // UI state
   setAutoScrollMode: (
     attemptId: string,
     autoScrollMode: AssistantAutoScrollMode,
@@ -246,18 +293,5 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
         }),
       ),
     }));
-  },
-
-  clearSession: (attemptId: string): void => {
-    set((state) => {
-      const nextSessionsByAttemptId = { ...state.sessionsByAttemptId };
-      delete nextSessionsByAttemptId[attemptId];
-
-      return {
-        sessionsByAttemptId: nextSessionsByAttemptId,
-        activeAttemptId:
-          state.activeAttemptId === attemptId ? null : state.activeAttemptId,
-      };
-    });
   },
 }));

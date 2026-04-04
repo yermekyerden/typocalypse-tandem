@@ -2,13 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { useI18n } from '@/i18n/useI18n';
 
-import { askAssistant } from '../api/assistantApi';
+import { askAssistant, getAssistantHistory } from '../api/assistantApi';
+import type { AssistantMessage } from '../model/assistant.interfaces';
 import { useAssistantStore } from '../model/assistantStore';
-import type { AssistantMessage } from '../model/assistant.types';
-
-type AssistantPanelProps = {
-  attemptId: string | null;
-};
+import type { AssistantPanelProps, AssistantUiPhase } from '../model/assistant.types';
 
 const createMessageId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -30,9 +27,7 @@ const createMessage = (
   createdAtIso: new Date().toISOString(),
 });
 
-const getStatusLabel = (
-  phase: 'idle' | 'thinking' | 'streaming' | 'error',
-): string | null => {
+const getStatusLabel = (phase: AssistantUiPhase): string | null => {
   if (phase === 'thinking') {
     return 'Thinking...';
   }
@@ -70,9 +65,14 @@ const getMessageBubbleClassName = (message: AssistantMessage): string => {
 
 export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
   const { language } = useI18n();
 
   const ensureSession = useAssistantStore((state) => state.ensureSession);
+  const hydrateSessionMessages = useAssistantStore(
+    (state) => state.hydrateSessionMessages,
+  );
   const setDraft = useAssistantStore((state) => state.setDraft);
   const addUserMessage = useAssistantStore((state) => state.addUserMessage);
   const startAssistantMessage = useAssistantStore((state) => state.startAssistantMessage);
@@ -91,6 +91,16 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const phase = sessionState?.phase ?? 'idle';
   const errorMessage = sessionState?.errorMessage ?? null;
 
+  const isAssistantAvailable = attemptId !== null;
+  const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
+  const statusLabel = useMemo(() => {
+    if (isHistoryLoading) {
+      return 'Loading...';
+    }
+
+    return getStatusLabel(phase) ?? 'Ready';
+  }, [isHistoryLoading, phase]);
+
   useEffect(() => {
     if (!attemptId) {
       return;
@@ -99,9 +109,41 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     ensureSession(attemptId);
   }, [attemptId, ensureSession]);
 
-  const statusLabel = useMemo(() => getStatusLabel(phase), [phase]);
-  const isAssistantAvailable = attemptId !== null;
-  const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
+  useEffect(() => {
+    if (!attemptId || !isOpen || messages.length > 0) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    const loadAssistantHistory = async (): Promise<void> => {
+      setIsHistoryLoading(true);
+
+      try {
+        const history = await getAssistantHistory(attemptId);
+
+        if (isCancelled) {
+          return;
+        }
+
+        hydrateSessionMessages(attemptId, history.messages);
+      } catch {
+        if (isCancelled) {
+          return;
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsHistoryLoading(false);
+        }
+      }
+    };
+
+    void loadAssistantHistory();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [attemptId, isOpen, messages.length, hydrateSessionMessages]);
 
   const handleSend = async (): Promise<void> => {
     const normalizedDraft = draft.trim();
@@ -162,7 +204,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       <header className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">AI Assistant</h2>
-          <p className="text-xs text-slate-400">{statusLabel ?? 'Ready'}</p>
+          <p className="text-xs text-slate-400">{statusLabel}</p>
         </div>
 
         <button
@@ -178,6 +220,10 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         {!isAssistantAvailable ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
             Assistant becomes available after you start the lesson in the terminal.
+          </div>
+        ) : isHistoryLoading ? (
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
+            Loading assistant history...
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
@@ -210,7 +256,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
             onChange={handleTextareaChange}
             onKeyDown={handleTextareaKeyDown}
             rows={3}
-            disabled={!isAssistantAvailable || isRequestInFlight}
+            disabled={!isAssistantAvailable || isRequestInFlight || isHistoryLoading}
             placeholder={
               isAssistantAvailable
                 ? 'Ask about the mission...'
@@ -224,7 +270,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
             onClick={() => {
               void handleSend();
             }}
-            disabled={!attemptId || !draft.trim() || isRequestInFlight}
+            disabled={
+              !attemptId || !draft.trim() || isRequestInFlight || isHistoryLoading
+            }
             className="rounded-full border border-yellow-500/30 bg-yellow-400 px-4 py-3 text-sm font-medium text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             ➤

@@ -1,5 +1,9 @@
 import { apiRequest } from '@/api/client';
-import type { AskAssistantRequest, AskAssistantResponse } from './assistantApi.types';
+import type {
+  AskAssistantRequest,
+  AskAssistantResponse,
+  AssistantHistoryResponse,
+} from './assistantApi.types';
 
 export function askAssistant(
   attemptId: string,
@@ -16,6 +20,18 @@ export function askAssistant(
     {
       method: 'POST',
       body: JSON.stringify(requestBody),
+    },
+    { requiresAuth: true },
+  );
+}
+
+export function getAssistantHistory(
+  attemptId: string,
+): Promise<AssistantHistoryResponse> {
+  return apiRequest<AssistantHistoryResponse>(
+    `/assistant/attempts/${attemptId}/history`,
+    {
+      method: 'GET',
     },
     { requiresAuth: true },
   );
