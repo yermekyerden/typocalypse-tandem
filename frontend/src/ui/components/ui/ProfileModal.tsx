@@ -43,9 +43,6 @@ export function ProfileModal({ onClose }: ProfileModalProps) {
         >
           {t('navigation.profile')}
         </button>
-        <button className="cursor-pointer hover:text-yellow-400 dark:hover:text-indigo-900">
-          {t('navigation.settings')}
-        </button>
         <button
           className="cursor-pointer hover:text-yellow-400 dark:hover:text-indigo-900"
           onClick={handleLogoutClick}

@@ -7,6 +7,8 @@ type LanguageSwitcherProps = {
 
 export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
   const { language, setLanguage, t } = useI18n();
+  const activeBtn = 'bg-yellow-400 text-gray-950 dark:text-mist-900 dark:bg-indigo-300';
+  const inactiveBtn = 'hover:bg-white/10 dark:hover:bg-mist-300 dark:text-mist-900';
 
   return (
     <div
@@ -21,9 +23,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('en')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'en'
-            ? 'bg-yellow-400 text-gray-950 dark:text-mist-900 dark:bg-indigo-300'
-            : 'hover:bg-white/10 dark:hover:dark:bg-mist-300 dark:text-mist-900',
+          language === 'en' ? activeBtn : inactiveBtn,
         )}
       >
         EN
@@ -33,9 +33,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('ru')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'ru'
-            ? 'bg-yellow-400 text-gray-950 dark:text-mist-900 dark:bg-indigo-300'
-            : 'hover:bg-white/10 dark:hover:dark:bg-mist-300 dark:text-mist-900',
+          language === 'ru' ? activeBtn : inactiveBtn,
         )}
       >
         RU
@@ -45,9 +43,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('kk')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'kk'
-            ? 'bg-yellow-400 text-gray-950 dark:text-mist-900 dark:bg-indigo-300'
-            : 'hover:bg-white/10 dark:hover:dark:bg-mist-300 dark:text-mist-900',
+          language === 'kk' ? activeBtn : inactiveBtn,
         )}
       >
         KZ

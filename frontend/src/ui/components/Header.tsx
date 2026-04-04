@@ -61,12 +61,6 @@ export function Header() {
                   >
                     {t('navigation.profile')}
                   </Link>
-                  <Link
-                    to="/"
-                    className="text-yellow-50 transition hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900"
-                  >
-                    {t('navigation.settings')}
-                  </Link>
                 </div>
               </>
             )}
