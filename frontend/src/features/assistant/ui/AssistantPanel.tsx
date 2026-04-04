@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useI18n } from '@/i18n/useI18n';
 
@@ -64,9 +64,20 @@ const getMessageBubbleClassName = (message: AssistantMessage): string => {
   return 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-cyan-500/20 bg-slate-900/90 px-4 py-3 text-sm text-slate-100';
 };
 
+const isScrolledNearBottom = (element: HTMLDivElement): boolean => {
+  const thresholdInPixels = 24;
+  const distanceFromBottom =
+    element.scrollHeight - element.scrollTop - element.clientHeight;
+
+  return distanceFromBottom <= thresholdInPixels;
+};
+
 export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const { language } = useI18n();
 
@@ -82,18 +93,26 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     (state) => state.completeAssistantMessage,
   );
   const failAssistantMessage = useAssistantStore((state) => state.failAssistantMessage);
+  const setAutoScrollMode = useAssistantStore((state) => state.setAutoScrollMode);
 
   const sessionState = useAssistantStore((state) =>
     attemptId ? state.sessionsByAttemptId[attemptId] : undefined,
   );
-
   const draft = sessionState?.draft ?? '';
   const messages = sessionState?.messages ?? [];
   const phase = sessionState?.phase ?? 'idle';
   const errorMessage = sessionState?.errorMessage ?? null;
+  const autoScrollMode = sessionState?.autoScrollMode ?? 'sticky-bottom';
+  const hasUnreadAssistantDelta = sessionState?.hasUnreadAssistantDelta ?? false;
+
+  const lastMessage = messages.at(-1) ?? null;
+  const lastMessageFingerprint = lastMessage
+    ? `${lastMessage.id}:${lastMessage.content.length}:${lastMessage.status}`
+    : 'empty';
 
   const isAssistantAvailable = attemptId !== null;
   const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
+
   const statusLabel = useMemo(() => {
     if (isHistoryLoading) {
       return 'Loading...';
@@ -146,6 +165,21 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     };
   }, [attemptId, isOpen, messages.length, hydrateSessionMessages]);
 
+  useEffect(() => {
+    if (!isOpen || !scrollContainerRef.current || !bottomAnchorRef.current) {
+      return;
+    }
+
+    if (autoScrollMode !== 'sticky-bottom') {
+      return;
+    }
+
+    bottomAnchorRef.current.scrollIntoView({
+      behavior: 'auto',
+      block: 'end',
+    });
+  }, [isOpen, autoScrollMode, lastMessageFingerprint]);
+
   const handleSend = async (): Promise<void> => {
     const normalizedDraft = draft.trim();
 
@@ -195,6 +229,18 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     setDraft(attemptId, event.target.value);
   };
 
+  const handleTranscriptScroll = (): void => {
+    if (!attemptId || !scrollContainerRef.current) {
+      return;
+    }
+
+    const nextAutoScrollMode = isScrolledNearBottom(scrollContainerRef.current)
+      ? 'sticky-bottom'
+      : 'detached';
+
+    setAutoScrollMode(attemptId, nextAutoScrollMode);
+  };
+
   if (!isOpen) {
     return (
       <button
@@ -212,7 +258,14 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       <header className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">AI Assistant</h2>
-          <p className="text-xs text-slate-400">{statusLabel}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-slate-400">{statusLabel}</p>
+            {hasUnreadAssistantDelta ? (
+              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-yellow-300">
+                New
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <button
@@ -224,7 +277,11 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         </button>
       </header>
 
-      <div className="flex-1 overflow-y-auto bg-slate-950/70 px-3 py-3">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleTranscriptScroll}
+        className="flex-1 overflow-y-auto bg-slate-950/70 px-3 py-3"
+      >
         {!isAssistantAvailable ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
             Assistant becomes available after you start the lesson in the terminal.
@@ -247,6 +304,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 </p>
               </article>
             ))}
+            <div ref={bottomAnchorRef} />
           </div>
         )}
       </div>
