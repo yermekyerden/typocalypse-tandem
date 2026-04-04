@@ -230,8 +230,7 @@ export function TerminalWindow({ height, className }: Props) {
 
       const value = inputRef.current;
       const cursorIndex = cursorIndexRef.current;
-      inputRef.current =
-        value.slice(0, cursorIndex) + data + value.slice(cursorIndex);
+      inputRef.current = value.slice(0, cursorIndex) + data + value.slice(cursorIndex);
       cursorIndexRef.current = cursorIndex + data.length;
       renderPrompt();
     };
