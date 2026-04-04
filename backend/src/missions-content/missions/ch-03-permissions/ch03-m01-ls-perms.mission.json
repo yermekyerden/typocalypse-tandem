@@ -1,0 +1,59 @@
+{
+  "id": "ch03-m01-ls-perms",
+  "version": 1,
+  "chapterId": "ch-03-permissions",
+  "title": "List with permissions",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use ls -l to see file permissions.",
+  "descriptionMd": "## Long listing format\n\n`ls -l` shows permissions for each file. The first column shows permission bits like `rw-r--r--`.",
+  "goalMd": "Run `ls -l` to see the permissions of files in the home directory.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "script.sh",
+                  "content": "#!/bin/bash\necho hello\n",
+                  "permissions": "644"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "rw-"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `ls -l` to see the long listing format."
+    }
+  ],
+  "allowedCommands": ["ls", "help"]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "ch03-m05-cat-after",
+  "version": 1,
+  "chapterId": "ch-03-permissions",
+  "title": "Read after permission change",
+  "difficulty": "medium",
+  "estimatedMinutes": 3,
+  "shortDescription": "Fix permissions on protected.txt and read it.",
+  "descriptionMd": "## Restore and read\n\nUse `chmod 644 protected.txt && cat protected.txt` to restore read permissions and immediately display the file.",
+  "goalMd": "Run `chmod 644 protected.txt && cat protected.txt`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "protected.txt",
+                  "content": "top secret content\n",
+                  "permissions": "000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "top secret"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `chmod 644 protected.txt && cat protected.txt`."
+    }
+  ],
+  "allowedCommands": ["chmod", "cat", "ls", "help"]
+}

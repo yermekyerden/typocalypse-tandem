@@ -1,13 +1,13 @@
 {
-  "id": "ch01-m03-list-home",
+  "id": "ch01-m02-cat-mission",
   "version": 1,
   "chapterId": "ch-01-basics",
-  "title": "List the home directory",
+  "title": "Read mission.txt",
   "difficulty": "easy",
   "estimatedMinutes": 2,
-  "shortDescription": "Use ls to see what is in the home directory.",
-  "descriptionMd": "## What is here?\n\nThe `ls` command lists files and directories in your current location. By default you start in `/home/dojo`.\n\nRun `ls` to see the contents of the home directory.",
-  "goalMd": "Run `ls` successfully.",
+  "shortDescription": "Use cat to display the contents of mission.txt.",
+  "descriptionMd": "## Read the mission file\n\nUse `cat` to print the contents of `mission.txt` to the terminal.",
+  "goalMd": "Run `cat mission.txt` to display its contents.",
   "initialCwd": "/home/dojo",
   "initialFs": {
     "root": {
@@ -23,9 +23,9 @@
               "name": "dojo",
               "children": [
                 {
-                  "type": "dir",
-                  "name": "projects",
-                  "children": []
+                  "type": "file",
+                  "name": "mission.txt",
+                  "content": "Welcome to Terminal Dojo!\nYour journey starts here.\n"
                 }
               ]
             }
@@ -44,15 +44,19 @@
       "id": "check-02",
       "type": "output_contains",
       "stream": "stdout",
-      "text": "projects"
+      "text": "Welcome"
     }
   ],
   "hints": [
     {
       "id": "hint-01",
       "order": 1,
-      "textMd": "Type `ls` and press Enter."
+      "textMd": "Type `cat mission.txt` and press Enter."
     }
   ],
-  "allowedCommands": ["ls", "help"]
+  "allowedCommands": [
+    "cat",
+    "ls",
+    "help"
+  ]
 }

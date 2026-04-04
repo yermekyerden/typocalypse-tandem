@@ -25,18 +25,21 @@ export function LibraryLessonDetails({
   return (
     <section
       aria-labelledby="library-lesson-title"
-      className="flex max-h-[320px] min-h-[220px] shrink-0 flex-col overflow-auto border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-5 shadow-lg scrollbar-thin dark:bg-none dark:bg-mist-300 dark:border-mist-300"
+      className="flex min-h-[220px] shrink-0 flex-col overflow-auto rounded-xl border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg scrollbar-thin max-lg:max-h-[240px] sm:p-5 lg:max-h-[320px] dark:bg-none dark:bg-mist-300 dark:border-mist-300"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
             {moduleTitle}
           </p>
-          <h2 id="library-lesson-title" className="text-2xl font-semibold text-yellow-50">
+          <h2
+            id="library-lesson-title"
+            className="text-xl font-semibold text-yellow-50 sm:text-2xl"
+          >
             {lesson.title}
           </h2>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col gap-1 sm:items-end">
           <AchievementStars
             total={progress.total}
             completed={progress.completed}

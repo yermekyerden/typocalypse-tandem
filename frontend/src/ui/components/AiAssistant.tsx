@@ -22,7 +22,7 @@ export function AiAssistant() {
     <>
       {!isOpen && (
         <button
-          className="fixed bottom-10 right-10 bg-yellow-400 text-gray-950 px-5 py-3 rounded-full shadow-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)] cursor-pointer"
+          className="fixed bottom-4 right-4 z-30 rounded-full bg-yellow-400 px-4 py-2 text-sm text-gray-950 shadow-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)] cursor-pointer sm:bottom-10 sm:right-10 sm:px-5 sm:py-3 sm:text-base"
           onClick={() => setIsOpen(true)}
         >
           {t('assistant.title')}
@@ -30,7 +30,7 @@ export function AiAssistant() {
       )}
 
       {isOpen && (
-        <div className="fixed bottom-3 right-5 w-80 h-96 bg-mist-950 rounded-2xl flex flex-col overflow-hidden shadow-[0_0_20px_rgba(250,204,21,0.4)] z-[999]">
+        <div className="fixed inset-x-3 bottom-3 z-[999] flex h-[70vh] max-h-96 flex-col overflow-hidden rounded-2xl bg-mist-950 shadow-[0_0_20px_rgba(250,204,21,0.4)] sm:inset-x-auto sm:right-5 sm:w-80">
           <div className="flex justify-between items-center bg-mist-950 text-gray-300 text-sm px-4 py-1">
             <span>{t('assistant.title')}</span>
             <button

@@ -1,0 +1,59 @@
+{
+  "id": "ch03-m04-ls-check",
+  "version": 1,
+  "chapterId": "ch-03-permissions",
+  "title": "Check permissions",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use ls -l to inspect a specific file's permissions.",
+  "descriptionMd": "## Checking file permissions\n\n`ls -l <filename>` shows the permissions of a specific file.",
+  "goalMd": "Run `ls -l protected.txt` to see its permission bits.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "protected.txt",
+                  "content": "top secret content\n",
+                  "permissions": "000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "protected.txt"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `ls -l protected.txt`."
+    }
+  ],
+  "allowedCommands": ["ls", "help"]
+}

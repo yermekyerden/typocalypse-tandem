@@ -2,6 +2,56 @@ import { ParsedCommand, ParseError, Redirect } from '../engine.types';
 
 export type ParseResult = { ok: true; command: ParsedCommand } | { ok: false; error: ParseError };
 
+export type CompoundParseResult =
+  | { ok: true; commands: ParsedCommand[] }
+  | { ok: false; error: ParseError };
+
+/**
+ * Parses a compound shell input (commands joined by &&) into an ordered list
+ * of ParsedCommands. Each sub-command is fully parsed including redirects.
+ * Returns an error if any sub-command is malformed or empty.
+ */
+export function parseCompoundInput(input: string): CompoundParseResult {
+  if (input.trim().length === 0) {
+    return { ok: false, error: { type: 'parse_error', message: 'Empty command.' } };
+  }
+
+  const tokensResult = tokenize(input);
+  if (!tokensResult.ok) {
+    return { ok: false, error: tokensResult.error };
+  }
+
+  const segments: string[][] = [];
+  let segment: string[] = [];
+  for (const token of tokensResult.tokens) {
+    if (token === '&&') {
+      segments.push(segment);
+      segment = [];
+    } else {
+      segment.push(token);
+    }
+  }
+  segments.push(segment);
+
+  const commands: ParsedCommand[] = [];
+  for (const seg of segments) {
+    const { words, redirect } = extractRedirect(seg);
+    if (words.length === 0) {
+      return {
+        ok: false,
+        error: { type: 'parse_error', message: 'Empty command in && sequence.' },
+      };
+    }
+    commands.push({
+      commandName: words[0],
+      args: words.slice(1),
+      ...(redirect ? { redirect } : {}),
+    });
+  }
+
+  return { ok: true, commands };
+}
+
 /**
  * Tokenizes a shell input line into a command name, arguments, and an
  * optional output redirect (> or >>). Handles single and double quoted
@@ -103,7 +153,17 @@ function tokenize(input: string): TokenizeResult {
       continue;
     }
 
-    if (ch === '>' || ch === '>>' || (ch === '>' && input[i + 1] === '>')) {
+    if (ch === '&' && input[i + 1] === '&') {
+      if (current.length > 0) {
+        tokens.push(current);
+        current = '';
+      }
+      tokens.push('&&');
+      i += 2;
+      continue;
+    }
+
+    if (ch === '>') {
       // Redirect operators — handled as literal tokens
       if (current.length > 0) {
         tokens.push(current);

@@ -1,0 +1,66 @@
+{
+  "id": "ch01-m03-ls-hidden",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "List hidden files",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use ls -a to see hidden files.",
+  "descriptionMd": "## Hidden files\n\nFiles starting with `.` are hidden. Use `ls -a` to list them.",
+  "goalMd": "Run `ls -a` to see the hidden .profile file.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "readme.txt",
+                  "content": "Hello, dojo!\n"
+                },
+                {
+                  "type": "file",
+                  "name": ".profile",
+                  "content": "export PATH=$PATH:/usr/local/bin\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": ".profile"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `ls -a` to include hidden files."
+    }
+  ],
+  "allowedCommands": [
+    "ls",
+    "help"
+  ]
+}

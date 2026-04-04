@@ -6,6 +6,7 @@
 
 import {
   BudgetExceededError,
+  InvalidArgumentsError,
   IsADirectoryError,
   NotADirectoryError,
   PathNotFoundError,
@@ -21,7 +22,8 @@ export type VfsError =
   | PathNotFoundError
   | NotADirectoryError
   | IsADirectoryError
-  | BudgetExceededError;
+  | BudgetExceededError
+  | InvalidArgumentsError;
 
 // ── Read operations ────────────────────────────────────────────────────────
 
@@ -140,7 +142,7 @@ export function vfsMkdir(snapshot: VfsSnapshot, absolutePath: string): VfsSnapsh
     };
   }
 
-  const newDir: VfsDirNode = { type: 'dir', name: newName, children: [] };
+  const newDir: VfsDirNode = { type: 'dir', name: newName, children: [], permissions: '755' };
   const newRoot = updateNode(snapshot.root, parentSegments, (node) => {
     const dir = node as VfsDirNode;
     return { ...dir, children: [...dir.children, newDir] };
@@ -201,7 +203,7 @@ export function vfsTouch(snapshot: VfsSnapshot, absolutePath: string): VfsSnapsh
     };
   }
 
-  const newFile: VfsFileNode = { type: 'file', name: newName, content: '' };
+  const newFile: VfsFileNode = { type: 'file', name: newName, content: '', permissions: '644' };
   const newRoot = updateNode(snapshot.root, parentSegments, (node) => {
     const dir = node as VfsDirNode;
     return { ...dir, children: [...dir.children, newFile] };
@@ -277,13 +279,24 @@ export function vfsWriteFile(
       };
     }
 
-    const newFile: VfsFileNode = { type: 'file', name: fileName, content: newContent };
+    const newFile: VfsFileNode = {
+      type: 'file',
+      name: fileName,
+      content: newContent,
+      permissions: '644',
+    };
     newRoot = updateNode(snapshot.root, parentSegments, (node) => {
       const dir = node as VfsDirNode;
       return { ...dir, children: [...dir.children, newFile] };
     }) as VfsDirNode;
   } else {
-    const updatedFile: VfsFileNode = { type: 'file', name: fileName, content: newContent };
+    const existingFile = existing;
+    const updatedFile: VfsFileNode = {
+      type: 'file',
+      name: fileName,
+      content: newContent,
+      ...(existingFile.permissions !== undefined ? { permissions: existingFile.permissions } : {}),
+    };
     newRoot = updateNode(snapshot.root, segments, () => updatedFile) as VfsDirNode;
   }
 
@@ -327,6 +340,39 @@ export function vfsRemoveFile(snapshot: VfsSnapshot, absolutePath: string): VfsS
     const dir = node as VfsDirNode;
     return { ...dir, children: dir.children.filter((c) => c.name !== fileName) };
   }) as VfsDirNode;
+
+  return { ...snapshot, root: newRoot };
+}
+
+/** Sets the permissions on a node. Accepts numeric octal strings only (e.g. '644', '755', '000'). */
+export function vfsChmod(
+  snapshot: VfsSnapshot,
+  absolutePath: string,
+  mode: string,
+): VfsSnapshot | VfsError {
+  if (!/^[0-7]{3}$/.test(mode)) {
+    return {
+      type: 'invalid_arguments',
+      message: `chmod: invalid mode: '${mode}'`,
+      commandName: 'chmod',
+    };
+  }
+
+  const segments = splitPath(absolutePath);
+  const node = vfsResolve(snapshot, absolutePath);
+
+  if (!node) {
+    return {
+      type: 'path_not_found',
+      message: `No such file or directory: ${absolutePath}`,
+      path: absolutePath,
+    };
+  }
+
+  const newRoot = updateNode(snapshot.root, segments, (n) => ({
+    ...n,
+    permissions: mode,
+  })) as VfsDirNode;
 
   return { ...snapshot, root: newRoot };
 }

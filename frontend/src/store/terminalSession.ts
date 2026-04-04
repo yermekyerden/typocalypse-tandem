@@ -107,23 +107,6 @@ function normalizeModules(modules: LearningModule[]) {
     }),
   }));
 
-  if (!activeFound) {
-    const firstModule = normalizedModules[0];
-    const firstLesson = firstModule?.lessons[0];
-
-    if (firstModule && firstLesson) {
-      activeModuleId = firstModule.id;
-      activeLessonId = firstLesson.id;
-      normalizedModules[0] = {
-        ...firstModule,
-        lessons: [
-          { ...firstLesson, status: 'active' as const },
-          ...firstModule.lessons.slice(1),
-        ],
-      };
-    }
-  }
-
   return {
     modules: normalizedModules,
     activeModuleId,

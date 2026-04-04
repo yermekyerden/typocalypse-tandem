@@ -1,0 +1,62 @@
+{
+  "id": "ch01-m07-cat-history",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Read bash history",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use cat to read the .bash_history file.",
+  "descriptionMd": "## Command history\n\nBash stores previously run commands in `.bash_history`. Use `cat` to read it.",
+  "goalMd": "Run `cat .bash_history` to see recent commands.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": ".bash_history",
+                  "content": "ls\npwd\ncd projects\nls -a\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "ls"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cat .bash_history` to read the history file."
+    }
+  ],
+  "allowedCommands": [
+    "cat",
+    "ls",
+    "help"
+  ]
+}

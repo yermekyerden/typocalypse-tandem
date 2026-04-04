@@ -51,6 +51,62 @@ describe('loadLearningContent', () => {
   });
 });
 
+describe('full curriculum structure (4 modules, 26 lessons)', () => {
+  it('cmd-basics has 9 lessons with expected IDs', () => {
+    const loaded = loadLearningContent(learningContentSource);
+    const mod = loaded.overview.modules.find((m) => m.id === 'cmd-basics');
+
+    expect(mod?.lessons).toHaveLength(9);
+    const ids = mod!.lessons.map((l) => l.id);
+    expect(ids).toContain('ls-home');
+    expect(ids).toContain('ls-hidden');
+    expect(ids).toContain('pwd');
+    expect(ids).toContain('mkdir-practice');
+    expect(ids).toContain('touch-first-task');
+  });
+
+  it('fs-basics module exists with 6 lessons', () => {
+    const loaded = loadLearningContent(learningContentSource);
+    const mod = loaded.overview.modules.find((m) => m.id === 'fs-basics');
+
+    expect(mod?.lessons).toHaveLength(6);
+    const ids = mod!.lessons.map((l) => l.id);
+    expect(ids).toContain('cd-abs');
+    expect(ids).toContain('cd-up');
+    expect(ids).toContain('cd-multi-up');
+  });
+
+  it('permissions module exists with 5 lessons', () => {
+    const loaded = loadLearningContent(learningContentSource);
+    const mod = loaded.overview.modules.find((m) => m.id === 'permissions');
+
+    expect(mod?.lessons).toHaveLength(5);
+    const ids = mod!.lessons.map((l) => l.id);
+    expect(ids).toContain('ls-perms');
+    expect(ids).toContain('chmod-owner');
+    expect(ids).toContain('cat-after');
+  });
+
+  it('file-ops module exists with 6 lessons', () => {
+    const loaded = loadLearningContent(learningContentSource);
+    const mod = loaded.overview.modules.find((m) => m.id === 'file-ops');
+
+    expect(mod?.lessons).toHaveLength(6);
+    const ids = mod!.lessons.map((l) => l.id);
+    expect(ids).toContain('echo-mentor-message');
+    expect(ids).toContain('cat-create-journey');
+    expect(ids).toContain('create-rsschool-stack');
+  });
+
+  it('total overview has 4 modules and 26 lessons', () => {
+    const loaded = loadLearningContent(learningContentSource);
+
+    expect(loaded.overview.modules).toHaveLength(4);
+    const totalLessons = loaded.overview.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+    expect(totalLessons).toBe(26);
+  });
+});
+
 describe('validateLessonMissionMapping', () => {
   const knownLessons = new Set(['lesson-a', 'lesson-b']);
   const knownMissions = new Set(['mission-x', 'mission-y']);

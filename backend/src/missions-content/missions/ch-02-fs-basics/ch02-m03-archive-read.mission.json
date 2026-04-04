@@ -1,0 +1,64 @@
+{
+  "id": "ch02-m03-archive-read",
+  "version": 1,
+  "chapterId": "ch-02-fs-basics",
+  "title": "Read from a subdirectory",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Read a file in a subdirectory without cd-ing into it.",
+  "descriptionMd": "## Reading files by path\n\nYou can read any file by giving `cat` its full path.",
+  "goalMd": "Run `cat /home/dojo/projects/notes.txt`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": [
+                    {
+                      "type": "file",
+                      "name": "notes.txt",
+                      "content": "RS School curriculum notes\n"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "RS School"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cat /home/dojo/projects/notes.txt` or `cat projects/notes.txt`."
+    }
+  ],
+  "allowedCommands": ["cat", "ls", "pwd", "help"]
+}
