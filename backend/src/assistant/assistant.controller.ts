@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -15,10 +16,13 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
+
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AssistantService } from './assistant.service';
 import { AskAssistantRequestDto } from './dto/ask-assistant-request.dto';
+import { AssistantStreamWriter } from './stream/assistant-stream.writer';
 
 @ApiTags('assistant')
 @ApiBearerAuth('access-token')
@@ -59,5 +63,37 @@ export class AssistantController {
     );
 
     return { ok: true, data };
+  }
+
+  @Post('attempts/:attemptId/stream')
+  public async streamForAttempt(
+    @CurrentUser() user: { id: string },
+    @Param('attemptId') attemptId: string,
+    @Body() dto: AskAssistantRequestDto,
+    @Res() response: Response,
+  ): Promise<void> {
+    const streamWriter = new AssistantStreamWriter(response);
+
+    try {
+      await this.assistantService.askForAttemptStream(
+        user.id,
+        attemptId,
+        dto.question,
+        dto.locale,
+        streamWriter,
+      );
+    } catch (error) {
+      streamWriter.start();
+
+      streamWriter.write({
+        type: 'error',
+        message:
+          error instanceof Error && error.message.trim().length > 0
+            ? error.message
+            : 'Assistant streaming request failed.',
+      });
+
+      streamWriter.end();
+    }
   }
 }

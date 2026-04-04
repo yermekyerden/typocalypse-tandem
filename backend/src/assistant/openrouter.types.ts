@@ -24,3 +24,17 @@ export type OpenRouterChatCompletionApiResponse = {
   usage?: OpenRouterApiUsage | null;
   error?: OpenRouterError;
 };
+
+export type OpenRouterStreamDelta = {
+  content?: string;
+};
+
+export type OpenRouterStreamChoice = {
+  delta?: OpenRouterStreamDelta;
+  finish_reason?: string | null;
+};
+
+export type OpenRouterStreamChunkApiResponse = {
+  model?: string;
+  choices?: OpenRouterStreamChoice[];
+};

@@ -20,6 +20,7 @@ import {
   AssistantHistoryResponse,
   BuildAssistantMessagesContext,
 } from './assistant.types';
+import { AssistantStreamWriter } from './stream/assistant-stream.writer';
 
 @Injectable()
 export class AssistantService {
@@ -100,6 +101,105 @@ export class AssistantService {
     });
 
     return completion;
+  }
+
+  public async askForAttemptStream(
+    userId: string,
+    attemptId: string,
+    question: string,
+    locale: string | undefined,
+    streamWriter: AssistantStreamWriter,
+  ): Promise<void> {
+    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
+    const attempt = attemptData.attempt;
+
+    this.assertAttemptIsInProgress(attempt.status);
+    this.assertMissionAttempt(attempt.missionId);
+
+    const mission = this.missionsService.getMissionById(attempt.missionId);
+
+    this.chatHistoryRepository.getOrCreateSession(attemptId);
+
+    const recentConversationMessages: AssistantConversationContextMessage[] =
+      this.chatHistoryRepository
+        .getRecentMessages(attemptId, this.recentConversationMessageLimit)
+        .map((message) => ({
+          role: message.role,
+          content: message.content,
+        }));
+
+    const context = this.createMessagesContext(
+      mission,
+      attempt.currentCwd,
+      attempt.status,
+      attempt.steps,
+      recentConversationMessages,
+      question,
+    );
+
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'user',
+      content: question,
+    });
+
+    const assistantLocale = normalizeAssistantLocale(locale);
+
+    streamWriter.start();
+    streamWriter.write({
+      type: 'start',
+      attemptId,
+    });
+
+    if (isAssistantQuestionOffTopic(question)) {
+      const refusalAnswer = getAssistantOffTopicRefusal(assistantLocale);
+
+      this.chatHistoryRepository.appendMessage({
+        attemptId,
+        role: 'assistant',
+        content: refusalAnswer,
+      });
+
+      streamWriter.write({
+        type: 'delta',
+        delta: refusalAnswer,
+      });
+
+      streamWriter.write({
+        type: 'complete',
+        answer: refusalAnswer,
+        model: 'assistant-local-guard',
+      });
+
+      streamWriter.end();
+      return;
+    }
+
+    const messages = this.buildMessages(context);
+
+    let streamedAnswer = '';
+    const completion = await this.openRouterClient.createChatCompletionStream(messages, (delta) => {
+      streamedAnswer += delta;
+
+      streamWriter.write({
+        type: 'delta',
+        delta,
+      });
+    });
+
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'assistant',
+      content: streamedAnswer,
+    });
+
+    streamWriter.write({
+      type: 'complete',
+      answer: streamedAnswer,
+      model: completion.model,
+    });
+
+    streamWriter.end();
   }
 
   public async getHistoryForAttempt(
