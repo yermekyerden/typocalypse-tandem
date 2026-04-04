@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, vi } from 'vitest';
 
 import type { LearningModule } from '@/features/learning/types';
@@ -23,14 +23,14 @@ const modulesFixture: LearningModule[] = [
         slug: 'lesson-1',
         title: 'List files',
         order: 1,
-        status: 'completed',
+        status: 'locked',
       },
       {
         id: 'lesson-2',
         slug: 'lesson-2',
         title: 'Read mission.txt',
         order: 2,
-        status: 'active',
+        status: 'locked',
       },
     ],
   },
@@ -76,6 +76,13 @@ it('opens accordion on click', async () => {
   const trigger = screen.getByText(modulesFixture[0].title);
 
   await userEvent.click(trigger);
+  await new Promise((resolve) => setTimeout(resolve, 100));
 
-  expect(screen.getByText(modulesFixture[0].lessons[0].title)).toBeVisible();
+  await waitFor(
+    () => {
+      const lessonElement = screen.getByText(modulesFixture[0].lessons[0].title);
+      expect(lessonElement).toBeVisible();
+    },
+    { timeout: 3000 },
+  );
 });

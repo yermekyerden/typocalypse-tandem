@@ -61,6 +61,7 @@ export const en = {
         'Great work. You successfully completed every step in this module. Ready to move on?',
       action: 'Continue learning',
     },
+    totalLessons: 'Total Lessons',
   },
   assistant: {
     title: 'AI Assistant',

@@ -122,9 +122,9 @@ export function ProfileScreen() {
   }
 
   return (
-    <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1">
-      <div className="mx-auto h-full flex gap-3">
-        <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2">
+    <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1  h-full">
+      <div className="mx-auto flex gap-3 h-full items-stretch">
+        <div className="rounded-2xl bg-[#2c2c2c] w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2">
           <button
             type="button"
             onClick={() => setActiveTab('user-data')}
@@ -166,7 +166,7 @@ export function ProfileScreen() {
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
+        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full flex flex-col overflow-y-auto">
           {activeTab === 'user-data' && (
             <>
               <h1 className="mb-8 text-4xl font-bold text-yellow-400">

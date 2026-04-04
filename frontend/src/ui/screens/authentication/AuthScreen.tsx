@@ -71,7 +71,7 @@ export function AuthScreen() {
 
   return (
     <>
-      <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 min-h-dvh">
+      <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 overflow-auto">
         <div className="mx-auto h-full flex items-center justify-center">
           <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md">
             <div className="mb-8 text-center">
