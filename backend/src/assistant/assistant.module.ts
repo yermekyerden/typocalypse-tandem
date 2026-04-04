@@ -4,6 +4,7 @@ import { AttemptsModule } from '../attempts/attempts.module';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { MissionsModule } from '../missions/missions.module';
 import { AssistantController } from './assistant.controller';
+import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
 import { AssistantService } from './assistant.service';
 import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
 import { InMemoryAssistantChatHistoryRepository } from './history/in-memory-assistant-chat-history.repository';
@@ -14,6 +15,7 @@ import { OpenRouterClient } from './openrouter.client';
   controllers: [AssistantController],
   providers: [
     AssistantService,
+    AssistantPromptBuilder,
     OpenRouterClient,
     JwtAuthGuard,
     {

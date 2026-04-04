@@ -22,6 +22,7 @@ import type {
   AssistantChatSession,
   CreateAssistantChatMessageParams,
 } from './history/assistant-chat-history.types';
+import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
 
 describe('AssistantService', () => {
   let assistantService: AssistantService;
@@ -64,6 +65,7 @@ describe('AssistantService', () => {
       attemptsServiceMock as unknown as AttemptsService,
       missionsServiceMock as unknown as MissionsService,
       openRouterClientMock as unknown as OpenRouterClient,
+      new AssistantPromptBuilder(),
       assistantChatHistoryRepositoryMock,
     );
   });

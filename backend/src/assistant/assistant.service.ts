@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, Inject } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
 import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
@@ -10,17 +10,16 @@ import {
   normalizeAssistantLocale,
 } from './prompt/assistant-localization';
 import { isAssistantQuestionOffTopic } from './prompt/assistant-offtopic.guard';
-import {
+import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
+import type {
+  AssistantAttemptContext,
   AssistantAttemptStatus,
-  AssistantAttemptStepContext,
-  AssistantChatMessage,
   AssistantCompletionResult,
   AssistantConversationContextMessage,
-  AssistantMissionContext,
   AssistantHistoryResponse,
   BuildAssistantMessagesContext,
 } from './assistant.types';
-import { AssistantStreamWriter } from './stream/assistant-stream.writer';
+import type { AssistantStreamWriter } from './stream/assistant-stream.writer';
 
 @Injectable()
 export class AssistantService {
@@ -30,6 +29,7 @@ export class AssistantService {
     private readonly attemptsService: AttemptsService,
     private readonly missionsService: MissionsService,
     private readonly openRouterClient: OpenRouterClient,
+    private readonly assistantPromptBuilder: AssistantPromptBuilder,
     @Inject(ASSISTANT_CHAT_HISTORY_REPOSITORY)
     private readonly chatHistoryRepository: AssistantChatHistoryRepository,
   ) {}
@@ -40,65 +40,24 @@ export class AssistantService {
     question: string,
     locale?: string,
   ): Promise<AssistantCompletionResult> {
-    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
-    const attempt = attemptData.attempt;
+    const attempt = await this.getValidatedAttempt(userId, attemptId, true);
 
-    this.assertAttemptIsInProgress(attempt.status);
-    this.assertMissionAttempt(attempt.missionId);
+    this.ensureHistorySession(attemptId);
 
-    const mission = this.missionsService.getMissionById(attempt.missionId);
+    const recentConversationMessages = this.getRecentConversationMessages(attemptId);
 
-    this.chatHistoryRepository.getOrCreateSession(attemptId);
-
-    const recentConversationMessages: AssistantConversationContextMessage[] =
-      this.chatHistoryRepository
-        .getRecentMessages(attemptId, this.recentConversationMessageLimit)
-        .map((message) => ({
-          role: message.role,
-          content: message.content,
-        }));
-
-    const context = this.createMessagesContext(
-      mission,
-      attempt.currentCwd,
-      attempt.status,
-      attempt.steps,
-      recentConversationMessages,
-      question,
-    );
-
-    this.chatHistoryRepository.appendMessage({
-      attemptId,
-      role: 'user',
-      content: question,
-    });
-
-    const assistantLocale = normalizeAssistantLocale(locale);
+    this.appendUserMessage(attemptId, question);
 
     if (isAssistantQuestionOffTopic(question)) {
-      const refusalAnswer = getAssistantOffTopicRefusal(assistantLocale);
-
-      this.chatHistoryRepository.appendMessage({
-        attemptId,
-        role: 'assistant',
-        content: refusalAnswer,
-      });
-
-      return {
-        answer: refusalAnswer,
-        model: 'assistant-local-guard',
-        usage: null,
-      };
+      return this.createOffTopicRefusalCompletion(attemptId, locale);
     }
 
-    const messages = this.buildMessages(context);
+    const promptContext = this.createPromptContext(attempt, recentConversationMessages, question);
+
+    const messages = this.assistantPromptBuilder.buildMessages(promptContext);
     const completion = await this.openRouterClient.createChatCompletion(messages);
 
-    this.chatHistoryRepository.appendMessage({
-      attemptId,
-      role: 'assistant',
-      content: completion.answer,
-    });
+    this.appendAssistantMessage(attemptId, completion.answer);
 
     return completion;
   }
@@ -110,40 +69,13 @@ export class AssistantService {
     locale: string | undefined,
     streamWriter: AssistantStreamWriter,
   ): Promise<void> {
-    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
-    const attempt = attemptData.attempt;
+    const attempt = await this.getValidatedAttempt(userId, attemptId, true);
 
-    this.assertAttemptIsInProgress(attempt.status);
-    this.assertMissionAttempt(attempt.missionId);
+    this.ensureHistorySession(attemptId);
 
-    const mission = this.missionsService.getMissionById(attempt.missionId);
+    const recentConversationMessages = this.getRecentConversationMessages(attemptId);
 
-    this.chatHistoryRepository.getOrCreateSession(attemptId);
-
-    const recentConversationMessages: AssistantConversationContextMessage[] =
-      this.chatHistoryRepository
-        .getRecentMessages(attemptId, this.recentConversationMessageLimit)
-        .map((message) => ({
-          role: message.role,
-          content: message.content,
-        }));
-
-    const context = this.createMessagesContext(
-      mission,
-      attempt.currentCwd,
-      attempt.status,
-      attempt.steps,
-      recentConversationMessages,
-      question,
-    );
-
-    this.chatHistoryRepository.appendMessage({
-      attemptId,
-      role: 'user',
-      content: question,
-    });
-
-    const assistantLocale = normalizeAssistantLocale(locale);
+    this.appendUserMessage(attemptId, question);
 
     streamWriter.start();
     streamWriter.write({
@@ -152,64 +84,48 @@ export class AssistantService {
     });
 
     if (isAssistantQuestionOffTopic(question)) {
-      const refusalAnswer = getAssistantOffTopicRefusal(assistantLocale);
-
-      this.chatHistoryRepository.appendMessage({
-        attemptId,
-        role: 'assistant',
-        content: refusalAnswer,
-      });
-
-      streamWriter.write({
-        type: 'delta',
-        delta: refusalAnswer,
-      });
-
-      streamWriter.write({
-        type: 'complete',
-        answer: refusalAnswer,
-        model: 'assistant-local-guard',
-      });
-
+      this.writeOffTopicRefusalStream(attemptId, locale, streamWriter);
       streamWriter.end();
       return;
     }
 
-    const messages = this.buildMessages(context);
+    try {
+      const promptContext = this.createPromptContext(attempt, recentConversationMessages, question);
 
-    let streamedAnswer = '';
-    const completion = await this.openRouterClient.createChatCompletionStream(messages, (delta) => {
-      streamedAnswer += delta;
+      const messages = this.assistantPromptBuilder.buildMessages(promptContext);
+
+      const completion = await this.openRouterClient.createChatCompletionStream(
+        messages,
+        (delta) => {
+          streamWriter.write({
+            type: 'delta',
+            delta,
+          });
+        },
+      );
+
+      this.appendAssistantMessage(attemptId, completion.answer);
 
       streamWriter.write({
-        type: 'delta',
-        delta,
+        type: 'complete',
+        answer: completion.answer,
+        model: completion.model,
       });
-    });
-
-    this.chatHistoryRepository.appendMessage({
-      attemptId,
-      role: 'assistant',
-      content: streamedAnswer,
-    });
-
-    streamWriter.write({
-      type: 'complete',
-      answer: streamedAnswer,
-      model: completion.model,
-    });
-
-    streamWriter.end();
+    } catch (error) {
+      streamWriter.write({
+        type: 'error',
+        message: this.resolveStreamErrorMessage(error),
+      });
+    } finally {
+      streamWriter.end();
+    }
   }
 
   public async getHistoryForAttempt(
     userId: string,
     attemptId: string,
   ): Promise<AssistantHistoryResponse> {
-    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
-    const attempt = attemptData.attempt;
-
-    this.assertMissionAttempt(attempt.missionId);
+    await this.getValidatedAttempt(userId, attemptId, false);
 
     const session = this.chatHistoryRepository.getOrCreateSession(attemptId);
 
@@ -224,6 +140,113 @@ export class AssistantService {
     };
   }
 
+  private async getValidatedAttempt(
+    userId: string,
+    attemptId: string,
+    requireInProgress: boolean,
+  ): Promise<AssistantAttemptContext> {
+    const attemptData = await this.attemptsService.getAttempt(userId, attemptId);
+    const attempt = attemptData.attempt;
+
+    if (requireInProgress) {
+      this.assertAttemptIsInProgress(attempt.status);
+    }
+
+    this.assertMissionAttempt(attempt.missionId);
+
+    return attempt;
+  }
+
+  private ensureHistorySession(attemptId: string): void {
+    this.chatHistoryRepository.getOrCreateSession(attemptId);
+  }
+
+  private getRecentConversationMessages(attemptId: string): AssistantConversationContextMessage[] {
+    return this.chatHistoryRepository
+      .getRecentMessages(attemptId, this.recentConversationMessageLimit)
+      .map((message) => ({
+        role: message.role,
+        content: message.content,
+      }));
+  }
+
+  private createPromptContext(
+    attempt: AssistantAttemptContext,
+    recentConversationMessages: AssistantConversationContextMessage[],
+    question: string,
+  ): BuildAssistantMessagesContext {
+    const mission = this.missionsService.getMissionById(attempt.missionId);
+
+    return {
+      mission,
+      currentWorkingDirectory: attempt.currentCwd,
+      attemptStatus: attempt.status,
+      steps: attempt.steps,
+      recentConversationMessages,
+      question,
+    };
+  }
+
+  private appendUserMessage(attemptId: string, question: string): void {
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'user',
+      content: question,
+    });
+  }
+
+  private appendAssistantMessage(attemptId: string, answer: string): void {
+    this.chatHistoryRepository.appendMessage({
+      attemptId,
+      role: 'assistant',
+      content: answer,
+    });
+  }
+
+  private createOffTopicRefusalCompletion(
+    attemptId: string,
+    locale?: string,
+  ): AssistantCompletionResult {
+    const refusalAnswer = getAssistantOffTopicRefusal(normalizeAssistantLocale(locale));
+
+    this.appendAssistantMessage(attemptId, refusalAnswer);
+
+    return {
+      answer: refusalAnswer,
+      model: 'assistant-local-guard',
+      usage: null,
+    };
+  }
+
+  private writeOffTopicRefusalStream(
+    attemptId: string,
+    locale: string | undefined,
+    streamWriter: AssistantStreamWriter,
+  ): void {
+    const refusalAnswer = getAssistantOffTopicRefusal(normalizeAssistantLocale(locale));
+
+    this.appendAssistantMessage(attemptId, refusalAnswer);
+
+    streamWriter.write({
+      type: 'delta',
+      delta: refusalAnswer,
+    });
+
+    streamWriter.write({
+      type: 'complete',
+      answer: refusalAnswer,
+      model: 'assistant-local-guard',
+    });
+  }
+
+  private resolveStreamErrorMessage(error: unknown): string {
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+
+    return 'Assistant streaming request failed.';
+  }
+
   private assertAttemptIsInProgress(status: AssistantAttemptStatus): void {
     if (status !== 'in_progress') {
       throw new ConflictException('Assistant is available only for in-progress attempts.');
@@ -234,127 +257,5 @@ export class AssistantService {
     if (missionId.startsWith('lesson:')) {
       throw new ConflictException('Assistant is currently available only for mission attempts.');
     }
-  }
-
-  private createMessagesContext(
-    mission: AssistantMissionContext,
-    currentWorkingDirectory: string,
-    attemptStatus: AssistantAttemptStatus,
-    steps: AssistantAttemptStepContext[],
-    recentConversationMessages: AssistantConversationContextMessage[],
-    question: string,
-  ): BuildAssistantMessagesContext {
-    return {
-      mission,
-      currentWorkingDirectory,
-      attemptStatus,
-      steps,
-      recentConversationMessages,
-      question,
-    };
-  }
-
-  private buildMessages(context: BuildAssistantMessagesContext): AssistantChatMessage[] {
-    const messages: AssistantChatMessage[] = [
-      {
-        role: 'system',
-        content: this.buildSystemPrompt(),
-      },
-      {
-        role: 'user',
-        content: this.buildEnvironmentContextPrompt(context),
-      },
-      ...context.recentConversationMessages,
-      {
-        role: 'user',
-        content: context.question,
-      },
-    ];
-
-    return messages;
-  }
-
-  private buildSystemPrompt(): string {
-    return [
-      'You are an AI assistant for a terminal learning app.',
-      'Your job is to help the learner with hints, not to fully solve the mission immediately.',
-      'Prefer short, practical, and actionable answers.',
-      'Do not invent files, commands, or paths that are not present in the provided context.',
-      'If the learner asks for the final answer directly, first give a hint-oriented response.',
-    ].join(' ');
-  }
-
-  private buildEnvironmentContextPrompt(context: BuildAssistantMessagesContext): string {
-    const sections = [
-      this.buildMissionSection(context.mission),
-      this.buildAttemptSection(
-        context.currentWorkingDirectory,
-        context.attemptStatus,
-        context.steps,
-      ),
-    ];
-
-    return sections.join('\n\n');
-  }
-
-  private buildMissionSection(mission: AssistantMissionContext): string {
-    const lines = [
-      `Mission title: ${mission.title}`,
-      `Mission short description: ${mission.shortDescription}`,
-      this.buildAllowedCommandsLine(mission.allowedCommands),
-    ];
-
-    return lines.join('\n');
-  }
-
-  private buildAttemptSection(
-    currentWorkingDirectory: string,
-    attemptStatus: AssistantAttemptStatus,
-    steps: AssistantAttemptStepContext[],
-  ): string {
-    const lines = [
-      `Current working directory: ${currentWorkingDirectory}`,
-      `Attempt status: ${attemptStatus}`,
-      this.buildRecentStepsSection(steps),
-    ];
-
-    return lines.join('\n\n');
-  }
-
-  private buildAllowedCommandsLine(allowedCommands?: string[]): string {
-    if (!allowedCommands || allowedCommands.length === 0) {
-      return 'Allowed commands: not restricted';
-    }
-
-    return `Allowed commands: ${allowedCommands.join(', ')}`;
-  }
-
-  private buildRecentStepsSection(steps: AssistantAttemptStepContext[]): string {
-    const recentSteps = steps.slice(-5);
-
-    if (recentSteps.length === 0) {
-      return 'Recent steps: no commands submitted yet.';
-    }
-
-    const formattedSteps = recentSteps.map((step) => this.formatStep(step));
-
-    return `Recent steps:\n${formattedSteps.join('\n\n')}`;
-  }
-
-  private formatStep(step: AssistantAttemptStepContext): string {
-    const lines = [
-      `Step ${step.stepIndex}`,
-      `Command: ${step.inputLine}`,
-      `Exit code: ${step.exitCode}`,
-      `Validation type: ${step.validation.type}`,
-    ];
-
-    const executionErrorMessage = step.trace.execute?.error?.message;
-
-    if (executionErrorMessage) {
-      lines.push(`Execution error: ${executionErrorMessage}`);
-    }
-
-    return lines.join('\n');
   }
 }
