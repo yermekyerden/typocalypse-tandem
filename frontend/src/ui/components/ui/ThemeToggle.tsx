@@ -18,6 +18,7 @@ function ThemeToggle() {
 
   return (
     <button
+      aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       className="cursor-pointer text-yellow-50 transition hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900"
       onClick={handleClick}
     >

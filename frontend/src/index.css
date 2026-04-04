@@ -202,3 +202,8 @@
 .animate-fade-in {
   animation: fade-in 0.3s ease-out forwards;
 }
+
+.dark .theme-text {
+  color: #1f2937;
+  background: #e3e7e8;
+}

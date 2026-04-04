@@ -75,9 +75,9 @@ export function Header() {
             <LanguageSwitcher />
             <div>
               {user && (
-                <div className="flex items-center gap-3 bg-mist-900 rounded-full">
+                <div className="flex items-center gap-3 bg-mist-900 rounded-full dark:bg-mist-100">
                   {(user.firstName || user.lastName) && (
-                    <span className="ml-4 text-2xl font-medium text-yellow-400">
+                    <span className="ml-4 text-2xl font-medium text-yellow-400 dark:text-mist-900">
                       {`${user.firstName || ''} ${user.lastName || ''}`.trim()}
                     </span>
                   )}

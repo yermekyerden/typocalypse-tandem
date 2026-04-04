@@ -14,7 +14,7 @@ export function Avatar({ onClick }: AvatarProps) {
 
   return (
     <button
-      className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-1 ring-yellow-400/50 cursor-pointer focus:outline-none focus-visible:shadow-[0_0_0_3px_white] dark:bg-none dark:ring-1 dark:ring-mist-200 dark:bg-mist-200 dark:hover:bg-mist-300"
+      className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-700 text-lg font-semibold text-yellow-400 ring-1 ring-yellow-400/50 cursor-pointer focus:outline-none focus-visible:shadow-[0_0_0_3px_white] dark:bg-none dark:ring-1 dark:ring-mist-200 dark:bg-mist-200 dark:hover:bg-mist-300 dark:text-mist-900"
       onClick={onClick}
     >
       {user?.avatarUrl ? (
