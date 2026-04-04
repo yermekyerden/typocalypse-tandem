@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { useI18n } from '@/i18n/useI18n';
+
+import { askAssistant } from '../api/assistantApi';
 import { useAssistantStore } from '../model/assistantStore';
 import type { AssistantMessage } from '../model/assistant.types';
 
 type AssistantPanelProps = {
-  attemptId: string;
+  attemptId: string | null;
 };
 
 const createMessageId = (): string => {
@@ -45,6 +48,14 @@ const getStatusLabel = (
   return null;
 };
 
+const getAssistantErrorMessage = (error: unknown): string => {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return 'Assistant request failed.';
+};
+
 const getMessageBubbleClassName = (message: AssistantMessage): string => {
   if (message.role === 'user') {
     return 'ml-auto max-w-[85%] rounded-2xl rounded-br-md border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-50';
@@ -57,57 +68,11 @@ const getMessageBubbleClassName = (message: AssistantMessage): string => {
   return 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-cyan-500/20 bg-slate-900/90 px-4 py-3 text-sm text-slate-100';
 };
 
-const simulateAssistantStreaming = (
-  attemptId: string,
-  startAssistantMessage: (attemptId: string, message: AssistantMessage) => void,
-  appendAssistantDelta: (attemptId: string, delta: string) => void,
-  completeAssistantMessage: (attemptId: string) => void,
-): void => {
-  const assistantMessage = createMessage('assistant', '', 'thinking');
-
-  startAssistantMessage(attemptId, assistantMessage);
-
-  const responseChunks = [
-    'Assistant UI is connected to the local store. ',
-    'The next step will replace this simulation with real backend requests ',
-    'and streaming transport from the assistant module.',
-  ];
-
-  let currentChunkIndex = 0;
-
-  const streamNextChunk = (): void => {
-    const nextChunk = responseChunks[currentChunkIndex];
-
-    if (!nextChunk) {
-      completeAssistantMessage(attemptId);
-      return;
-    }
-
-    appendAssistantDelta(attemptId, nextChunk);
-    currentChunkIndex += 1;
-
-    window.setTimeout(streamNextChunk, 240);
-  };
-
-  window.setTimeout(streamNextChunk, 420);
-};
-
 export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { language } = useI18n();
 
   const ensureSession = useAssistantStore((state) => state.ensureSession);
-  const draft = useAssistantStore(
-    (state) => state.sessionsByAttemptId[attemptId]?.draft ?? '',
-  );
-  const messages = useAssistantStore(
-    (state) => state.sessionsByAttemptId[attemptId]?.messages ?? [],
-  );
-  const phase = useAssistantStore(
-    (state) => state.sessionsByAttemptId[attemptId]?.phase ?? 'idle',
-  );
-  const errorMessage = useAssistantStore(
-    (state) => state.sessionsByAttemptId[attemptId]?.errorMessage ?? null,
-  );
   const setDraft = useAssistantStore((state) => state.setDraft);
   const addUserMessage = useAssistantStore((state) => state.addUserMessage);
   const startAssistantMessage = useAssistantStore((state) => state.startAssistantMessage);
@@ -115,28 +80,50 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const completeAssistantMessage = useAssistantStore(
     (state) => state.completeAssistantMessage,
   );
+  const failAssistantMessage = useAssistantStore((state) => state.failAssistantMessage);
+
+  const sessionState = useAssistantStore((state) =>
+    attemptId ? state.sessionsByAttemptId[attemptId] : undefined,
+  );
+
+  const draft = sessionState?.draft ?? '';
+  const messages = sessionState?.messages ?? [];
+  const phase = sessionState?.phase ?? 'idle';
+  const errorMessage = sessionState?.errorMessage ?? null;
 
   useEffect(() => {
+    if (!attemptId) {
+      return;
+    }
+
     ensureSession(attemptId);
   }, [attemptId, ensureSession]);
 
   const statusLabel = useMemo(() => getStatusLabel(phase), [phase]);
+  const isAssistantAvailable = attemptId !== null;
+  const isRequestInFlight = phase === 'thinking' || phase === 'streaming';
 
-  const handleSend = (): void => {
+  const handleSend = async (): Promise<void> => {
     const normalizedDraft = draft.trim();
 
-    if (!normalizedDraft) {
+    if (!normalizedDraft || !attemptId || isRequestInFlight) {
       return;
     }
 
     addUserMessage(attemptId, createMessage('user', normalizedDraft, 'completed'));
     setDraft(attemptId, '');
-    simulateAssistantStreaming(
-      attemptId,
-      startAssistantMessage,
-      appendAssistantDelta,
-      completeAssistantMessage,
-    );
+
+    const assistantMessage = createMessage('assistant', '', 'thinking');
+    startAssistantMessage(attemptId, assistantMessage);
+
+    try {
+      const response = await askAssistant(attemptId, normalizedDraft, language);
+
+      appendAssistantDelta(attemptId, response.answer);
+      completeAssistantMessage(attemptId);
+    } catch (error) {
+      failAssistantMessage(attemptId, getAssistantErrorMessage(error));
+    }
   };
 
   const handleTextareaKeyDown = (
@@ -147,7 +134,15 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     }
 
     event.preventDefault();
-    handleSend();
+    void handleSend();
+  };
+
+  const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>): void => {
+    if (!attemptId) {
+      return;
+    }
+
+    setDraft(attemptId, event.target.value);
   };
 
   if (!isOpen) {
@@ -163,7 +158,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   }
 
   return (
-    <section className="fixed bottom-4 right-5 z-50 flex h-[32rem] w-[24rem] flex-col overflow-hidden rounded-2xl border border-yellow-500/20 bg-black/85 shadow-[0_0_24px_rgba(250,204,21,0.18)] backdrop-blur-sm">
+    <section className="fixed bottom-4 right-5 z-50 flex h-128 w-[24rem] flex-col overflow-hidden rounded-2xl border border-yellow-500/20 bg-black/85 shadow-[0_0_24px_rgba(250,204,21,0.18)] backdrop-blur-sm">
       <header className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">AI Assistant</h2>
@@ -180,15 +175,19 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       </header>
 
       <div className="flex-1 overflow-y-auto bg-slate-950/70 px-3 py-3">
-        {messages.length === 0 ? (
-          <div className="flex h-full min-h-[14rem] items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
+        {!isAssistantAvailable ? (
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
+            Assistant becomes available after you start the lesson in the terminal.
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
             Ask about the current mission, terminal output, or your last command.
           </div>
         ) : (
           <div className="flex flex-col gap-3">
             {messages.map((message) => (
               <article key={message.id} className={getMessageBubbleClassName(message)}>
-                <p className="whitespace-pre-wrap break-words">
+                <p className="whitespace-pre-wrap wrap-break-word">
                   {message.content ||
                     (message.status === 'thinking' ? 'Thinking...' : '')}
                 </p>
@@ -208,17 +207,24 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         <div className="flex items-end gap-2">
           <textarea
             value={draft}
-            onChange={(event) => setDraft(attemptId, event.target.value)}
+            onChange={handleTextareaChange}
             onKeyDown={handleTextareaKeyDown}
             rows={3}
-            placeholder="Ask about the mission..."
-            className="min-h-[5rem] flex-1 resize-none rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40"
+            disabled={!isAssistantAvailable || isRequestInFlight}
+            placeholder={
+              isAssistantAvailable
+                ? 'Ask about the mission...'
+                : 'Start the lesson in the terminal first...'
+            }
+            className="min-h-20 flex-1 resize-none rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40 disabled:cursor-not-allowed disabled:opacity-60"
           />
 
           <button
             type="button"
-            onClick={handleSend}
-            disabled={!draft.trim()}
+            onClick={() => {
+              void handleSend();
+            }}
+            disabled={!attemptId || !draft.trim() || isRequestInFlight}
             className="rounded-full border border-yellow-500/30 bg-yellow-400 px-4 py-3 text-sm font-medium text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
           >
             ➤

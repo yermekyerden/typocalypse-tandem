@@ -69,6 +69,7 @@ export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
   const lessonDetailsById = useTerminalSession((s) => s.lessonDetailsById);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const activeAttemptId = useTerminalSession((s) => s.activeAttempt?.attemptId ?? null);
   const initialize = useTerminalSession((s) => s.initialize);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const completedModuleId = useTerminalSession((s) => s.completedModuleId);
@@ -133,7 +134,7 @@ export function LibraryScreen() {
         </section>
       ) : null}
 
-      <LibraryAssistantOverlay lessonId={currentLessonId} />
+      <LibraryAssistantOverlay lessonId={currentLessonId} attemptId={activeAttemptId} />
 
       <LibraryCompletionModal
         module={completedModule}
