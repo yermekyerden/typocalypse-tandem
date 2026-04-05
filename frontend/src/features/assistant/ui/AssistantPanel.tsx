@@ -88,6 +88,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const setDraft = useAssistantStore((state) => state.setDraft);
   const addUserMessage = useAssistantStore((state) => state.addUserMessage);
   const startAssistantMessage = useAssistantStore((state) => state.startAssistantMessage);
+  const restartFailedAssistantMessage = useAssistantStore(
+    (state) => state.restartFailedAssistantMessage,
+  );
   const appendAssistantDelta = useAssistantStore((state) => state.appendAssistantDelta);
   const completeAssistantMessage = useAssistantStore(
     (state) => state.completeAssistantMessage,
@@ -192,26 +195,22 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     });
   }, [isOpen, autoScrollMode, lastMessageFingerprint]);
 
-  const sendQuestion = async (
-    question: string,
-    options?: {
-      clearDraft?: boolean;
-    },
-  ): Promise<void> => {
+  const sendQuestion = async (question: string, mode: 'new' | 'retry'): Promise<void> => {
     const normalizedQuestion = question.trim();
 
     if (!normalizedQuestion || !attemptId || isRequestInFlight) {
       return;
     }
 
-    addUserMessage(attemptId, createMessage('user', normalizedQuestion, 'completed'));
-
-    if (options?.clearDraft !== false) {
+    if (mode === 'new') {
+      addUserMessage(attemptId, createMessage('user', normalizedQuestion, 'completed'));
       setDraft(attemptId, '');
-    }
 
-    const assistantMessage = createMessage('assistant', '', 'thinking');
-    startAssistantMessage(attemptId, assistantMessage);
+      const assistantMessage = createMessage('assistant', '', 'thinking');
+      startAssistantMessage(attemptId, assistantMessage);
+    } else {
+      restartFailedAssistantMessage(attemptId);
+    }
 
     try {
       await streamAssistant(attemptId, normalizedQuestion, language, {
@@ -231,9 +230,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   };
 
   const handleSend = async (): Promise<void> => {
-    await sendQuestion(draft, {
-      clearDraft: true,
-    });
+    await sendQuestion(draft, 'new');
   };
 
   const handleRetryLastQuestion = async (): Promise<void> => {
@@ -241,9 +238,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       return;
     }
 
-    await sendQuestion(lastUserQuestion, {
-      clearDraft: false,
-    });
+    await sendQuestion(lastUserQuestion, 'retry');
   };
 
   const handleTextareaKeyDown = (
@@ -345,14 +340,40 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {messages.map((message) => (
-              <article key={message.id} className={getMessageBubbleClassName(message)}>
-                <p className="whitespace-pre-wrap wrap-break-word">
-                  {message.content ||
-                    (message.status === 'thinking' ? 'Thinking...' : '')}
-                </p>
-              </article>
-            ))}
+            {messages.map((message) => {
+              const isFailedAssistantMessage =
+                message.role === 'assistant' && message.status === 'failed';
+
+              return (
+                <article
+                  key={message.id}
+                  className={
+                    isFailedAssistantMessage
+                      ? 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100'
+                      : getMessageBubbleClassName(message)
+                  }
+                >
+                  <p className="whitespace-pre-wrap wrap-break-word">
+                    {isFailedAssistantMessage
+                      ? (errorMessage ?? 'Assistant request failed.')
+                      : message.content ||
+                        (message.status === 'thinking' ? 'Thinking...' : '')}
+                  </p>
+
+                  {isFailedAssistantMessage && canRetryLastQuestion ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleRetryLastQuestion();
+                      }}
+                      className="mt-3 rounded-full border border-red-300/30 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:border-red-200/50 hover:bg-slate-800"
+                    >
+                      Retry
+                    </button>
+                  ) : null}
+                </article>
+              );
+            })}
 
             {shouldShowJumpToLatest ? (
               <div className="sticky bottom-0 z-10 flex justify-center pt-2">
@@ -372,24 +393,6 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       </div>
 
       <footer className="border-t border-yellow-500/10 px-3 py-3">
-        {errorMessage ? (
-          <div className="mb-3 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            <p>{errorMessage}</p>
-
-            {canRetryLastQuestion ? (
-              <button
-                type="button"
-                onClick={() => {
-                  void handleRetryLastQuestion();
-                }}
-                className="mt-3 rounded-full border border-red-300/30 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:border-red-200/50 hover:bg-slate-800"
-              >
-                Retry
-              </button>
-            ) : null}
-          </div>
-        ) : null}
-
         <div className="flex items-end gap-2">
           <textarea
             value={draft}

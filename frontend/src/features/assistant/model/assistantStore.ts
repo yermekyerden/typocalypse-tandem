@@ -155,6 +155,49 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     }));
   },
 
+  restartFailedAssistantMessage: (attemptId: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          const failedAssistantMessage = [...sessionState.messages]
+            .reverse()
+            .find(
+              (message) => message.role === 'assistant' && message.status === 'failed',
+            );
+
+          if (!failedAssistantMessage) {
+            return sessionState;
+          }
+
+          const nextMessages: AssistantMessage[] = sessionState.messages.map(
+            (message) => {
+              if (message.id !== failedAssistantMessage.id) {
+                return message;
+              }
+
+              return {
+                ...message,
+                content: '',
+                status: 'thinking',
+              };
+            },
+          );
+
+          return {
+            ...sessionState,
+            messages: nextMessages,
+            phase: 'thinking',
+            errorMessage: null,
+            activeStreamingMessageId: failedAssistantMessage.id,
+            hasUnreadAssistantDelta: false,
+          };
+        },
+      ),
+    }));
+  },
+
   appendAssistantDelta: (attemptId: string, delta: string): void => {
     set((state) => ({
       sessionsByAttemptId: updateSessionState(

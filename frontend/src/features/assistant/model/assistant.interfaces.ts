@@ -53,6 +53,7 @@ export interface AssistantStoreActions {
   // Request lifecycle
   addUserMessage: (attemptId: string, message: AssistantMessage) => void;
   startAssistantMessage: (attemptId: string, message: AssistantMessage) => void;
+  restartFailedAssistantMessage: (attemptId: string) => void;
   appendAssistantDelta: (attemptId: string, delta: string) => void;
   completeAssistantMessage: (attemptId: string) => void;
   failAssistantMessage: (attemptId: string, errorMessage: string) => void;
