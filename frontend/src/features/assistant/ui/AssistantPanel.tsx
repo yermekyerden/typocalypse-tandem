@@ -7,6 +7,7 @@ import { streamAssistant } from '../api/assistantStreamApi';
 import type { AssistantMessage } from '../model/assistant.interfaces';
 import { useAssistantStore } from '../model/assistantStore';
 import type { AssistantPanelProps, AssistantUiPhase } from '../model/assistant.types';
+import { AssistantMessageMarkdown } from './AssistantMessageMarkdown';
 
 const createMessageId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -359,12 +360,18 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                       : getMessageBubbleClassName(message)
                   }
                 >
-                  <p className="whitespace-pre-wrap wrap-break-word">
-                    {isFailedAssistantMessage
-                      ? (errorMessage ?? t('assistant.fallbackError'))
-                      : message.content ||
+                  {isFailedAssistantMessage ? (
+                    <p className="whitespace-pre-wrap wrap-break-word">
+                      {errorMessage ?? t('assistant.fallbackError')}
+                    </p>
+                  ) : message.role === 'assistant' && message.status === 'completed' ? (
+                    <AssistantMessageMarkdown content={message.content} />
+                  ) : (
+                    <p className="whitespace-pre-wrap wrap-break-word">
+                      {message.content ||
                         (message.status === 'thinking' ? t('assistant.thinking') : '')}
-                  </p>
+                    </p>
+                  )}
 
                   {isFailedAssistantMessage && canRetryLastQuestion ? (
                     <button
