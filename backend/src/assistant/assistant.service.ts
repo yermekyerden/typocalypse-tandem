@@ -5,18 +5,16 @@ import { MissionsService } from '../missions/missions.service';
 import { OpenRouterClient } from './openrouter.client';
 import { ASSISTANT_CHAT_HISTORY_REPOSITORY } from './history/assistant-chat-history.repository';
 import type { AssistantChatHistoryRepository } from './history/assistant-chat-history.repository';
-import {
-  getAssistantOffTopicRefusal,
-  normalizeAssistantLocale,
-} from './prompt/assistant-localization';
 import { isAssistantQuestionOffTopic } from './prompt/assistant-offtopic.guard';
 import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
+import { getAssistantOffTopicRefusal, normalizeAssistantLocale } from './prompt/assistant-locale';
 import type {
   AssistantAttemptContext,
   AssistantAttemptStatus,
   AssistantCompletionResult,
   AssistantConversationContextMessage,
   AssistantHistoryResponse,
+  AssistantLocale,
   BuildAssistantMessagesContext,
 } from './assistant.types';
 import type { AssistantStreamWriter } from './stream/assistant-stream.writer';
@@ -45,14 +43,20 @@ export class AssistantService {
     this.ensureHistorySession(attemptId);
 
     const recentConversationMessages = this.getRecentConversationMessages(attemptId);
+    const assistantLocale = normalizeAssistantLocale(locale);
 
     this.appendUserMessage(attemptId, question);
 
     if (isAssistantQuestionOffTopic(question)) {
-      return this.createOffTopicRefusalCompletion(attemptId, locale);
+      return this.createOffTopicRefusalCompletion(attemptId, assistantLocale);
     }
 
-    const promptContext = this.createPromptContext(attempt, recentConversationMessages, question);
+    const promptContext = this.createPromptContext(
+      attempt,
+      recentConversationMessages,
+      assistantLocale,
+      question,
+    );
 
     const messages = this.assistantPromptBuilder.buildMessages(promptContext);
     const completion = await this.openRouterClient.createChatCompletion(messages);
@@ -74,6 +78,7 @@ export class AssistantService {
     this.ensureHistorySession(attemptId);
 
     const recentConversationMessages = this.getRecentConversationMessages(attemptId);
+    const assistantLocale = normalizeAssistantLocale(locale);
 
     this.appendUserMessage(attemptId, question);
 
@@ -84,13 +89,18 @@ export class AssistantService {
     });
 
     if (isAssistantQuestionOffTopic(question)) {
-      this.writeOffTopicRefusalStream(attemptId, locale, streamWriter);
+      this.writeOffTopicRefusalStream(attemptId, assistantLocale, streamWriter);
       streamWriter.end();
       return;
     }
 
     try {
-      const promptContext = this.createPromptContext(attempt, recentConversationMessages, question);
+      const promptContext = this.createPromptContext(
+        attempt,
+        recentConversationMessages,
+        assistantLocale,
+        question,
+      );
 
       const messages = this.assistantPromptBuilder.buildMessages(promptContext);
 
@@ -173,6 +183,7 @@ export class AssistantService {
   private createPromptContext(
     attempt: AssistantAttemptContext,
     recentConversationMessages: AssistantConversationContextMessage[],
+    locale: AssistantLocale,
     question: string,
   ): BuildAssistantMessagesContext {
     const mission = this.missionsService.getMissionById(attempt.missionId);
@@ -183,6 +194,7 @@ export class AssistantService {
       attemptStatus: attempt.status,
       steps: attempt.steps,
       recentConversationMessages,
+      locale,
       question,
     };
   }
@@ -205,9 +217,9 @@ export class AssistantService {
 
   private createOffTopicRefusalCompletion(
     attemptId: string,
-    locale?: string,
+    locale: AssistantLocale,
   ): AssistantCompletionResult {
-    const refusalAnswer = getAssistantOffTopicRefusal(normalizeAssistantLocale(locale));
+    const refusalAnswer = getAssistantOffTopicRefusal(locale);
 
     this.appendAssistantMessage(attemptId, refusalAnswer);
 
@@ -220,10 +232,10 @@ export class AssistantService {
 
   private writeOffTopicRefusalStream(
     attemptId: string,
-    locale: string | undefined,
+    locale: AssistantLocale,
     streamWriter: AssistantStreamWriter,
   ): void {
-    const refusalAnswer = getAssistantOffTopicRefusal(normalizeAssistantLocale(locale));
+    const refusalAnswer = getAssistantOffTopicRefusal(locale);
 
     this.appendAssistantMessage(attemptId, refusalAnswer);
 

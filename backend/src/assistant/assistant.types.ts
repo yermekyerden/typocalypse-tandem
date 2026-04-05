@@ -1,5 +1,7 @@
 import type { AssistantConversationRole } from './history/assistant-chat-history.types';
 
+export type AssistantLocale = 'en' | 'kk' | 'ru';
+
 export type AssistantChatRole = 'system' | 'user' | 'assistant';
 
 export type AssistantChatMessage = {
@@ -55,6 +57,7 @@ export type BuildAssistantMessagesContext = {
   attemptStatus: AssistantAttemptStatus;
   steps: AssistantAttemptStepContext[];
   recentConversationMessages: AssistantConversationContextMessage[];
+  locale: AssistantLocale;
   question: string;
 };
 

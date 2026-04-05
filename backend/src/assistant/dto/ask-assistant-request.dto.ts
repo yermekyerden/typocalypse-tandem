@@ -1,6 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
+import { assistantSupportedLocales } from '../prompt/assistant-locale';
+
 export class AskAssistantRequestDto {
   @ApiProperty({
     description: 'User question for the assistant.',
@@ -13,11 +15,11 @@ export class AskAssistantRequestDto {
 
   @ApiPropertyOptional({
     description: 'Preferred UI locale for the assistant response.',
-    enum: ['en', 'kk', 'ru'],
+    enum: assistantSupportedLocales,
     example: 'en',
   })
   @IsOptional()
   @IsString()
-  @IsIn(['en', 'kk', 'ru'])
+  @IsIn(assistantSupportedLocales)
   locale?: string;
 }

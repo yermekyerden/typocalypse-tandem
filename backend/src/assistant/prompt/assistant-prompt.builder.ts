@@ -7,6 +7,7 @@ import type {
   AssistantMissionContext,
   BuildAssistantMessagesContext,
 } from '../assistant.types';
+import { getAssistantSystemPromptInstruction } from './assistant-locale';
 
 @Injectable()
 export class AssistantPromptBuilder {
@@ -14,7 +15,7 @@ export class AssistantPromptBuilder {
     return [
       {
         role: 'system',
-        content: this.buildSystemPrompt(),
+        content: this.buildSystemPrompt(context),
       },
       {
         role: 'user',
@@ -28,13 +29,14 @@ export class AssistantPromptBuilder {
     ];
   }
 
-  private buildSystemPrompt(): string {
+  private buildSystemPrompt(context: BuildAssistantMessagesContext): string {
     return [
       'You are an AI assistant for a terminal learning app.',
       'Your job is to help the learner with hints, not to fully solve the mission immediately.',
       'Prefer short, practical, and actionable answers.',
       'Do not invent files, commands, or paths that are not present in the provided context.',
       'If the learner asks for the final answer directly, first give a hint-oriented response.',
+      getAssistantSystemPromptInstruction(context.locale),
     ].join(' ');
   }
 
