@@ -67,14 +67,14 @@ const getAssistantErrorMessage = (
 
 const getMessageBubbleClassName = (message: AssistantMessage): string => {
   if (message.role === 'user') {
-    return 'ml-auto max-w-[85%] rounded-2xl rounded-br-md border border-yellow-400/25 bg-yellow-400/8 px-4 py-3 text-sm text-yellow-50 shadow-[0_8px_24px_rgba(0,0,0,0.18)]';
+    return 'ml-auto max-w-[85%] rounded-2xl rounded-br-md border border-yellow-400/25 bg-yellow-400/10 px-4 py-3 text-sm text-yellow-50 shadow-[0_8px_24px_rgba(0,0,0,0.18)]';
   }
 
   if (message.role === 'system') {
-    return 'mx-auto max-w-[92%] rounded-2xl border border-white/8 bg-white/4 px-4 py-3 text-center text-sm text-slate-300';
+    return 'mx-auto max-w-[92%] rounded-2xl border border-yellow-400/10 bg-mist-900/70 px-4 py-3 text-center text-sm text-slate-300';
   }
 
-  return 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-cyan-400/12 bg-white/5 px-4 py-3 text-sm text-slate-100 shadow-[0_8px_24px_rgba(0,0,0,0.16)]';
+  return 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-yellow-400/12 bg-mist-900/80 px-4 py-3 text-sm text-slate-100 shadow-[0_8px_24px_rgba(0,0,0,0.16)]';
 };
 
 const isScrolledNearBottom = (element: HTMLDivElement): boolean => {
@@ -345,16 +345,16 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   }
 
   return (
-    <aside className="fixed inset-x-4 bottom-4 z-50 flex h-[min(42rem,calc(100vh-5rem))] w-auto flex-col overflow-hidden rounded-3xl border border-yellow-400/15 bg-[linear-gradient(180deg,rgba(15,17,24,0.97)_0%,rgba(12,14,20,0.96)_100%)] shadow-[0_20px_70px_rgba(0,0,0,0.5)] ring-1 ring-white/5 backdrop-blur-xl sm:right-5 sm:left-auto sm:w-md lg:w-120">
-      <header className="flex items-center justify-between border-b border-white/6 px-5 py-4">
+    <aside className="fixed inset-x-4 bottom-4 z-50 flex h-[min(42rem,calc(100vh-5rem))] w-auto flex-col overflow-hidden rounded-3xl border border-yellow-400/20 bg-linear-to-b from-mist-950 to-mist-900 shadow-[0_20px_70px_rgba(0,0,0,0.5)] ring-1 ring-yellow-400/8 backdrop-blur-xl sm:right-5 sm:left-auto sm:w-md lg:w-120">
+      <header className="flex items-center justify-between border-b border-yellow-400/10 px-5 py-4">
         <div>
-          <h2 className="text-sm font-semibold tracking-wide text-yellow-50">
+          <h2 className="text-base font-semibold text-yellow-50 sm:text-lg">
             {t('assistant.title')}
           </h2>
           <div className="flex items-center gap-2">
-            <p className="text-xs text-slate-400/90">{statusLabel}</p>
+            <p className="text-xs font-semibold text-yellow-100/70">{statusLabel}</p>
             {hasUnreadAssistantDelta ? (
-              <span className="rounded-full border border-yellow-400/20 bg-yellow-400/8 px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] text-yellow-300">
+              <span className="rounded-full border border-yellow-400/20 bg-yellow-400/8 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-yellow-100">
                 {t('assistant.newBadge')}
               </span>
             ) : null}
@@ -364,7 +364,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         <button
           type="button"
           onClick={() => setIsOpen(false)}
-          className="rounded-full p-1 text-lg font-bold text-slate-300 transition hover:bg-white/5 hover:text-yellow-300"
+          className="rounded-full p-1 text-lg font-bold text-slate-300 transition hover:bg-yellow-400/6 hover:text-yellow-300"
         >
           ×
         </button>
@@ -376,15 +376,15 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         className="flex-1 overflow-y-auto bg-transparent px-4 py-4 sm:px-5"
       >
         {!isAssistantAvailable ? (
-          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/3 px-4 text-center text-sm text-slate-400">
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-yellow-400/12 bg-mist-900/65 px-4 text-center text-sm text-yellow-100/70">
             {t('assistant.unavailable')}
           </div>
         ) : isHistoryLoading ? (
-          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/3 px-4 text-center text-sm text-slate-400">
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-yellow-400/12 bg-mist-900/65 px-4 text-center text-sm text-yellow-100/70">
             {t('assistant.loadingHistory')}
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/3 px-4 text-center text-sm text-slate-400">
+          <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-yellow-400/12 bg-mist-900/65 px-4 text-center text-sm text-yellow-100/70">
             {t('assistant.emptyState')}
           </div>
         ) : (
@@ -404,7 +404,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                   key={message.id}
                   className={
                     isRetryableErrorMessage
-                      ? 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-red-400/20 bg-red-500/8 px-4 py-3 text-sm text-red-100 shadow-[0_8px_24px_rgba(0,0,0,0.14)]'
+                      ? 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-red-400/18 bg-red-950/35 px-4 py-3 text-sm text-red-100 shadow-[0_8px_24px_rgba(0,0,0,0.14)]'
                       : getMessageBubbleClassName(message)
                   }
                 >
@@ -427,7 +427,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                       onClick={() => {
                         void handleRetryLastQuestion();
                       }}
-                      className="mt-3 rounded-full border border-red-300/20 bg-white/5 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:border-red-200/35 hover:bg-white/8"
+                      className="mt-3 rounded-full border border-red-300/20 bg-white/5 px-3 py-1.5 text-xs font-semibold text-red-100 transition hover:border-red-200/35 hover:bg-white/8"
                     >
                       {t('assistant.retry')}
                     </button>
@@ -441,7 +441,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 <button
                   type="button"
                   onClick={handleJumpToLatest}
-                  className="rounded-full border border-yellow-400/18 bg-[rgba(15,17,24,0.92)] px-3 py-2 text-xs font-medium text-yellow-200 shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition hover:border-yellow-300/35 hover:bg-[rgba(20,23,31,0.96)]"
+                  className="rounded-full border border-yellow-400/18 bg-mist-900/95 px-3 py-2 text-xs font-medium text-yellow-200 shadow-[0_10px_28px_rgba(0,0,0,0.28)] transition hover:border-yellow-300/35 hover:bg-mist-900"
                 >
                   {hasUnreadAssistantDelta
                     ? t('assistant.jumpToLatestNew')
@@ -455,7 +455,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         )}
       </div>
 
-      <footer className="border-t border-white/6 px-4 py-4 sm:px-5">
+      <footer className="border-t border-yellow-400/10 px-4 py-4 sm:px-5">
         <div className="flex items-center gap-2">
           <textarea
             value={draft}
@@ -468,7 +468,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 ? t('assistant.placeholderReady')
                 : t('assistant.placeholderUnavailable')
             }
-            className="min-h-24 flex-1 resize-none rounded-2xl border border-white/8 bg-white/4 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-yellow-400/30 focus:bg-white/6 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-24 flex-1 resize-none rounded-2xl border border-yellow-400/12 bg-mist-950/80 px-4 py-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-yellow-400/28 focus:bg-mist-900/85 disabled:cursor-not-allowed disabled:opacity-60"
           />
 
           {isRequestInFlight ? (
@@ -477,7 +477,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
               onClick={handleStopGeneration}
               aria-label={t('assistant.stop')}
               title={t('assistant.stop')}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-400/20 bg-red-500/8 text-red-100 transition hover:bg-red-500/14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/50"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-400/18 bg-red-950/35 text-red-100 transition hover:bg-red-900/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/40"
             >
               <StopIcon className="h-8 w-8" />
             </button>
@@ -490,7 +490,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
               aria-label={t('assistant.send')}
               title={t('assistant.send')}
               disabled={!attemptId || !draft.trim() || isHistoryLoading}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400 text-black shadow-[0_10px_24px_rgba(250,204,21,0.18)] transition hover:bg-yellow-300 hover:text-black disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/50"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400 text-black shadow-[0_10px_24px_rgba(250,204,21,0.18)] transition hover:bg-yellow-300 hover:text-black disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/40"
             >
               <SendIcon className="h-8 w-8" />
             </button>
