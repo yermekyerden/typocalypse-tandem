@@ -63,11 +63,7 @@ describe('AssistantService', () => {
       clearSession: jest.fn<void, [string]>(),
     };
 
-    assistantChatHistoryRepositoryMock.getOrCreateSession.mockReturnValue({
-      attemptId: 'attempt-1',
-      messages: [],
-      summary: null,
-    });
+    assistantChatHistoryRepositoryMock.getOrCreateSession.mockReturnValue(createChatSession());
 
     assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([]);
 
@@ -502,6 +498,17 @@ function createCompletionResult(
     answer: 'Hint',
     model: 'google/gemma-3-4b-it:free',
     usage: null,
+    ...overrides,
+  };
+}
+
+function createChatSession(overrides: Partial<AssistantChatSession> = {}): AssistantChatSession {
+  return {
+    attemptId: 'attempt-1',
+    messages: [],
+    summary: null,
+    createdAtIso: '2026-04-05T10:00:00.000Z',
+    lastActivityAtIso: '2026-04-05T10:00:00.000Z',
     ...overrides,
   };
 }

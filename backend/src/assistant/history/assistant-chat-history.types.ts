@@ -15,6 +15,8 @@ export type AssistantChatSession = {
   attemptId: string;
   messages: AssistantChatHistoryMessage[];
   summary: string | null;
+  createdAtIso: string;
+  lastActivityAtIso: string;
 };
 
 export type CreateAssistantChatMessageParams = {
