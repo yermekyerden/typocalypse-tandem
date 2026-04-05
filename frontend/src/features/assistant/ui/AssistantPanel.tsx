@@ -345,7 +345,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   }
 
   return (
-    <aside className="fixed inset-x-4 bottom-4 z-50 flex h-[min(42rem,calc(100vh-5rem))] w-auto flex-col overflow-hidden rounded-3xl border border-yellow-400/15 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.08),transparent_26%),linear-gradient(180deg,rgba(15,17,24,0.97)_0%,rgba(12,14,20,0.96)_100%)] shadow-[0_20px_70px_rgba(0,0,0,0.5)] ring-1 ring-white/5 backdrop-blur-xl sm:right-5 sm:left-auto sm:w-md lg:w-120">
+    <aside className="fixed inset-x-4 bottom-4 z-50 flex h-[min(42rem,calc(100vh-5rem))] w-auto flex-col overflow-hidden rounded-3xl border border-yellow-400/15 bg-[linear-gradient(180deg,rgba(15,17,24,0.97)_0%,rgba(12,14,20,0.96)_100%)] shadow-[0_20px_70px_rgba(0,0,0,0.5)] ring-1 ring-white/5 backdrop-blur-xl sm:right-5 sm:left-auto sm:w-md lg:w-120">
       <header className="flex items-center justify-between border-b border-white/6 px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold tracking-wide text-yellow-50">
