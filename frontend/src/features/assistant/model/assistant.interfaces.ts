@@ -54,7 +54,7 @@ export interface AssistantStoreActions {
   addUserMessage: (attemptId: string, message: AssistantMessage) => void;
   startAssistantMessage: (attemptId: string, message: AssistantMessage) => void;
   stopAssistantMessage: (attemptId: string, message: string) => void;
-  restartFailedAssistantMessage: (attemptId: string) => void;
+  resetLastAssistantTurn: (attemptId: string) => void;
   appendAssistantDelta: (attemptId: string, delta: string) => void;
   completeAssistantMessage: (attemptId: string) => void;
   failAssistantMessage: (attemptId: string, errorMessage: string) => void;

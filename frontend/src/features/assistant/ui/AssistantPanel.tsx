@@ -102,8 +102,8 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const setDraft = useAssistantStore((state) => state.setDraft);
   const addUserMessage = useAssistantStore((state) => state.addUserMessage);
   const startAssistantMessage = useAssistantStore((state) => state.startAssistantMessage);
-  const restartFailedAssistantMessage = useAssistantStore(
-    (state) => state.restartFailedAssistantMessage,
+  const resetLastAssistantTurn = useAssistantStore(
+    (state) => state.resetLastAssistantTurn,
   );
   const appendAssistantDelta = useAssistantStore((state) => state.appendAssistantDelta);
   const completeAssistantMessage = useAssistantStore(
@@ -124,9 +124,6 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
 
   const lastUserQuestion =
     [...messages].reverse().find((message) => message.role === 'user')?.content ?? null;
-
-  const lastFailedMessage =
-    [...messages].reverse().find((message) => message.status === 'failed') ?? null;
 
   const lastMessage = messages.at(-1) ?? null;
   const lastMessageFingerprint = lastMessage
@@ -222,15 +219,12 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     if (mode === 'new') {
       addUserMessage(attemptId, createMessage('user', normalizedQuestion, 'completed'));
       setDraft(attemptId, '');
-
-      const assistantMessage = createMessage('assistant', '', 'thinking');
-      startAssistantMessage(attemptId, assistantMessage);
-    } else if (lastFailedMessage?.role === 'assistant') {
-      restartFailedAssistantMessage(attemptId);
     } else {
-      const assistantMessage = createMessage('assistant', '', 'thinking');
-      startAssistantMessage(attemptId, assistantMessage);
+      resetLastAssistantTurn(attemptId);
     }
+
+    const assistantMessage = createMessage('assistant', '', 'thinking');
+    startAssistantMessage(attemptId, assistantMessage);
 
     const streamSession = await startAssistantStream(
       attemptId,

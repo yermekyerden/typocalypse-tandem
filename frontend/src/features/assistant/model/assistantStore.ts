@@ -248,43 +248,40 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
     }));
   },
 
-  restartFailedAssistantMessage: (attemptId: string): void => {
+  resetLastAssistantTurn: (attemptId: string): void => {
     set((state) => ({
       sessionsByAttemptId: updateSessionState(
         state.sessionsByAttemptId,
         attemptId,
         (sessionState) => {
-          const failedAssistantMessage = [...sessionState.messages]
-            .reverse()
-            .find(
-              (message) => message.role === 'assistant' && message.status === 'failed',
-            );
+          let lastUserMessageIndex = -1;
 
-          if (!failedAssistantMessage) {
-            return sessionState;
+          for (let index = sessionState.messages.length - 1; index >= 0; index -= 1) {
+            if (sessionState.messages[index]?.role === 'user') {
+              lastUserMessageIndex = index;
+              break;
+            }
           }
 
-          const nextMessages: AssistantMessage[] = sessionState.messages.map(
-            (message) => {
-              if (message.id !== failedAssistantMessage.id) {
-                return message;
-              }
-
-              return {
-                ...message,
-                content: '',
-                status: 'thinking',
-              };
-            },
-          );
+          if (lastUserMessageIndex === -1) {
+            return {
+              ...sessionState,
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+            };
+          }
 
           return {
             ...sessionState,
-            messages: nextMessages,
-            phase: 'thinking',
+            messages: sessionState.messages.slice(0, lastUserMessageIndex + 1),
+            phase: 'idle',
             errorMessage: null,
-            activeStreamingMessageId: failedAssistantMessage.id,
-            hasUnreadAssistantDelta: false,
+            activeStreamingMessageId: null,
+            hasUnreadAssistantDelta:
+              sessionState.autoScrollMode === 'sticky-bottom'
+                ? false
+                : sessionState.hasUnreadAssistantDelta,
           };
         },
       ),
