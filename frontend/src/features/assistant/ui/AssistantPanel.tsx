@@ -28,28 +28,34 @@ const createMessage = (
   createdAtIso: new Date().toISOString(),
 });
 
-const getStatusLabel = (phase: AssistantUiPhase): string | null => {
+const getStatusLabel = (
+  phase: AssistantUiPhase,
+  t: ReturnType<typeof useI18n>['t'],
+): string | null => {
   if (phase === 'thinking') {
-    return 'Thinking...';
+    return t('assistant.thinking');
   }
 
   if (phase === 'streaming') {
-    return 'Streaming...';
+    return t('assistant.streaming');
   }
 
   if (phase === 'error') {
-    return 'Something went wrong.';
+    return t('assistant.error');
   }
 
   return null;
 };
 
-const getAssistantErrorMessage = (error: unknown): string => {
+const getAssistantErrorMessage = (
+  error: unknown,
+  t: ReturnType<typeof useI18n>['t'],
+): string => {
   if (error instanceof Error && error.message.trim().length > 0) {
     return error.message;
   }
 
-  return 'Assistant request failed.';
+  return t('assistant.fallbackError');
 };
 
 const getMessageBubbleClassName = (message: AssistantMessage): string => {
@@ -79,7 +85,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
 
-  const { language } = useI18n();
+  const { language, t } = useI18n();
 
   const ensureSession = useAssistantStore((state) => state.ensureSession);
   const hydrateSessionMessages = useAssistantStore(
@@ -130,11 +136,11 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
 
   const statusLabel = useMemo(() => {
     if (isHistoryLoading) {
-      return 'Loading...';
+      return t('assistant.loading');
     }
 
-    return getStatusLabel(phase) ?? 'Ready';
-  }, [isHistoryLoading, phase]);
+    return getStatusLabel(phase, t) ?? t('assistant.ready');
+  }, [isHistoryLoading, phase, t]);
 
   useEffect(() => {
     if (!attemptId) {
@@ -225,7 +231,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         },
       });
     } catch (error) {
-      failAssistantMessage(attemptId, getAssistantErrorMessage(error));
+      failAssistantMessage(attemptId, getAssistantErrorMessage(error, t));
     }
   };
 
@@ -292,7 +298,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         onClick={() => setIsOpen(true)}
         className="fixed bottom-10 right-10 z-50 rounded-full border border-yellow-500/30 bg-yellow-400 px-5 py-3 text-sm font-medium text-black shadow-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)]"
       >
-        AI Assistant
+        {t('assistant.title')}
       </button>
     );
   }
@@ -301,12 +307,12 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     <section className="fixed bottom-4 right-5 z-50 flex h-128 w-[24rem] flex-col overflow-hidden rounded-2xl border border-yellow-500/20 bg-black/85 shadow-[0_0_24px_rgba(250,204,21,0.18)] backdrop-blur-sm">
       <header className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-100">AI Assistant</h2>
+          <h2 className="text-sm font-semibold text-slate-100">{t('assistant.title')}</h2>
           <div className="flex items-center gap-2">
             <p className="text-xs text-slate-400">{statusLabel}</p>
             {hasUnreadAssistantDelta ? (
               <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-yellow-300">
-                New
+                {t('assistant.newBadge')}
               </span>
             ) : null}
           </div>
@@ -328,15 +334,15 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       >
         {!isAssistantAvailable ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
-            Assistant becomes available after you start the lesson in the terminal.
+            {t('assistant.unavailable')}
           </div>
         ) : isHistoryLoading ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
-            Loading assistant history...
+            {t('assistant.loadingHistory')}
           </div>
         ) : messages.length === 0 ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
-            Ask about the current mission, terminal output, or your last command.
+            {t('assistant.emptyState')}
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -355,9 +361,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 >
                   <p className="whitespace-pre-wrap wrap-break-word">
                     {isFailedAssistantMessage
-                      ? (errorMessage ?? 'Assistant request failed.')
+                      ? (errorMessage ?? t('assistant.fallbackError'))
                       : message.content ||
-                        (message.status === 'thinking' ? 'Thinking...' : '')}
+                        (message.status === 'thinking' ? t('assistant.thinking') : '')}
                   </p>
 
                   {isFailedAssistantMessage && canRetryLastQuestion ? (
@@ -368,7 +374,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                       }}
                       className="mt-3 rounded-full border border-red-300/30 bg-slate-900/80 px-3 py-1.5 text-xs font-medium text-red-100 transition hover:border-red-200/50 hover:bg-slate-800"
                     >
-                      Retry
+                      {t('assistant.retry')}
                     </button>
                   ) : null}
                 </article>
@@ -382,7 +388,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                   onClick={handleJumpToLatest}
                   className="rounded-full border border-yellow-500/30 bg-slate-900/95 px-3 py-2 text-xs font-medium text-yellow-200 shadow-lg transition hover:border-yellow-400/50 hover:bg-slate-800"
                 >
-                  {hasUnreadAssistantDelta ? 'Jump to latest • New' : 'Jump to latest'}
+                  {hasUnreadAssistantDelta
+                    ? t('assistant.jumpToLatestNew')
+                    : t('assistant.jumpToLatest')}
                 </button>
               </div>
             ) : null}
@@ -402,8 +410,8 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
             disabled={!isAssistantAvailable || isRequestInFlight || isHistoryLoading}
             placeholder={
               isAssistantAvailable
-                ? 'Ask about the mission...'
-                : 'Start the lesson in the terminal first...'
+                ? t('assistant.placeholderReady')
+                : t('assistant.placeholderUnavailable')
             }
             className="min-h-20 flex-1 resize-none rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40 disabled:cursor-not-allowed disabled:opacity-60"
           />

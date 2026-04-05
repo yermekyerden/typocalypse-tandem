@@ -84,6 +84,26 @@ export const ru = {
     title: 'Прохождение миссии',
     missionId: 'missionId: {{missionId}}',
   },
+  assistant: {
+    title: 'AI Assistant',
+    ready: 'Готово',
+    loading: 'Загрузка...',
+    thinking: 'Думаю...',
+    streaming: 'Печатаю ответ...',
+    error: 'Что-то пошло не так.',
+    unavailable:
+      'Assistant станет доступен после того, как вы начнёте уровень в терминале.',
+    emptyState:
+      'Спросите о текущей миссии, выводе терминала или вашей последней команде.',
+    loadingHistory: 'Загружаем историю assistant...',
+    placeholderReady: 'Спросите о миссии...',
+    placeholderUnavailable: 'Сначала начните уровень в терминале...',
+    retry: 'Повторить',
+    jumpToLatest: 'К последнему сообщению',
+    jumpToLatestNew: 'К последнему сообщению • Новое',
+    newBadge: 'Новое',
+    fallbackError: 'Не удалось выполнить запрос к assistant.',
+  },
   replay: {
     title: 'Повтор',
     attemptId: 'attemptId: {{attemptId}}',
