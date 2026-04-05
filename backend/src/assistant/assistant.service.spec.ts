@@ -403,9 +403,13 @@ describe('AssistantService', () => {
 
     const systemPrompt = getSystemPrompt(openRouterClientMock);
 
-    expect(systemPrompt).toContain('The learner interface language is Kazakh.');
-    expect(systemPrompt).toContain('You must answer in Kazakh.');
-    expect(systemPrompt).toContain('Do not switch to Russian');
+    expect(systemPrompt).toContain('Тек қазақ тілінде жауап бер.');
+    expect(systemPrompt).toContain(
+      'Пайдаланушы тікелей сұрамайынша орыс немесе ағылшын тіліне ауыспа.',
+    );
+    expect(systemPrompt).toContain(
+      'Миссия сипаттамасы, техникалық контекст немесе командалар ағылшын тілінде болса да, қорытынды жауабың қазақ тілінде болсын.',
+    );
   });
 
   it('includes a Russian-only answer instruction when locale is ru', async () => {
@@ -425,9 +429,13 @@ describe('AssistantService', () => {
 
     const systemPrompt = getSystemPrompt(openRouterClientMock);
 
-    expect(systemPrompt).toContain('The learner interface language is Russian.');
-    expect(systemPrompt).toContain('You must answer in Russian.');
-    expect(systemPrompt).toContain('Do not switch to English or Kazakh');
+    expect(systemPrompt).toContain('Отвечай только на русском языке.');
+    expect(systemPrompt).toContain(
+      'Не переключайся на английский или казахский, если пользователь сам об этом не попросил.',
+    );
+    expect(systemPrompt).toContain(
+      'Даже если описание миссии, технический контекст или команды написаны на английском, итоговый ответ должен быть на русском языке.',
+    );
   });
 
   it('falls back to English when locale is not provided', async () => {
@@ -447,8 +455,13 @@ describe('AssistantService', () => {
 
     const systemPrompt = getSystemPrompt(openRouterClientMock);
 
-    expect(systemPrompt).toContain('The learner interface language is English.');
-    expect(systemPrompt).toContain('You must answer in English.');
+    expect(systemPrompt).toContain('Answer only in English.');
+    expect(systemPrompt).toContain(
+      'Do not switch to Russian or Kazakh unless the learner explicitly asks you to do so.',
+    );
+    expect(systemPrompt).toContain(
+      'Even if the mission metadata or technical context is written in another language, keep your final answer in English.',
+    );
   });
 
   it('throws a descriptive error for lesson attempts', async () => {
