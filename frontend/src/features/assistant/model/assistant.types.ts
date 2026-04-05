@@ -7,6 +7,7 @@ export type AssistantMessageStatus =
   | 'thinking'
   | 'streaming'
   | 'completed'
+  | 'interrupted'
   | 'failed';
 
 export type AssistantUiPhase = 'idle' | 'thinking' | 'streaming' | 'error';

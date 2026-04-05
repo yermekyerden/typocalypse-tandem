@@ -111,12 +111,14 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   const draft = sessionState?.draft ?? '';
   const messages = sessionState?.messages ?? [];
   const phase = sessionState?.phase ?? 'idle';
-  const errorMessage = sessionState?.errorMessage ?? null;
   const autoScrollMode = sessionState?.autoScrollMode ?? 'sticky-bottom';
   const hasUnreadAssistantDelta = sessionState?.hasUnreadAssistantDelta ?? false;
 
   const lastUserQuestion =
     [...messages].reverse().find((message) => message.role === 'user')?.content ?? null;
+
+  const lastFailedMessage =
+    [...messages].reverse().find((message) => message.status === 'failed') ?? null;
 
   const lastMessage = messages.at(-1) ?? null;
   const lastMessageFingerprint = lastMessage
@@ -215,8 +217,11 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
 
       const assistantMessage = createMessage('assistant', '', 'thinking');
       startAssistantMessage(attemptId, assistantMessage);
-    } else {
+    } else if (lastFailedMessage?.role === 'assistant') {
       restartFailedAssistantMessage(attemptId);
+    } else {
+      const assistantMessage = createMessage('assistant', '', 'thinking');
+      startAssistantMessage(attemptId, assistantMessage);
     }
 
     try {
@@ -351,18 +356,24 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
               const isFailedAssistantMessage =
                 message.role === 'assistant' && message.status === 'failed';
 
+              const isFailedSystemMessage =
+                message.role === 'system' && message.status === 'failed';
+
+              const isRetryableErrorMessage =
+                isFailedAssistantMessage || isFailedSystemMessage;
+
               return (
                 <article
                   key={message.id}
                   className={
-                    isFailedAssistantMessage
+                    isRetryableErrorMessage
                       ? 'mr-auto max-w-[85%] rounded-2xl rounded-bl-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100'
                       : getMessageBubbleClassName(message)
                   }
                 >
-                  {isFailedAssistantMessage ? (
+                  {isRetryableErrorMessage ? (
                     <p className="whitespace-pre-wrap wrap-break-word">
-                      {errorMessage ?? t('assistant.fallbackError')}
+                      {message.content || t('assistant.fallbackError')}
                     </p>
                   ) : message.role === 'assistant' && message.status === 'completed' ? (
                     <AssistantMessageMarkdown content={message.content} />
@@ -373,7 +384,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                     </p>
                   )}
 
-                  {isFailedAssistantMessage && canRetryLastQuestion ? (
+                  {isRetryableErrorMessage && canRetryLastQuestion ? (
                     <button
                       type="button"
                       onClick={() => {

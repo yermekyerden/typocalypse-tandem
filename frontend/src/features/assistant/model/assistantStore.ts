@@ -8,6 +8,22 @@ import type {
 } from './assistant.interfaces';
 import type { AssistantAutoScrollMode } from './assistant.types';
 
+const createAssistantMessageId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `assistant-message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const createSystemErrorMessage = (content: string): AssistantMessage => ({
+  id: createAssistantMessageId(),
+  role: 'system',
+  content,
+  status: 'failed',
+  createdAtIso: new Date().toISOString(),
+});
+
 const createEmptySessionState = (attemptId: string): AssistantSessionState => ({
   attemptId,
   messages: [],
@@ -278,18 +294,77 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
         state.sessionsByAttemptId,
         attemptId,
         (sessionState) => {
-          const nextMessages: AssistantMessage[] = sessionState.activeStreamingMessageId
-            ? sessionState.messages.map((message) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return {
+              ...sessionState,
+              messages: [
+                ...sessionState.messages,
+                createSystemErrorMessage(errorMessage),
+              ],
+              phase: 'error',
+              errorMessage,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const activeAssistantMessage = sessionState.messages.find(
+            (message) => message.id === sessionState.activeStreamingMessageId,
+          );
+
+          if (!activeAssistantMessage) {
+            return {
+              ...sessionState,
+              messages: [
+                ...sessionState.messages,
+                createSystemErrorMessage(errorMessage),
+              ],
+              phase: 'error',
+              errorMessage,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const hasPartialAssistantContent =
+            activeAssistantMessage.content.trim().length > 0;
+
+          if (hasPartialAssistantContent) {
+            const nextMessages: AssistantMessage[] = sessionState.messages.map(
+              (message) => {
                 if (message.id !== sessionState.activeStreamingMessageId) {
                   return message;
                 }
 
                 return {
                   ...message,
-                  status: 'failed',
+                  status: 'interrupted',
                 };
-              })
-            : sessionState.messages;
+              },
+            );
+
+            return {
+              ...sessionState,
+              messages: [...nextMessages, createSystemErrorMessage(errorMessage)],
+              phase: 'error',
+              errorMessage,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const nextMessages: AssistantMessage[] = sessionState.messages.map(
+            (message) => {
+              if (message.id !== sessionState.activeStreamingMessageId) {
+                return message;
+              }
+
+              return {
+                ...message,
+                content: errorMessage,
+                status: 'failed',
+              };
+            },
+          );
 
           return {
             ...sessionState,
@@ -297,6 +372,7 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
             phase: 'error',
             errorMessage,
             activeStreamingMessageId: null,
+            hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
           };
         },
       ),
