@@ -22,6 +22,7 @@ import type { AssistantStreamWriter } from './stream/assistant-stream.writer';
 @Injectable()
 export class AssistantService {
   private readonly recentConversationMessageLimit = 6;
+  private readonly localGuardStreamDelayMs = 35;
 
   constructor(
     private readonly attemptsService: AttemptsService,
@@ -89,7 +90,7 @@ export class AssistantService {
     });
 
     if (isAssistantQuestionOffTopic(question)) {
-      this.writeOffTopicRefusalStream(attemptId, assistantLocale, streamWriter);
+      await this.writeOffTopicRefusalStream(attemptId, assistantLocale, streamWriter);
       streamWriter.end();
       return;
     }
@@ -230,24 +231,46 @@ export class AssistantService {
     };
   }
 
-  private writeOffTopicRefusalStream(
+  private async writeOffTopicRefusalStream(
     attemptId: string,
     locale: AssistantLocale,
     streamWriter: AssistantStreamWriter,
-  ): void {
+  ): Promise<void> {
     const refusalAnswer = getAssistantOffTopicRefusal(locale);
 
     this.appendAssistantMessage(attemptId, refusalAnswer);
 
-    streamWriter.write({
-      type: 'delta',
-      delta: refusalAnswer,
-    });
+    const chunks = this.createLocalGuardStreamChunks(refusalAnswer);
+
+    for (const chunk of chunks) {
+      streamWriter.write({
+        type: 'delta',
+        delta: chunk,
+      });
+
+      await this.delay(this.localGuardStreamDelayMs);
+    }
 
     streamWriter.write({
       type: 'complete',
       answer: refusalAnswer,
       model: 'assistant-local-guard',
+    });
+  }
+
+  private createLocalGuardStreamChunks(text: string): string[] {
+    const chunks = text.match(/\S+\s*/g);
+
+    if (!chunks || chunks.length === 0) {
+      return [text];
+    }
+
+    return chunks;
+  }
+
+  private delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => {
+      setTimeout(resolve, milliseconds);
     });
   }
 
