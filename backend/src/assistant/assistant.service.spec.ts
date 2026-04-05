@@ -1,28 +1,31 @@
 import { ConflictException } from '@nestjs/common';
+
 import { AttemptsService } from '../attempts/attempts.service';
 import { MissionsService } from '../missions/missions.service';
+import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
 import { OpenRouterClient } from './openrouter.client';
 import { AssistantService } from './assistant.service';
-import {
+import type {
   AssistantAttemptContext,
+  AssistantAttemptLookupResult,
   AssistantAttemptStepContext,
   AssistantChatMessage,
   AssistantCompletionResult,
-  AssistantAttemptLookupResult,
   AssistantMissionLookupResult,
 } from './assistant.types';
 import {
+  type AssistantChatHistoryMessage,
+  type AssistantChatSession,
+  type CreateAssistantChatMessageParams,
+} from './history/assistant-chat-history.types';
+import type {
   AssistantChatHistoryRepositoryMock,
   AttemptsServiceMock,
+  CreateChatCompletionFunction,
+  CreateChatCompletionStreamFunction,
   MissionsServiceMock,
   OpenRouterClientMock,
 } from './assistant.test-types';
-import type {
-  AssistantChatHistoryMessage,
-  AssistantChatSession,
-  CreateAssistantChatMessageParams,
-} from './history/assistant-chat-history.types';
-import { AssistantPromptBuilder } from './prompt/assistant-prompt.builder';
 
 describe('AssistantService', () => {
   let assistantService: AssistantService;
@@ -42,7 +45,14 @@ describe('AssistantService', () => {
     };
 
     openRouterClientMock = {
-      createChatCompletion: jest.fn<Promise<AssistantCompletionResult>, [AssistantChatMessage[]]>(),
+      createChatCompletion: jest.fn<
+        ReturnType<CreateChatCompletionFunction>,
+        Parameters<CreateChatCompletionFunction>
+      >(),
+      createChatCompletionStream: jest.fn<
+        ReturnType<CreateChatCompletionStreamFunction>,
+        Parameters<CreateChatCompletionStreamFunction>
+      >(),
     };
 
     assistantChatHistoryRepositoryMock = {
@@ -136,28 +146,29 @@ describe('AssistantService', () => {
       'attempt-1',
       6,
     );
-
     expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
       attemptId: 'attempt-1',
       role: 'user',
       content: 'Give me a hint without solving the mission.',
     });
-
     expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
       attemptId: 'attempt-1',
       role: 'assistant',
       content: 'Try checking the command that prints the current directory.',
     });
 
-    const environmentContextPrompt = getEnvironmentContextPrompt(openRouterClientMock);
-    const lastUserQuestion = getLastUserQuestion(openRouterClientMock);
+    const environmentPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
-    expect(environmentContextPrompt).toContain('Mission title: Print your working directory');
-    expect(environmentContextPrompt).toContain(
+    expect(environmentPrompt).toContain('Mission title: Print your working directory');
+    expect(environmentPrompt).toContain(
       'Mission short description: Use pwd to find out where you are in the filesystem.',
     );
-    expect(environmentContextPrompt).toContain('Allowed commands: pwd');
-    expect(environmentContextPrompt).toContain('Current working directory: /home/dojo');
+    expect(environmentPrompt).toContain('Allowed commands: pwd');
+    expect(environmentPrompt).toContain('Current working directory: /home/dojo');
+    expect(environmentPrompt).not.toContain('Give me a hint without solving the mission.');
+
+    const lastUserQuestion = getLastUserQuestion(openRouterClientMock);
+
     expect(lastUserQuestion).toBe('Give me a hint without solving the mission.');
 
     expect(result).toEqual({
@@ -170,43 +181,7 @@ describe('AssistantService', () => {
     });
   });
 
-  it('returns a localized refusal without calling OpenRouter for an obvious off-topic question', async () => {
-    attemptsServiceMock.getAttempt.mockResolvedValue({
-      attempt: createAttempt(),
-    });
-
-    missionsServiceMock.getMissionById.mockReturnValue(createMission());
-    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([]);
-
-    const result = await assistantService.askForAttempt(
-      'user-1',
-      'attempt-1',
-      'Can you give me a cookie recipe?',
-      'en',
-    );
-
-    expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
-
-    expect(result).toEqual({
-      answer: 'I can only help with the current mission and terminal learning tasks.',
-      model: 'assistant-local-guard',
-      usage: null,
-    });
-
-    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
-      attemptId: 'attempt-1',
-      role: 'user',
-      content: 'Can you give me a cookie recipe?',
-    });
-
-    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
-      attemptId: 'attempt-1',
-      role: 'assistant',
-      content: 'I can only help with the current mission and terminal learning tasks.',
-    });
-  });
-
-  it('includes only the last 5 steps in the assistant prompt', async () => {
+  it('includes only the last 5 steps in the environment context prompt', async () => {
     attemptsServiceMock.getAttempt.mockResolvedValue({
       attempt: createAttempt({
         steps: [
@@ -256,14 +231,7 @@ describe('AssistantService', () => {
       }),
     });
 
-    missionsServiceMock.getMissionById.mockReturnValue(
-      createMission({
-        id: 'ch01-m01-print-cwd',
-        title: 'Print your working directory',
-        shortDescription: 'Use pwd to find out where you are in the filesystem.',
-        allowedCommands: ['pwd'],
-      }),
-    );
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
 
     openRouterClientMock.createChatCompletion.mockResolvedValue(
       createCompletionResult({
@@ -273,20 +241,20 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'Help me.');
 
-    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
+    const environmentPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
-    expect(userPrompt).not.toContain('Step 1');
-    expect(userPrompt).not.toContain('Command: command-1');
-    expect(userPrompt).not.toContain('Step 2');
-    expect(userPrompt).not.toContain('Command: command-2');
+    expect(environmentPrompt).not.toContain('Step 1');
+    expect(environmentPrompt).not.toContain('Command: command-1');
+    expect(environmentPrompt).not.toContain('Step 2');
+    expect(environmentPrompt).not.toContain('Command: command-2');
 
-    expect(userPrompt).toContain('Step 3');
-    expect(userPrompt).toContain('Command: command-3');
-    expect(userPrompt).toContain('Step 7');
-    expect(userPrompt).toContain('Command: command-7');
+    expect(environmentPrompt).toContain('Step 3');
+    expect(environmentPrompt).toContain('Command: command-3');
+    expect(environmentPrompt).toContain('Step 7');
+    expect(environmentPrompt).toContain('Command: command-7');
   });
 
-  it('includes execution error text when present in the recent steps', async () => {
+  it('includes execution error text when present in recent steps', async () => {
     attemptsServiceMock.getAttempt.mockResolvedValue({
       attempt: createAttempt({
         steps: [
@@ -301,14 +269,7 @@ describe('AssistantService', () => {
       }),
     });
 
-    missionsServiceMock.getMissionById.mockReturnValue(
-      createMission({
-        id: 'ch01-m01-print-cwd',
-        title: 'Print your working directory',
-        shortDescription: 'Use pwd to find out where you are in the filesystem.',
-        allowedCommands: ['pwd'],
-      }),
-    );
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
 
     openRouterClientMock.createChatCompletion.mockResolvedValue(
       createCompletionResult({
@@ -318,9 +279,9 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'What went wrong?');
 
-    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
+    const environmentPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
-    expect(userPrompt).toContain('Execution error: No such file or directory');
+    expect(environmentPrompt).toContain('Execution error: No such file or directory');
   });
 
   it('uses "not restricted" when mission has no allowed commands', async () => {
@@ -330,9 +291,6 @@ describe('AssistantService', () => {
 
     missionsServiceMock.getMissionById.mockReturnValue(
       createMission({
-        id: 'ch01-m01-print-cwd',
-        title: 'Print your working directory',
-        shortDescription: 'Use pwd to find out where you are in the filesystem.',
         allowedCommands: undefined,
       }),
     );
@@ -345,9 +303,156 @@ describe('AssistantService', () => {
 
     await assistantService.askForAttempt('user-1', 'attempt-1', 'Help me.');
 
-    const userPrompt = getEnvironmentContextPrompt(openRouterClientMock);
+    const environmentPrompt = getEnvironmentContextPrompt(openRouterClientMock);
 
-    expect(userPrompt).toContain('Allowed commands: not restricted');
+    expect(environmentPrompt).toContain('Allowed commands: not restricted');
+  });
+
+  it('includes recent conversation messages before the current question', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+
+    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([
+      createHistoryMessage({
+        id: 'message-1',
+        role: 'user',
+        content: 'What does pwd do?',
+      }),
+      createHistoryMessage({
+        id: 'message-2',
+        role: 'assistant',
+        content: 'It prints the current working directory.',
+      }),
+    ]);
+
+    openRouterClientMock.createChatCompletion.mockResolvedValue(
+      createCompletionResult({
+        answer: 'Hint',
+      }),
+    );
+
+    await assistantService.askForAttempt('user-1', 'attempt-1', 'What should I try next?');
+
+    const sentMessages = getSentMessages(openRouterClientMock);
+
+    expect(sentMessages[2]).toEqual({
+      role: 'user',
+      content: 'What does pwd do?',
+    });
+
+    expect(sentMessages[3]).toEqual({
+      role: 'assistant',
+      content: 'It prints the current working directory.',
+    });
+
+    expect(sentMessages[4]).toEqual({
+      role: 'user',
+      content: 'What should I try next?',
+    });
+  });
+
+  it('returns a localized refusal without calling OpenRouter for an obvious off-topic question', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([]);
+
+    const result = await assistantService.askForAttempt(
+      'user-1',
+      'attempt-1',
+      'Can you give me a cookie recipe?',
+      'en',
+    );
+
+    expect(openRouterClientMock.createChatCompletion).not.toHaveBeenCalled();
+
+    expect(result).toEqual({
+      answer: 'I can only help with the current mission and terminal learning tasks.',
+      model: 'assistant-local-guard',
+      usage: null,
+    });
+
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(1, {
+      attemptId: 'attempt-1',
+      role: 'user',
+      content: 'Can you give me a cookie recipe?',
+    });
+
+    expect(assistantChatHistoryRepositoryMock.appendMessage).toHaveBeenNthCalledWith(2, {
+      attemptId: 'attempt-1',
+      role: 'assistant',
+      content: 'I can only help with the current mission and terminal learning tasks.',
+    });
+  });
+
+  it('includes a Kazakh-only answer instruction when locale is kk', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+
+    openRouterClientMock.createChatCompletion.mockResolvedValue(
+      createCompletionResult({
+        answer: 'Жауап',
+      }),
+    );
+
+    await assistantService.askForAttempt('user-1', 'attempt-1', 'Маған ишара берші.', 'kk');
+
+    const systemPrompt = getSystemPrompt(openRouterClientMock);
+
+    expect(systemPrompt).toContain('The learner interface language is Kazakh.');
+    expect(systemPrompt).toContain('You must answer in Kazakh.');
+    expect(systemPrompt).toContain('Do not switch to Russian');
+  });
+
+  it('includes a Russian-only answer instruction when locale is ru', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+
+    openRouterClientMock.createChatCompletion.mockResolvedValue(
+      createCompletionResult({
+        answer: 'Ответ',
+      }),
+    );
+
+    await assistantService.askForAttempt('user-1', 'attempt-1', 'Дай мне подсказку.', 'ru');
+
+    const systemPrompt = getSystemPrompt(openRouterClientMock);
+
+    expect(systemPrompt).toContain('The learner interface language is Russian.');
+    expect(systemPrompt).toContain('You must answer in Russian.');
+    expect(systemPrompt).toContain('Do not switch to English or Kazakh');
+  });
+
+  it('falls back to English when locale is not provided', async () => {
+    attemptsServiceMock.getAttempt.mockResolvedValue({
+      attempt: createAttempt(),
+    });
+
+    missionsServiceMock.getMissionById.mockReturnValue(createMission());
+
+    openRouterClientMock.createChatCompletion.mockResolvedValue(
+      createCompletionResult({
+        answer: 'Answer',
+      }),
+    );
+
+    await assistantService.askForAttempt('user-1', 'attempt-1', 'Give me a hint.');
+
+    const systemPrompt = getSystemPrompt(openRouterClientMock);
+
+    expect(systemPrompt).toContain('The learner interface language is English.');
+    expect(systemPrompt).toContain('You must answer in English.');
   });
 
   it('throws a descriptive error for lesson attempts', async () => {
@@ -366,60 +471,6 @@ describe('AssistantService', () => {
     expect(assistantChatHistoryRepositoryMock.getOrCreateSession).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.getRecentMessages).not.toHaveBeenCalled();
     expect(assistantChatHistoryRepositoryMock.appendMessage).not.toHaveBeenCalled();
-  });
-
-  it('includes recent conversation messages before the current question', async () => {
-    attemptsServiceMock.getAttempt.mockResolvedValue({
-      attempt: createAttempt(),
-    });
-
-    missionsServiceMock.getMissionById.mockReturnValue(createMission());
-
-    assistantChatHistoryRepositoryMock.getRecentMessages.mockReturnValue([
-      {
-        id: 'message-1',
-        attemptId: 'attempt-1',
-        role: 'user',
-        content: 'What does pwd do?',
-        status: 'completed',
-        createdAtIso: '2026-04-04T10:00:00.000Z',
-      },
-      {
-        id: 'message-2',
-        attemptId: 'attempt-1',
-        role: 'assistant',
-        content: 'It prints the current working directory.',
-        status: 'completed',
-        createdAtIso: '2026-04-04T10:00:01.000Z',
-      },
-    ]);
-
-    openRouterClientMock.createChatCompletion.mockResolvedValue(
-      createCompletionResult({
-        answer: 'Hint',
-      }),
-    );
-
-    await assistantService.askForAttempt('user-1', 'attempt-1', 'What should I try next?');
-
-    const sentMessages = getSentMessages(openRouterClientMock);
-
-    expect(sentMessages).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          role: 'user',
-          content: 'What does pwd do?',
-        }),
-        expect.objectContaining({
-          role: 'assistant',
-          content: 'It prints the current working directory.',
-        }),
-        expect.objectContaining({
-          role: 'user',
-          content: 'What should I try next?',
-        }),
-      ]),
-    );
   });
 });
 
@@ -487,6 +538,21 @@ function createTrace(executionErrorMessage?: string) {
   };
 }
 
+function createHistoryMessage(params: {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}): AssistantChatHistoryMessage {
+  return {
+    id: params.id,
+    attemptId: 'attempt-1',
+    role: params.role,
+    content: params.content,
+    status: 'completed',
+    createdAtIso: '2026-04-05T10:00:00.000Z',
+  };
+}
+
 function getSentMessages(openRouterClientMock: OpenRouterClientMock): AssistantChatMessage[] {
   const firstCall = openRouterClientMock.createChatCompletion.mock.calls[0];
 
@@ -497,25 +563,35 @@ function getSentMessages(openRouterClientMock: OpenRouterClientMock): AssistantC
   return firstCall[0];
 }
 
-function getEnvironmentContextPrompt(openRouterClientMock: OpenRouterClientMock): string {
+function getSystemPrompt(openRouterClientMock: OpenRouterClientMock): string {
   const messages = getSentMessages(openRouterClientMock);
-  const firstUserMessage = messages.find((message) => message.role === 'user');
+  const systemMessage = messages.find((message) => message.role === 'system');
 
-  if (!firstUserMessage) {
-    throw new Error('Environment context user message was not sent to OpenRouterClient.');
+  if (!systemMessage) {
+    throw new Error('System prompt message was not sent to OpenRouterClient.');
   }
 
-  return firstUserMessage.content;
+  return systemMessage.content;
+}
+
+function getEnvironmentContextPrompt(openRouterClientMock: OpenRouterClientMock): string {
+  const messages = getSentMessages(openRouterClientMock);
+  const environmentMessage = messages[1];
+
+  if (!environmentMessage) {
+    throw new Error('Environment context prompt was not sent to OpenRouterClient.');
+  }
+
+  return environmentMessage.content;
 }
 
 function getLastUserQuestion(openRouterClientMock: OpenRouterClientMock): string {
   const messages = getSentMessages(openRouterClientMock);
-  const userMessages = messages.filter((message) => message.role === 'user');
-  const lastUserMessage = userMessages.at(-1);
+  const lastMessage = messages.at(-1);
 
-  if (!lastUserMessage) {
-    throw new Error('Final user question message was not sent to OpenRouterClient.');
+  if (!lastMessage || lastMessage.role !== 'user') {
+    throw new Error('Final learner question message was not sent to OpenRouterClient.');
   }
 
-  return lastUserMessage.content;
+  return lastMessage.content;
 }
