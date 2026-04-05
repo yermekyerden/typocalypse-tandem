@@ -91,6 +91,9 @@ export const kk = {
     loading: 'Жүктелуде...',
     thinking: 'Ойланып жатыр...',
     streaming: 'Жауап жазылып жатыр...',
+    send: 'Жіберу',
+    stop: 'Тоқтату',
+    stoppedByUser: 'Жауапты пайдаланушы тоқтатты.',
     error: 'Қате орын алды.',
     unavailable: 'Терминалда деңгейді бастағаннан кейін assistant қолжетімді болады.',
     emptyState:

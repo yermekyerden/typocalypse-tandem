@@ -9,6 +9,18 @@ import type {
 
 const assistantStreamTimeoutMs = 15_000;
 
+export class AssistantStreamStoppedByUserError extends Error {
+  public constructor() {
+    super('Assistant stream stopped by user.');
+    this.name = 'AssistantStreamStoppedByUserError';
+  }
+}
+
+export type AssistantStreamSession = {
+  promise: Promise<void>;
+  stop: () => void;
+};
+
 const parseStreamEvent = (line: string): AssistantStreamEvent | null => {
   try {
     return JSON.parse(line) as AssistantStreamEvent;
@@ -71,12 +83,12 @@ const createStreamActivityTimeout = (
   };
 };
 
-export async function streamAssistant(
+export function startAssistantStream(
   attemptId: string,
   question: string,
   locale: string,
   handlers: StreamAssistantHandlers,
-): Promise<void> {
+): AssistantStreamSession {
   const accessToken = useAuthStore.getState().accessToken;
 
   if (!accessToken) {
@@ -91,128 +103,158 @@ export async function streamAssistant(
   const abortController = new AbortController();
   const streamActivityTimeout = createStreamActivityTimeout(abortController);
 
-  let response: Response;
+  let wasStoppedByUser = false;
 
-  try {
-    streamActivityTimeout.refresh();
-
-    response = await fetch(`${getApiBaseUrl()}/assistant/attempts/${attemptId}/stream`, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/x-ndjson',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(requestBody),
-      signal: abortController.signal,
-    });
-  } catch (error) {
-    streamActivityTimeout.clear();
-    throw normalizeStreamTransportError(error);
-  }
-
-  if (!response.ok) {
-    streamActivityTimeout.clear();
-
-    let errorMessage =
-      response.status >= 500
-        ? 'Assistant service is unavailable right now.'
-        : `Request failed with status ${response.status}`;
-
-    try {
-      const payload = (await response.json()) as { message?: string | string[] };
-
-      if (Array.isArray(payload.message)) {
-        errorMessage = payload.message.join(', ');
-      } else if (
-        typeof payload.message === 'string' &&
-        payload.message.trim().length > 0
-      ) {
-        errorMessage = payload.message;
-      }
-    } catch {
-      // Keep fallback error message.
+  const stop = (): void => {
+    if (abortController.signal.aborted) {
+      return;
     }
 
-    throw new ApiError(errorMessage, response.status);
-  }
+    wasStoppedByUser = true;
+    abortController.abort();
+  };
 
-  if (!response.body) {
-    streamActivityTimeout.clear();
-    throw new ApiError('Assistant stream response body is missing.', 502);
-  }
+  const promise = (async (): Promise<void> => {
+    let response: Response;
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-
-  let buffer = '';
-  let didReceiveTerminalEvent = false;
-
-  try {
-    while (true) {
+    try {
       streamActivityTimeout.refresh();
 
-      const { done, value } = await reader.read();
+      response = await fetch(
+        `${getApiBaseUrl()}/assistant/attempts/${attemptId}/stream`,
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/x-ndjson',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(requestBody),
+          signal: abortController.signal,
+        },
+      );
+    } catch (error) {
+      streamActivityTimeout.clear();
 
-      if (done) {
-        break;
+      if (wasStoppedByUser) {
+        throw new AssistantStreamStoppedByUserError();
       }
 
-      streamActivityTimeout.refresh();
+      throw normalizeStreamTransportError(error);
+    }
 
-      buffer += decoder.decode(value, { stream: true });
+    if (!response.ok) {
+      streamActivityTimeout.clear();
 
-      const lines = buffer.split('\n');
-      buffer = lines.pop() ?? '';
+      let errorMessage =
+        response.status >= 500
+          ? 'Assistant service is unavailable right now.'
+          : `Request failed with status ${response.status}`;
 
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
+      try {
+        const payload = (await response.json()) as { message?: string | string[] };
 
-        if (line.length === 0) {
-          continue;
+        if (Array.isArray(payload.message)) {
+          errorMessage = payload.message.join(', ');
+        } else if (
+          typeof payload.message === 'string' &&
+          payload.message.trim().length > 0
+        ) {
+          errorMessage = payload.message;
         }
+      } catch {
+        // Keep fallback error message.
+      }
 
-        const event = parseStreamEvent(line);
+      throw new ApiError(errorMessage, response.status);
+    }
 
-        if (!event) {
-          continue;
+    if (!response.body) {
+      streamActivityTimeout.clear();
+      throw new ApiError('Assistant stream response body is missing.', 502);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = '';
+    let didReceiveTerminalEvent = false;
+
+    try {
+      while (true) {
+        streamActivityTimeout.refresh();
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
         }
 
         streamActivityTimeout.refresh();
 
-        if (event.type === 'start') {
-          handlers.onStart?.(event);
-          continue;
-        }
+        buffer += decoder.decode(value, { stream: true });
 
-        if (event.type === 'delta') {
-          handlers.onDelta(event);
-          continue;
-        }
+        const lines = buffer.split('\n');
+        buffer = lines.pop() ?? '';
 
-        if (event.type === 'complete') {
-          didReceiveTerminalEvent = true;
-          handlers.onComplete(event);
-          continue;
-        }
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
 
-        if (event.type === 'error') {
-          didReceiveTerminalEvent = true;
-          handlers.onError(event);
-          return;
+          if (line.length === 0) {
+            continue;
+          }
+
+          const event = parseStreamEvent(line);
+
+          if (!event) {
+            continue;
+          }
+
+          streamActivityTimeout.refresh();
+
+          if (event.type === 'start') {
+            handlers.onStart?.(event);
+            continue;
+          }
+
+          if (event.type === 'delta') {
+            handlers.onDelta(event);
+            continue;
+          }
+
+          if (event.type === 'complete') {
+            didReceiveTerminalEvent = true;
+            handlers.onComplete(event);
+            continue;
+          }
+
+          if (event.type === 'error') {
+            didReceiveTerminalEvent = true;
+            handlers.onError(event);
+            return;
+          }
         }
       }
-    }
-  } catch (error) {
-    throw normalizeStreamTransportError(error);
-  } finally {
-    streamActivityTimeout.clear();
-  }
+    } catch (error) {
+      if (wasStoppedByUser) {
+        throw new AssistantStreamStoppedByUserError();
+      }
 
-  if (!didReceiveTerminalEvent) {
-    throw new ApiError(
-      'Connection to the assistant service was interrupted before the reply completed.',
-      502,
-    );
-  }
+      throw normalizeStreamTransportError(error);
+    } finally {
+      streamActivityTimeout.clear();
+    }
+
+    if (!didReceiveTerminalEvent) {
+      throw new ApiError(
+        'Connection to the assistant service was interrupted before the reply completed.',
+        502,
+      );
+    }
+  })();
+
+  return {
+    promise,
+    stop,
+  };
 }

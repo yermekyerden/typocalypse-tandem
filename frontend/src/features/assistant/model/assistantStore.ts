@@ -24,6 +24,14 @@ const createSystemErrorMessage = (content: string): AssistantMessage => ({
   createdAtIso: new Date().toISOString(),
 });
 
+const createSystemInfoMessage = (content: string): AssistantMessage => ({
+  id: createAssistantMessageId(),
+  role: 'system',
+  content,
+  status: 'completed',
+  createdAtIso: new Date().toISOString(),
+});
+
 const createEmptySessionState = (attemptId: string): AssistantSessionState => ({
   attemptId,
   messages: [],
@@ -167,6 +175,75 @@ export const useAssistantStore = create<AssistantStore>((set) => ({
           activeStreamingMessageId: message.id,
           hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
         }),
+      ),
+    }));
+  },
+
+  stopAssistantMessage: (attemptId: string, message: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return sessionState;
+          }
+
+          const activeAssistantMessage = sessionState.messages.find(
+            (assistantMessage) =>
+              assistantMessage.id === sessionState.activeStreamingMessageId,
+          );
+
+          if (!activeAssistantMessage) {
+            return {
+              ...sessionState,
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+            };
+          }
+
+          const hasPartialAssistantContent =
+            activeAssistantMessage.content.trim().length > 0;
+
+          if (hasPartialAssistantContent) {
+            const nextMessages: AssistantMessage[] = sessionState.messages.map(
+              (assistantMessage) => {
+                if (assistantMessage.id !== sessionState.activeStreamingMessageId) {
+                  return assistantMessage;
+                }
+
+                return {
+                  ...assistantMessage,
+                  status: 'interrupted',
+                };
+              },
+            );
+
+            return {
+              ...sessionState,
+              messages: [...nextMessages, createSystemInfoMessage(message)],
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const nextMessages = sessionState.messages.filter(
+            (assistantMessage) =>
+              assistantMessage.id !== sessionState.activeStreamingMessageId,
+          );
+
+          return {
+            ...sessionState,
+            messages: [...nextMessages, createSystemInfoMessage(message)],
+            phase: 'idle',
+            errorMessage: null,
+            activeStreamingMessageId: null,
+            hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+          };
+        },
       ),
     }));
   },

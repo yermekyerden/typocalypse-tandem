@@ -90,6 +90,9 @@ export const en = {
     loading: 'Loading...',
     thinking: 'Thinking...',
     streaming: 'Streaming...',
+    send: 'Send',
+    stop: 'Stop',
+    stoppedByUser: 'Response stopped by user',
     error: 'Something went wrong.',
     unavailable:
       'Assistant becomes available after you start the lesson in the terminal.',

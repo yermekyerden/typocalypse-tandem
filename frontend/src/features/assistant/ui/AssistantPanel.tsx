@@ -2,12 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useI18n } from '@/i18n/useI18n';
 
+import {
+  AssistantStreamStoppedByUserError,
+  startAssistantStream,
+  type AssistantStreamSession,
+} from '../api/assistantStreamApi';
 import { getAssistantHistory } from '../api/assistantApi';
-import { streamAssistant } from '../api/assistantStreamApi';
 import type { AssistantMessage } from '../model/assistant.interfaces';
 import { useAssistantStore } from '../model/assistantStore';
 import type { AssistantPanelProps, AssistantUiPhase } from '../model/assistant.types';
 import { AssistantMessageMarkdown } from './AssistantMessageMarkdown';
+import { SendIcon } from '@/components/ui/icons/SendIcon';
+import { StopIcon } from '@/components/ui/icons/StopIcon';
 
 const createMessageId = (): string => {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -85,6 +91,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomAnchorRef = useRef<HTMLDivElement | null>(null);
+  const activeStreamSessionRef = useRef<AssistantStreamSession | null>(null);
 
   const { language, t } = useI18n();
 
@@ -103,6 +110,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     (state) => state.completeAssistantMessage,
   );
   const failAssistantMessage = useAssistantStore((state) => state.failAssistantMessage);
+  const stopAssistantMessage = useAssistantStore((state) => state.stopAssistantMessage);
   const setAutoScrollMode = useAssistantStore((state) => state.setAutoScrollMode);
 
   const sessionState = useAssistantStore((state) =>
@@ -224,20 +232,33 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       startAssistantMessage(attemptId, assistantMessage);
     }
 
+    const streamSession = startAssistantStream(attemptId, normalizedQuestion, language, {
+      onDelta: (event) => {
+        appendAssistantDelta(attemptId, event.delta);
+      },
+      onComplete: () => {
+        completeAssistantMessage(attemptId);
+      },
+      onError: (event) => {
+        failAssistantMessage(attemptId, event.message);
+      },
+    });
+
+    activeStreamSessionRef.current = streamSession;
+
     try {
-      await streamAssistant(attemptId, normalizedQuestion, language, {
-        onDelta: (event) => {
-          appendAssistantDelta(attemptId, event.delta);
-        },
-        onComplete: () => {
-          completeAssistantMessage(attemptId);
-        },
-        onError: (event) => {
-          failAssistantMessage(attemptId, event.message);
-        },
-      });
+      await streamSession.promise;
     } catch (error) {
+      if (error instanceof AssistantStreamStoppedByUserError) {
+        stopAssistantMessage(attemptId, t('assistant.stoppedByUser'));
+        return;
+      }
+
       failAssistantMessage(attemptId, getAssistantErrorMessage(error, t));
+    } finally {
+      if (activeStreamSessionRef.current === streamSession) {
+        activeStreamSessionRef.current = null;
+      }
     }
   };
 
@@ -253,6 +274,10 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     await sendQuestion(lastUserQuestion, 'retry');
   };
 
+  const handleStopGeneration = (): void => {
+    activeStreamSessionRef.current?.stop();
+  };
+
   const handleTextareaKeyDown = (
     event: React.KeyboardEvent<HTMLTextAreaElement>,
   ): void => {
@@ -261,6 +286,11 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
     }
 
     event.preventDefault();
+
+    if (isRequestInFlight) {
+      return;
+    }
+
     void handleSend();
   };
 
@@ -419,13 +449,13 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       </div>
 
       <footer className="border-t border-yellow-500/10 px-3 py-3">
-        <div className="flex items-end gap-2">
+        <div className="flex items-center gap-2">
           <textarea
             value={draft}
             onChange={handleTextareaChange}
             onKeyDown={handleTextareaKeyDown}
             rows={3}
-            disabled={!isAssistantAvailable || isRequestInFlight || isHistoryLoading}
+            disabled={!isAssistantAvailable || isHistoryLoading}
             placeholder={
               isAssistantAvailable
                 ? t('assistant.placeholderReady')
@@ -434,18 +464,30 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
             className="min-h-20 flex-1 resize-none rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40 disabled:cursor-not-allowed disabled:opacity-60"
           />
 
-          <button
-            type="button"
-            onClick={() => {
-              void handleSend();
-            }}
-            disabled={
-              !attemptId || !draft.trim() || isRequestInFlight || isHistoryLoading
-            }
-            className="rounded-full border border-yellow-500/30 bg-yellow-400 px-4 py-3 text-sm font-medium text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            ➤
-          </button>
+          {isRequestInFlight ? (
+            <button
+              type="button"
+              onClick={handleStopGeneration}
+              aria-label={t('assistant.stop')}
+              title={t('assistant.stop')}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/60"
+            >
+              <StopIcon className="h-6 w-6" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                void handleSend();
+              }}
+              aria-label={t('assistant.send')}
+              title={t('assistant.send')}
+              disabled={!attemptId || !draft.trim() || isHistoryLoading}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-400 text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/60"
+            >
+              <SendIcon className="h-6 w-6" />
+            </button>
+          )}
         </div>
       </footer>
     </section>
