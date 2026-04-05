@@ -337,7 +337,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-10 right-10 z-50 rounded-full border border-yellow-500/30 bg-yellow-400 px-5 py-3 text-sm font-medium text-black shadow-lg transition-all duration-300 ease-in-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)]"
+        className="fixed bottom-6 right-6 z-50 rounded-full border border-yellow-500/30 bg-yellow-400 px-5 py-3 text-sm font-medium text-black shadow-lg transition-all duration-200 ease-out hover:bg-gray-900 hover:text-yellow-400 hover:shadow-[0_0_20px_rgba(250,204,21,0.8)]"
       >
         {t('assistant.title')}
       </button>
@@ -345,14 +345,14 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
   }
 
   return (
-    <section className="fixed bottom-4 right-5 z-50 flex h-128 w-[24rem] flex-col overflow-hidden rounded-2xl border border-yellow-500/20 bg-black/85 shadow-[0_0_24px_rgba(250,204,21,0.18)] backdrop-blur-sm">
-      <header className="flex items-center justify-between border-b border-yellow-500/10 px-4 py-3">
+    <aside className="fixed inset-x-4 bottom-4 z-50 flex h-[min(42rem,calc(100vh-5rem))] w-auto flex-col overflow-hidden rounded-3xl border border-yellow-500/20 bg-[linear-gradient(180deg,rgba(10,11,16,0.96)_0%,rgba(14,15,19,0.94)_100%)] shadow-[0_18px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:right-5 sm:left-auto sm:w-md lg:w-120">
+      <header className="flex items-center justify-between border-b border-yellow-500/10 px-5 py-4">
         <div>
           <h2 className="text-sm font-semibold text-slate-100">{t('assistant.title')}</h2>
           <div className="flex items-center gap-2">
             <p className="text-xs text-slate-400">{statusLabel}</p>
             {hasUnreadAssistantDelta ? (
-              <span className="rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wide text-yellow-300">
+              <span className="rounded-full border border-yellow-500/25 bg-yellow-500/8 px-2 py-0.5 text-[10px] uppercase tracking-wide text-yellow-300">
                 {t('assistant.newBadge')}
               </span>
             ) : null}
@@ -371,7 +371,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       <div
         ref={scrollContainerRef}
         onScroll={handleTranscriptScroll}
-        className="flex-1 overflow-y-auto bg-slate-950/70 px-3 py-3"
+        className="flex-1 overflow-y-auto bg-transparent px-4 py-4 sm:px-5"
       >
         {!isAssistantAvailable ? (
           <div className="flex h-full min-h-56 items-center justify-center rounded-2xl border border-dashed border-slate-700 px-4 text-center text-sm text-slate-400">
@@ -386,7 +386,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
             {t('assistant.emptyState')}
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {messages.map((message) => {
               const isFailedAssistantMessage =
                 message.role === 'assistant' && message.status === 'failed';
@@ -453,7 +453,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
         )}
       </div>
 
-      <footer className="border-t border-yellow-500/10 px-3 py-3">
+      <footer className="border-t border-yellow-500/10 px-4 py-4 sm:px-5">
         <div className="flex items-center gap-2">
           <textarea
             value={draft}
@@ -466,7 +466,7 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
                 ? t('assistant.placeholderReady')
                 : t('assistant.placeholderUnavailable')
             }
-            className="min-h-20 flex-1 resize-none rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+            className="min-h-24 flex-1 resize-none rounded-2xl border border-slate-700/80 bg-slate-900/90 px-4 py-3 text-sm text-slate-100 outline-none transition focus:border-yellow-500/40 disabled:cursor-not-allowed disabled:opacity-60"
           />
 
           {isRequestInFlight ? (
@@ -475,9 +475,9 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
               onClick={handleStopGeneration}
               aria-label={t('assistant.stop')}
               title={t('assistant.stop')}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/60"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-100 transition hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300/60"
             >
-              <StopIcon className="h-6 w-6" />
+              <StopIcon className="h-8 w-8" />
             </button>
           ) : (
             <button
@@ -488,13 +488,13 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
               aria-label={t('assistant.send')}
               title={t('assistant.send')}
               disabled={!attemptId || !draft.trim() || isHistoryLoading}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-400 text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/60"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-400 text-black transition hover:bg-gray-900 hover:text-yellow-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300/60"
             >
-              <SendIcon className="h-6 w-6" />
+              <SendIcon className="h-8 w-8" />
             </button>
           )}
         </div>
       </footer>
-    </section>
+    </aside>
   );
 }
