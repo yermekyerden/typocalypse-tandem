@@ -232,17 +232,22 @@ export function AssistantPanel({ attemptId }: AssistantPanelProps) {
       startAssistantMessage(attemptId, assistantMessage);
     }
 
-    const streamSession = startAssistantStream(attemptId, normalizedQuestion, language, {
-      onDelta: (event) => {
-        appendAssistantDelta(attemptId, event.delta);
+    const streamSession = await startAssistantStream(
+      attemptId,
+      normalizedQuestion,
+      language,
+      {
+        onDelta: (event) => {
+          appendAssistantDelta(attemptId, event.delta);
+        },
+        onComplete: () => {
+          completeAssistantMessage(attemptId);
+        },
+        onError: (event) => {
+          failAssistantMessage(attemptId, event.message);
+        },
       },
-      onComplete: () => {
-        completeAssistantMessage(attemptId);
-      },
-      onError: (event) => {
-        failAssistantMessage(attemptId, event.message);
-      },
-    });
+    );
 
     activeStreamSessionRef.current = streamSession;
 

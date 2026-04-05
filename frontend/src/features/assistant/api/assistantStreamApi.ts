@@ -83,16 +83,26 @@ const createStreamActivityTimeout = (
   };
 };
 
-export function startAssistantStream(
+const isAssistantDevMockModeEnabled = (): boolean => {
+  return import.meta.env.DEV && import.meta.env.VITE_ASSISTANT_DEV_STREAM_MODE === 'mock';
+};
+
+export async function startAssistantStream(
   attemptId: string,
   question: string,
   locale: string,
   handlers: StreamAssistantHandlers,
-): AssistantStreamSession {
+): Promise<AssistantStreamSession> {
   const accessToken = useAuthStore.getState().accessToken;
 
   if (!accessToken) {
     throw new ApiError('Missing access token for authorized API request.', 401);
+  }
+
+  if (isAssistantDevMockModeEnabled()) {
+    const { startAssistantDevMockStream } = await import('./assistantDevStreamMock');
+
+    return startAssistantDevMockStream(attemptId, handlers);
   }
 
   const requestBody: StreamAssistantRequest = {
