@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Attempt {
+  id             String    @id @default(uuid())
+  userId         String
+  missionId      String
+  missionVersion Int
+  status         String    // AttemptStatus: "in_progress" | "completed" | "abandoned"
+  currentCwd     String
+  currentVfsJson String    // JSON blob: VfsSnapshot
+  stepCount      Int       @default(0)
+  startedAtUtc   DateTime  @default(now())
+  updatedAtUtc   DateTime  @updatedAt
+  finishedAtUtc  DateTime?
+
+  steps AttemptStep[]
+
+  @@index([userId])
+  @@index([userId, missionId])
+}
+
+model AttemptStep {
+  id              String   @id @default(uuid())
+  attemptId       String
+  stepIndex       Int
+  clientCommandId String
+  inputLine       String
+  stdout          String
+  stderr          String
+  exitCode        Int
+  cwdAfter        String
+  validationJson  String   // JSON blob: ValidationResult
+  traceJson       String   // JSON blob: ExecutionTrace
+  createdAtUtc    DateTime @default(now())
+
+  attempt Attempt @relation(fields: [attemptId], references: [id])
+
+  @@unique([attemptId, clientCommandId])
+  @@unique([attemptId, stepIndex])
+}

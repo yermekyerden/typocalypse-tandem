@@ -101,6 +101,14 @@ describe('ProfileService', () => {
       const result = service.updateProfile('u-1', { firstName: 'Thomas' });
       expect(result).toEqual(publicUser);
     });
+
+    it('throws NotFoundException for unknown user', () => {
+      usersStore.findById.mockReturnValue(undefined);
+
+      expect(() => service.updateProfile('ghost', { firstName: 'Thomas' })).toThrow(
+        NotFoundException,
+      );
+    });
   });
 
   describe('changePassword', () => {

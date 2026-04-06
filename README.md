@@ -61,6 +61,7 @@ Current frontend routing includes screens for:
 ## Tech stack 🛠️
 
 ### Frontend 🎨
+
 - ⚛️ React + TypeScript (**strict**)
 - ⚡ Vite
 - 🌬️ Tailwind CSS v4
@@ -69,12 +70,14 @@ Current frontend routing includes screens for:
 - 🧠 Zustand
 
 ### Backend 🧰
+
 - 🪺 NestJS
 - 📘 Swagger / OpenAPI
 - ✅ ValidationPipe
 - 🩺 Health checks
 
 ### Tooling 🔧
+
 - 🐶 Husky
 - 🧹 ESLint
 - 🎯 Prettier
@@ -99,6 +102,7 @@ Current frontend routing includes screens for:
 ├── backend/             # NestJS API
 ├── docs/                # SSOT docs: product, architecture, process
 ├── development-notes/   # Course diary artifacts
+├── meeting-notes/       # Key points and tasks discussed in meetings
 └── .github/workflows/   # CI and Pages deploy
 ```
 
@@ -106,19 +110,28 @@ Current frontend routing includes screens for:
 
 ## Links 🔗
 
-* 🚀 Live demo (GitHub Pages, deployed from `main`): [https://yermekyerden.github.io/typocalypse-tandem/](https://yermekyerden.github.io/typocalypse-tandem/)
-* 📚 Docs hub: `docs/README.md`
-* ⚡ Quick Summary: `docs/00-quick-summary/README.md`
-* 🎯 Vision: `docs/00-overview/vision.md`
-* 🏗️ Architecture: `docs/02-architecture/system-overview.md`
-* 📄 Contracts: `docs/02-architecture/data-contracts.md`
-* 🎨 Design (Figma): [Terminal Dojo Layout](https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1)
+- 🚀 Live demo (GitHub Pages, deployed from `main`): [https://yermekyerden.github.io/typocalypse-tandem/](https://yermekyerden.github.io/typocalypse-tandem/)
+- 📚 Docs hub: `docs/README.md`
+- ⚡ Quick Summary: `docs/00-quick-summary/README.md`
+- 🎯 Vision: `docs/00-overview/vision.md`
+- 🏗️ Architecture: `docs/02-architecture/system-overview.md`
+- 📄 Contracts: `docs/02-architecture/data-contracts.md`
+- 🎨 Design (Figma): [Terminal Dojo Layout](https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1)
+- Week 5 Checkpoint: [Link to the video](https://youtu.be/uKDvLehNQkE)
 
 ---
 
+## Meeting notes
+
+- [Notes from February 4, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-04)
+- [Notes from February 11, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-11)
+- [Notes from February 22, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-22)
+- [Notes from February 25, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-25)
+- [Notes from March 18, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-03-18)
+
 ## Requirements 📦
 
-* Node.js **22** (see `.nvmrc`)
+- Node.js **22** (see `.nvmrc`)
 
 ---
 
@@ -179,10 +192,10 @@ npm run test:e2e
 
 ## Repository workflow 🧭
 
-* 🌿 `main` — stable branch, release/checkpoint snapshots, GitHub Pages deploy
-* 🧪 `develop` — integration branch for daily team work
-* 🧵 feature branches — `feat/*`, `fix/*`, `docs/*`, `chore/*` → PR → merge into `develop`
-* 📝 documentation / diary updates — handled through focused branches and PRs when needed
+- 🌿 `main` — stable branch, release/checkpoint snapshots, GitHub Pages deploy
+- 🧪 `develop` — integration branch for daily team work
+- 🧵 feature branches — `feat/*`, `fix/*`, `docs/*`, `chore/*` → PR → merge into `develop`
+- 📝 documentation / diary updates — handled through focused branches and PRs when needed
 
 ---
 
@@ -194,12 +207,12 @@ If something is unclear in the codebase, the first question is:
 
 Start here:
 
-* `docs/README.md`
-* `docs/00-quick-summary/README.md`
+- `docs/README.md`
+- `docs/00-quick-summary/README.md`
 
 ---
 
 ## Notes 📝
 
-* Live demo is deployed from **`main`**, so it may lag behind the latest changes in `develop`.
-* The project is intentionally built around a **safe simulated shell**, not around real OS command execution.
+- Live demo is deployed from **`main`**, so it may lag behind the latest changes in `develop`.
+- The project is intentionally built around a **safe simulated shell**, not around real OS command execution.
