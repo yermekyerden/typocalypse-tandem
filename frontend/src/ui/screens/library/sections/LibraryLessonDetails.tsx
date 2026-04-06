@@ -25,11 +25,11 @@ export function LibraryLessonDetails({
   return (
     <section
       aria-labelledby="library-lesson-title"
-      className="flex min-h-[220px] shrink-0 flex-col overflow-auto rounded-xl border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg scrollbar-thin max-lg:max-h-[240px] sm:p-5 lg:max-h-[320px]"
+      className="flex min-h-[220px] shrink-0 flex-col overflow-auto rounded-xl border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg scrollbar-thin max-lg:max-h-[240px] sm:p-5 lg:max-h-[320px] dark:bg-none dark:bg-mist-300 dark:border-mist-300"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80 dark:text-mist-900">
             {moduleTitle}
           </p>
           <h2

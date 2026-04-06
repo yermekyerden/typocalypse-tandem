@@ -262,10 +262,10 @@ export function TerminalWindow({ height, className }: Props) {
   return (
     <div
       ref={rootRef}
-      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
+      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full dark:bg-mist-200 dark:border-mist-200 ${className ?? ''}`}
       style={height ? { height } : undefined}
     >
-      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80">
+      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80 dark:text-mist-900 dark:border-mist-300">
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
         terminal dojo
       </div>
@@ -273,7 +273,7 @@ export function TerminalWindow({ height, className }: Props) {
       <div className="flex-1 min-h-0 max-h-full px-3 py-3 scrollbar-thin">
         <div
           ref={containerRef}
-          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner"
+          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner dark:border-mist-300"
         />
       </div>
     </div>

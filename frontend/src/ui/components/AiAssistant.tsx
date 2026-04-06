@@ -30,7 +30,7 @@ export function AiAssistant() {
       )}
 
       {isOpen && (
-        <div className="fixed inset-x-3 bottom-3 z-30 flex h-[70vh] max-h-96 flex-col overflow-hidden rounded-2xl bg-mist-950 shadow-[0_0_20px_rgba(250,204,21,0.4)] sm:inset-x-auto sm:right-5 sm:w-80">
+        <div className="fixed inset-x-3 bottom-3 z-[999] flex h-[70vh] max-h-96 flex-col overflow-hidden rounded-2xl bg-mist-950 shadow-[0_0_20px_rgba(250,204,21,0.4)] sm:inset-x-auto sm:right-5 sm:w-80">
           <div className="flex justify-between items-center bg-mist-950 text-gray-300 text-sm px-4 py-1">
             <span>{t('assistant.title')}</span>
             <button
