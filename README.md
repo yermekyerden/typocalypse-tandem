@@ -102,6 +102,7 @@ Current frontend routing includes screens for:
 ├── backend/             # NestJS API
 ├── docs/                # SSOT docs: product, architecture, process
 ├── development-notes/   # Course diary artifacts
+├── meeting-notes/       # Key points and tasks discussed in meetings
 └── .github/workflows/   # CI and Pages deploy
 ```
 
@@ -119,6 +120,14 @@ Current frontend routing includes screens for:
 - Week 5 Checkpoint: [Link to the video](https://youtu.be/uKDvLehNQkE)
 
 ---
+
+## Meeting notes
+
+- [Notes from February 4, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-04)
+- [Notes from February 11, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-11)
+- [Notes from February 22, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-22)
+- [Notes from February 25, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-25)
+- [Notes from March 18, 2026](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-03-18)
 
 ## Requirements 📦
 
