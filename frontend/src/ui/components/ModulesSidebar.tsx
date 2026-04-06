@@ -50,7 +50,7 @@ export function ModulesSidebar() {
       <Accordion
         type="single"
         collapsible
-        value={openId ?? undefined}
+        value={openId ?? ''}
         onValueChange={(val) => setExpandedModuleId(val || null)}
         className="space-y-3"
       >
