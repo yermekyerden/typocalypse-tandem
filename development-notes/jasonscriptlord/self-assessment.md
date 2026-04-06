@@ -16,3 +16,7 @@
 | Architecture     | API Layer                                     |  10   | https://github.com/yermekyerden/typocalypse-tandem/pull/79             |
 | Frameworks       | React                                         |  5    | https://github.com/yermekyerden/typocalypse-tandem/pull/79             |
 |                  | Итого                                         |  160  |                                                                        |
+
+## Link to self-assessment PR
+
+[PR 109](https://github.com/yermekyerden/typocalypse-tandem/pull/109)
