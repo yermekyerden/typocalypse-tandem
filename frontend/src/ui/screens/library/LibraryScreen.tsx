@@ -8,6 +8,7 @@ import type {
 import { useI18n } from '@/i18n/useI18n';
 import { useTerminalSession } from '@/store/terminalSession';
 
+import { LibraryAssistantOverlay } from './sections/LibraryAssistantOverlay';
 import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
 import { LibraryLessonDetails } from './sections/LibraryLessonDetails';
 import { LibraryTerminalSection } from './sections/LibraryTerminalSection';
@@ -68,6 +69,7 @@ export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
   const lessonDetailsById = useTerminalSession((s) => s.lessonDetailsById);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const activeAttemptId = useTerminalSession((s) => s.activeAttempt?.attemptId ?? null);
   const initialize = useTerminalSession((s) => s.initialize);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const completedModuleId = useTerminalSession((s) => s.completedModuleId);
@@ -131,6 +133,9 @@ export function LibraryScreen() {
           {t('library.noLessonDetails')}
         </section>
       ) : null}
+
+      <LibraryAssistantOverlay lessonId={currentLessonId} attemptId={activeAttemptId} />
+
       <LibraryCompletionModal
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}

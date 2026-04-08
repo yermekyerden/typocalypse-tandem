@@ -62,11 +62,6 @@ export const en = {
       action: 'Continue learning',
     },
   },
-  assistant: {
-    title: 'AI Assistant',
-    greeting: 'How can I help you?',
-    placeholder: 'Type your message...',
-  },
   profile: {
     userData: 'User data',
     progress: 'Progress',
@@ -88,6 +83,28 @@ export const en = {
   missionRun: {
     title: 'Mission Run',
     missionId: 'missionId: {{missionId}}',
+  },
+  assistant: {
+    title: 'AI Assistant',
+    ready: 'Ready',
+    loading: 'Loading...',
+    thinking: 'Thinking...',
+    streaming: 'Streaming...',
+    send: 'Send',
+    stop: 'Stop',
+    stoppedByUser: 'Response stopped by user',
+    error: 'Something went wrong.',
+    unavailable:
+      'Assistant becomes available after you start the lesson in the terminal.',
+    emptyState: 'Ask about the current mission, terminal output, or your last command.',
+    loadingHistory: 'Loading assistant history...',
+    placeholderReady: 'Ask about the mission...',
+    placeholderUnavailable: 'Start the lesson in the terminal first...',
+    retry: 'Retry',
+    jumpToLatest: 'Jump to latest',
+    jumpToLatestNew: 'Jump to latest • New',
+    newBadge: 'New',
+    fallbackError: 'Assistant request failed.',
   },
   replay: {
     title: 'Replay',
