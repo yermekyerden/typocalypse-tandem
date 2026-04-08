@@ -40,6 +40,7 @@ export function TerminalWindow({ height, className }: Props) {
   const termRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const inputRef = useRef('');
+  const cursorIndexRef = useRef(0);
   const historyIndexRef = useRef<number | null>(null);
   const historyRef = useRef<string[]>(history);
   const runCommandRef = useRef(runCommand);
@@ -67,6 +68,10 @@ export function TerminalWindow({ height, className }: Props) {
     term.write('\r');
     term.write('\u001b[2K');
     term.write(`${promptRef.current}${inputRef.current}`);
+    const moveLeft = inputRef.current.length - cursorIndexRef.current;
+    if (moveLeft > 0) {
+      term.write(`\u001b[${moveLeft}D`);
+    }
   }, [prompt]);
 
   useEffect(() => {
@@ -119,13 +124,16 @@ export function TerminalWindow({ height, className }: Props) {
       term.write('\r');
       term.write('\u001b[2K');
       term.write(`${promptRef.current}${inputRef.current}`);
+      const moveLeft = inputRef.current.length - cursorIndexRef.current;
+      if (moveLeft > 0) {
+        term.write(`\u001b[${moveLeft}D`);
+      }
     };
 
     const applyInput = (value: string) => {
       inputRef.current = value;
-      term.write('\r');
-      term.write('\u001b[2K');
-      term.write(`${promptRef.current}${value}`);
+      cursorIndexRef.current = value.length;
+      renderPrompt();
     };
 
     const handleHistory = (direction: 'up' | 'down') => {
@@ -160,6 +168,7 @@ export function TerminalWindow({ height, className }: Props) {
       if (data === '\u0003') {
         term.writeln('^C');
         inputRef.current = '';
+        cursorIndexRef.current = 0;
         historyIndexRef.current = null;
         renderPrompt();
         return;
@@ -170,6 +179,7 @@ export function TerminalWindow({ height, className }: Props) {
         term.writeln('');
         historyIndexRef.current = null;
         inputRef.current = '';
+        cursorIndexRef.current = 0;
         if (raw.trim().length > 0) {
           lastSubmittedCommandRef.current = raw;
           void runCommandRef.current(raw);
@@ -180,9 +190,13 @@ export function TerminalWindow({ height, className }: Props) {
       }
 
       if (data === '\u007f') {
-        if (inputRef.current.length > 0) {
-          inputRef.current = inputRef.current.slice(0, -1);
-          term.write('\b \b');
+        if (cursorIndexRef.current > 0) {
+          const value = inputRef.current;
+          const nextCursorIndex = cursorIndexRef.current - 1;
+          inputRef.current =
+            value.slice(0, nextCursorIndex) + value.slice(cursorIndexRef.current);
+          cursorIndexRef.current = nextCursorIndex;
+          renderPrompt();
         }
         return;
       }
@@ -195,13 +209,30 @@ export function TerminalWindow({ height, className }: Props) {
         handleHistory('down');
         return;
       }
+      if (data === '\u001b[D') {
+        if (cursorIndexRef.current > 0) {
+          cursorIndexRef.current -= 1;
+          term.write('\u001b[D');
+        }
+        return;
+      }
+      if (data === '\u001b[C') {
+        if (cursorIndexRef.current < inputRef.current.length) {
+          cursorIndexRef.current += 1;
+          term.write('\u001b[C');
+        }
+        return;
+      }
 
       if (data.startsWith('\u001b')) {
         return;
       }
 
-      inputRef.current += data;
-      term.write(data);
+      const value = inputRef.current;
+      const cursorIndex = cursorIndexRef.current;
+      inputRef.current = value.slice(0, cursorIndex) + data + value.slice(cursorIndex);
+      cursorIndexRef.current = cursorIndex + data.length;
+      renderPrompt();
     };
 
     const dataDisposable = term.onData(handleData);
@@ -225,6 +256,7 @@ export function TerminalWindow({ height, className }: Props) {
       term.clear();
       lastOutputIndexRef.current = 0;
       inputRef.current = '';
+      cursorIndexRef.current = 0;
       historyIndexRef.current = null;
       lastSubmittedCommandRef.current = null;
     }
@@ -251,6 +283,10 @@ export function TerminalWindow({ height, className }: Props) {
     term.write('\r');
     term.write('\u001b[2K');
     term.write(`${promptRef.current}${inputRef.current}`);
+    const moveLeft = inputRef.current.length - cursorIndexRef.current;
+    if (moveLeft > 0) {
+      term.write(`\u001b[${moveLeft}D`);
+    }
   }, [output]);
 
   useEffect(() => {
@@ -262,10 +298,10 @@ export function TerminalWindow({ height, className }: Props) {
   return (
     <div
       ref={rootRef}
-      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
+      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full dark:bg-mist-200 dark:border-mist-200 ${className ?? ''}`}
       style={height ? { height } : undefined}
     >
-      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80">
+      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80 dark:text-mist-900 dark:border-mist-300">
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
         terminal dojo
       </div>
@@ -273,7 +309,7 @@ export function TerminalWindow({ height, className }: Props) {
       <div className="flex-1 min-h-0 max-h-full px-3 py-3 scrollbar-thin">
         <div
           ref={containerRef}
-          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner"
+          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner dark:border-mist-300"
         />
       </div>
     </div>

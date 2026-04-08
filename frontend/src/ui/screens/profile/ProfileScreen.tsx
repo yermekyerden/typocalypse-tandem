@@ -122,14 +122,14 @@ export function ProfileScreen() {
   }
 
   return (
-    <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1">
+    <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 dark:bg-none dark:bg-mist-200">
       <div className="mx-auto h-full flex gap-3">
-        <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2">
+        <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2 dark:bg-mist-300">
           <button
             type="button"
             onClick={() => setActiveTab('user-data')}
             className={cn(
-              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-mist-200',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
@@ -137,8 +137,8 @@ export function ProfileScreen() {
               className={cn(
                 'text-sm uppercase tracking-wider text-white',
                 activeTab === 'user-data'
-                  ? 'text-yellow-400'
-                  : 'text-white group-hover:text-yellow-400',
+                  ? 'text-yellow-400 dark:text-indigo-900'
+                  : 'text-white group-hover:text-yellow-400 dark:text-mist-900 dark:group-hover:text-indigo-900',
               )}
             >
               {t('profile.userData')}
@@ -149,16 +149,16 @@ export function ProfileScreen() {
             type="button"
             onClick={() => setActiveTab('progress')}
             className={cn(
-              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400',
+              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-mist-200',
               'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
             )}
           >
             <span
               className={cn(
-                'text-sm uppercase tracking-wider text-white',
+                'text-sm uppercase tracking-wider text-white dark:text-mist-900',
                 activeTab === 'progress'
-                  ? 'text-yellow-400'
-                  : 'text-white group-hover:text-yellow-400',
+                  ? 'text-yellow-400 dark:text-indigo-900'
+                  : 'text-white group-hover:text-yellow-400 dark:text-mist-900 dark:group-hover:text-indigo-900',
               )}
             >
               {t('profile.progress')}
@@ -166,10 +166,10 @@ export function ProfileScreen() {
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between">
+        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between dark;bg-none dark:bg-mist-300 scrollbar-thin">
           {activeTab === 'user-data' && (
             <>
-              <h1 className="mb-8 text-4xl font-bold text-yellow-400">
+              <h1 className="mb-8 text-4xl font-bold text-yellow-400 dark:text-mist-900">
                 {user?.firstName || user?.lastName
                   ? `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
                   : user?.username}
@@ -177,7 +177,7 @@ export function ProfileScreen() {
 
               <div className="flex mb-8">
                 <div className="relative w-fit">
-                  <div className="h-24 w-24 rounded-full bg-gray-700 ring-4 ring-yellow-400/50 overflow-hidden flex items-center justify-center text-yellow-400 text-4xl">
+                  <div className="h-24 w-24 rounded-full bg-gray-700 ring-4 ring-yellow-400/50 overflow-hidden flex items-center justify-center text-yellow-400 text-4xl theme-text dark:ring-mist-200">
                     {user?.avatarUrl ? (
                       <img
                         src={`/api${user.avatarUrl}`}
@@ -194,7 +194,7 @@ export function ProfileScreen() {
                     type="button"
                     onClick={() => setShowAvatarPicker(true)}
                     className={cn(
-                      'absolute bottom-0 right-0 h-7 w-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center pb-0.5',
+                      'absolute bottom-0 right-0 h-7 w-7 rounded-full bg-yellow-400 text-gray-900 flex items-center justify-center pb-0.5 dark:bg-mist-100',
                       'hover:bg-yellow-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 font-bold text-xl leading-none cursor-pointer',
                     )}
                   >
@@ -315,11 +315,11 @@ export function ProfileScreen() {
               <div className="space-y-6">
                 <div
                   className={cn(
-                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
-                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                  <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
                     {t('profile.username')}
                   </span>
                   {editingField === 'username' ? (
@@ -327,11 +327,11 @@ export function ProfileScreen() {
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">
+                    <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
                       {user?.username}
                     </span>
                   )}
@@ -339,11 +339,11 @@ export function ProfileScreen() {
 
                 <div
                   className={cn(
-                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
-                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                  <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
                     {t('profile.firstName')}
                   </span>
                   {editingField === 'firstName' ? (
@@ -351,18 +351,18 @@ export function ProfileScreen() {
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">
+                    <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
                       {user?.firstName || '—'}
                     </span>
                   )}
                   {editingField === 'firstName' ? (
                     <button
                       type="button"
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
                       onClick={handleSave}
                       disabled={isSaving}
                     >
@@ -371,22 +371,42 @@ export function ProfileScreen() {
                   ) : (
                     <button
                       type="button"
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
                       onClick={() => handleEditClick('firstName', user?.firstName || '')}
                     >
                       <span>{t('common.edit')}</span>
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
+                      <svg
+                        width="21"
+                        height="20"
+                        viewBox="0 0 21 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_236_4)">
+                          <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
+                            fill="currentColor"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_236_4">
+                            <rect width="21" height="20" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
                     </button>
                   )}
                 </div>
 
                 <div
                   className={cn(
-                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
-                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                  <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
                     {t('profile.lastName')}
                   </span>
                   {editingField === 'lastName' ? (
@@ -394,17 +414,17 @@ export function ProfileScreen() {
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">
+                    <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
                       {user?.lastName || t('common.notSet')}
                     </span>
                   )}
                   {editingField === 'lastName' ? (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
                       onClick={handleSave}
                       disabled={isSaving}
                     >
@@ -412,22 +432,42 @@ export function ProfileScreen() {
                     </button>
                   ) : (
                     <button
-                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                      className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
                       onClick={() => handleEditClick('lastName', user?.lastName || '')}
                     >
                       <span>{t('common.edit')}</span>
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg"></img>
+                      <svg
+                        width="21"
+                        height="20"
+                        viewBox="0 0 21 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_236_4)">
+                          <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
+                            fill="currentColor"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_236_4">
+                            <rect width="21" height="20" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
                     </button>
                   )}
                 </div>
 
                 <div
                   className={cn(
-                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
-                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                  <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
                     {t('profile.email')}
                   </span>
                   {editingField === 'email' ? (
@@ -435,21 +475,23 @@ export function ProfileScreen() {
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
-                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
                       autoFocus
                     />
                   ) : (
-                    <span className="text-lg text-yellow-400 ml-auto">{user?.email}</span>
+                    <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
+                      {user?.email}
+                    </span>
                   )}
                 </div>
 
                 <div
                   className={cn(
-                    'flex flex-col gap-4 rounded-lg p-4 border-b',
+                    'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
                     'md:flex-row md:items-center max-w-150 w-full',
                   )}
                 >
-                  <span className="text-sm uppercase tracking-wider text-white flex-1">
+                  <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
                     {t('profile.password')}
                   </span>
                   {editingField === 'password' ? (
@@ -493,10 +535,30 @@ export function ProfileScreen() {
                   ) : (
                     <button
                       onClick={() => setEditingField('password')}
-                      className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                      className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
                     >
                       {t('common.edit')}
-                      <img className="w-4 h-4" src="/typocalypse-tandem/Union.svg" />
+                      <svg
+                        width="21"
+                        height="20"
+                        viewBox="0 0 21 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_236_4)">
+                          <path
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
+                            fill="currentColor"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_236_4">
+                            <rect width="21" height="20" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
                     </button>
                   )}
                 </div>

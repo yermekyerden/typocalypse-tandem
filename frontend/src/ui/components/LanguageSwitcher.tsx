@@ -7,11 +7,13 @@ type LanguageSwitcherProps = {
 
 export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
   const { language, setLanguage, t } = useI18n();
+  const activeBtn = 'bg-yellow-400 text-gray-950 dark:text-mist-900 dark:bg-indigo-300';
+  const inactiveBtn = 'hover:bg-white/10 dark:hover:bg-mist-300 dark:text-mist-900';
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1 rounded-full border border-yellow-400/30 bg-mist-900/80 p-1 text-xs text-yellow-50',
+        'inline-flex items-center gap-1 rounded-full border border-yellow-400/30 bg-mist-900/80 p-1 text-xs text-yellow-50 dark:bg-mist-200 dark:border-none',
         compact ? 'self-end' : '',
       )}
       aria-label={t('common.language')}
@@ -21,7 +23,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('en')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'en' ? 'bg-yellow-400 text-gray-950' : 'hover:bg-white/10',
+          language === 'en' ? activeBtn : inactiveBtn,
         )}
       >
         EN
@@ -31,7 +33,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('ru')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'ru' ? 'bg-yellow-400 text-gray-950' : 'hover:bg-white/10',
+          language === 'ru' ? activeBtn : inactiveBtn,
         )}
       >
         RU
@@ -41,7 +43,7 @@ export function LanguageSwitcher({ compact = false }: LanguageSwitcherProps) {
         onClick={() => setLanguage('kk')}
         className={cn(
           'rounded-full px-2.5 py-1 transition',
-          language === 'kk' ? 'bg-yellow-400 text-gray-950' : 'hover:bg-white/10',
+          language === 'kk' ? activeBtn : inactiveBtn,
         )}
       >
         KZ
