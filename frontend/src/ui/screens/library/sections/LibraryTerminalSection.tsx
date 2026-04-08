@@ -1,4 +1,4 @@
-import { TerminalWindow } from '@/ui/components/TerminalWindow';
+import { TerminalWindow } from '@/ui/screens/library/sections/TerminalWindow';
 import { useI18n } from '@/i18n/useI18n';
 
 export function LibraryTerminalSection() {

@@ -33,12 +33,8 @@ vi.mock('@/store/terminalSession', () => ({
   useTerminalSession: (selector: (state: StoreState) => unknown) => selector(storeState),
 }));
 
-vi.mock('@/ui/components/TerminalWindow', () => ({
-  TerminalWindow: ({ className }: { className?: string }) => (
-    <div data-testid="terminal-window" className={className}>
-      terminal
-    </div>
-  ),
+vi.mock('./sections/LibraryTerminalSection', () => ({
+  LibraryTerminalSection: () => <div data-testid="terminal-window">terminal</div>,
 }));
 
 vi.mock('@/ui/components/AchievementStars', () => ({
@@ -116,7 +112,7 @@ describe('LibraryScreen', () => {
     render(<LibraryScreen />);
 
     expect(
-      screen.getByRole('heading', { name: 'Sandbox for completing tasks' }),
+      screen.getByRole('region', { name: 'Lesson details and terminal' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Command Line Basics')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Read a file' })).toBeInTheDocument();

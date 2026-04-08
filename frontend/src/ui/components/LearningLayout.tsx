@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import { ModulesSidebar } from './ModulesSidebar';
+import { ModulesSidebar } from '../screens/library/sections/ModulesSidebar';
 
 export function LearningLayout() {
   return (
