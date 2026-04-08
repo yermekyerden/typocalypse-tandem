@@ -33,13 +33,16 @@ export function ModulesSidebar() {
   return (
     <aside
       aria-labelledby="learning-modules-title"
-      className="w-full shrink-0 space-y-4 overflow-y-auto rounded-xl border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 text-yellow-50 shadow-lg scrollbar-thin max-lg:max-h-[32vh] lg:h-full lg:min-h-[calc(100vh-170px)] lg:w-[460px]"
+      className="w-full shrink-0 space-y-4 overflow-y-auto rounded-xl border border-yellow-400/30 bg-gradient-to-b from-mist-950 to-mist-900 p-4 text-yellow-50 shadow-lg scrollbar-thin max-lg:max-h-[32vh] lg:h-full lg:min-h-[calc(100vh-170px)] lg:w-[460px] dark:bg-none dark:bg-mist-300 dark:border-mist-300 dark:text-mist-900"
     >
       <div className="space-y-1">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80 dark:text-mist-900">
           {t('library.learning')}
         </p>
-        <h2 id="learning-modules-title" className="text-xl font-semibold text-yellow-100">
+        <h2
+          id="learning-modules-title"
+          className="text-xl font-semibold text-yellow-100 dark:text-mist-900"
+        >
           {t('library.modules')}
         </h2>
       </div>
@@ -47,7 +50,7 @@ export function ModulesSidebar() {
       <Accordion
         type="single"
         collapsible
-        value={openId ?? undefined}
+        value={openId ?? ''}
         onValueChange={(val) => setExpandedModuleId(val || null)}
         className="space-y-3"
       >
@@ -55,7 +58,7 @@ export function ModulesSidebar() {
           <div
             role="status"
             aria-live="polite"
-            className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80"
+            className="rounded border border-yellow-400/20 bg-white/5 px-3 py-4 text-sm text-yellow-100/80 dark:text-mist-900"
           >
             {t('library.loadingModules')}
           </div>
@@ -66,10 +69,12 @@ export function ModulesSidebar() {
             value={module.id}
             className="overflow-hidden border border-yellow-400/20 bg-white/5 backdrop-blur-sm"
           >
-            <AccordionTrigger className="px-3 py-2 text-left text-yellow-50 hover:bg-yellow-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-950 data-[state=open]:bg-yellow-400/15">
+            <AccordionTrigger className="px-3 py-2 text-left text-yellow-50 hover:bg-yellow-400/10 dark:hover:bg-indigo-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-mist-950 data-[state=open]:bg-yellow-400/15 dark:text-mist-900 dark:data-[state=open]:bg-indigo-300/70">
               <div className="space-y-0.5 pr-3">
                 <p className="text-sm font-semibold">{module.title}</p>
-                <p className="text-xs text-yellow-100/80">{module.description}</p>
+                <p className="text-xs text-yellow-100/80 dark:text-mist-900">
+                  {module.description}
+                </p>
               </div>
             </AccordionTrigger>
             <AccordionContent className="border-t border-yellow-400/15 bg-mist-900/60 px-3 py-2">

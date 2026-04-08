@@ -1,0 +1,490 @@
+import { create } from 'zustand';
+
+import type {
+  AssistantHydratedMessage,
+  AssistantMessage,
+  AssistantSessionState,
+  AssistantStore,
+} from './assistant.interfaces';
+import type { AssistantAutoScrollMode } from './assistant.types';
+
+const createAssistantMessageId = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `assistant-message-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
+const createSystemErrorMessage = (content: string): AssistantMessage => ({
+  id: createAssistantMessageId(),
+  role: 'system',
+  content,
+  status: 'failed',
+  createdAtIso: new Date().toISOString(),
+});
+
+const createSystemInfoMessage = (content: string): AssistantMessage => ({
+  id: createAssistantMessageId(),
+  role: 'system',
+  content,
+  status: 'completed',
+  createdAtIso: new Date().toISOString(),
+});
+
+const createEmptySessionState = (attemptId: string): AssistantSessionState => ({
+  attemptId,
+  messages: [],
+  draft: '',
+  phase: 'idle',
+  autoScrollMode: 'sticky-bottom',
+  errorMessage: null,
+  activeStreamingMessageId: null,
+  hasUnreadAssistantDelta: false,
+});
+
+const getOrCreateSessionState = (
+  sessionsByAttemptId: Record<string, AssistantSessionState>,
+  attemptId: string,
+): AssistantSessionState => {
+  return sessionsByAttemptId[attemptId] ?? createEmptySessionState(attemptId);
+};
+
+const updateSessionState = (
+  sessionsByAttemptId: Record<string, AssistantSessionState>,
+  attemptId: string,
+  updater: (sessionState: AssistantSessionState) => AssistantSessionState,
+): Record<string, AssistantSessionState> => {
+  const currentSessionState = getOrCreateSessionState(sessionsByAttemptId, attemptId);
+  const nextSessionState = updater(currentSessionState);
+
+  return {
+    ...sessionsByAttemptId,
+    [attemptId]: nextSessionState,
+  };
+};
+
+const hydrateMessagesAsCompleted = (
+  messages: AssistantHydratedMessage[],
+): AssistantMessage[] => {
+  return messages.map((message) => ({
+    ...message,
+    status: 'completed',
+  }));
+};
+
+export const useAssistantStore = create<AssistantStore>((set) => ({
+  activeAttemptId: null,
+  sessionsByAttemptId: {},
+
+  // Session lifecycle
+  setActiveAttemptId: (attemptId: string): void => {
+    set((state) => ({
+      activeAttemptId: attemptId,
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => sessionState,
+      ),
+    }));
+  },
+
+  ensureSession: (attemptId: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => sessionState,
+      ),
+    }));
+  },
+
+  hydrateSessionMessages: (
+    attemptId: string,
+    messages: AssistantHydratedMessage[],
+  ): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          messages: hydrateMessagesAsCompleted(messages),
+          phase: 'idle',
+          errorMessage: null,
+          activeStreamingMessageId: null,
+          hasUnreadAssistantDelta: false,
+        }),
+      ),
+    }));
+  },
+
+  clearSession: (attemptId: string): void => {
+    set((state) => {
+      const nextSessionsByAttemptId = { ...state.sessionsByAttemptId };
+      delete nextSessionsByAttemptId[attemptId];
+
+      return {
+        sessionsByAttemptId: nextSessionsByAttemptId,
+        activeAttemptId:
+          state.activeAttemptId === attemptId ? null : state.activeAttemptId,
+      };
+    });
+  },
+
+  // Draft
+  setDraft: (attemptId: string, draft: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          draft,
+        }),
+      ),
+    }));
+  },
+
+  // Request lifecycle
+  addUserMessage: (attemptId: string, message: AssistantMessage): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          messages: [...sessionState.messages, message],
+          phase: 'idle',
+          errorMessage: null,
+        }),
+      ),
+    }));
+  },
+
+  startAssistantMessage: (attemptId: string, message: AssistantMessage): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          messages: [...sessionState.messages, message],
+          phase: message.status === 'thinking' ? 'thinking' : 'streaming',
+          errorMessage: null,
+          activeStreamingMessageId: message.id,
+          hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+        }),
+      ),
+    }));
+  },
+
+  stopAssistantMessage: (attemptId: string, message: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return sessionState;
+          }
+
+          const activeAssistantMessage = sessionState.messages.find(
+            (assistantMessage) =>
+              assistantMessage.id === sessionState.activeStreamingMessageId,
+          );
+
+          if (!activeAssistantMessage) {
+            return {
+              ...sessionState,
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+            };
+          }
+
+          const hasPartialAssistantContent =
+            activeAssistantMessage.content.trim().length > 0;
+
+          if (hasPartialAssistantContent) {
+            const nextMessages: AssistantMessage[] = sessionState.messages.map(
+              (assistantMessage) => {
+                if (assistantMessage.id !== sessionState.activeStreamingMessageId) {
+                  return assistantMessage;
+                }
+
+                return {
+                  ...assistantMessage,
+                  status: 'interrupted',
+                };
+              },
+            );
+
+            return {
+              ...sessionState,
+              messages: [...nextMessages, createSystemInfoMessage(message)],
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const nextMessages = sessionState.messages.filter(
+            (assistantMessage) =>
+              assistantMessage.id !== sessionState.activeStreamingMessageId,
+          );
+
+          return {
+            ...sessionState,
+            messages: [...nextMessages, createSystemInfoMessage(message)],
+            phase: 'idle',
+            errorMessage: null,
+            activeStreamingMessageId: null,
+            hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+          };
+        },
+      ),
+    }));
+  },
+
+  resetLastAssistantTurn: (attemptId: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          let lastUserMessageIndex = -1;
+
+          for (let index = sessionState.messages.length - 1; index >= 0; index -= 1) {
+            if (sessionState.messages[index]?.role === 'user') {
+              lastUserMessageIndex = index;
+              break;
+            }
+          }
+
+          if (lastUserMessageIndex === -1) {
+            return {
+              ...sessionState,
+              phase: 'idle',
+              errorMessage: null,
+              activeStreamingMessageId: null,
+            };
+          }
+
+          return {
+            ...sessionState,
+            messages: sessionState.messages.slice(0, lastUserMessageIndex + 1),
+            phase: 'idle',
+            errorMessage: null,
+            activeStreamingMessageId: null,
+            hasUnreadAssistantDelta:
+              sessionState.autoScrollMode === 'sticky-bottom'
+                ? false
+                : sessionState.hasUnreadAssistantDelta,
+          };
+        },
+      ),
+    }));
+  },
+
+  appendAssistantDelta: (attemptId: string, delta: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return sessionState;
+          }
+
+          const nextMessages: AssistantMessage[] = sessionState.messages.map(
+            (message) => {
+              if (message.id !== sessionState.activeStreamingMessageId) {
+                return message;
+              }
+
+              return {
+                ...message,
+                content: `${message.content}${delta}`,
+                status: 'streaming',
+              };
+            },
+          );
+
+          return {
+            ...sessionState,
+            messages: nextMessages,
+            phase: 'streaming',
+            hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+          };
+        },
+      ),
+    }));
+  },
+
+  completeAssistantMessage: (attemptId: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return {
+              ...sessionState,
+              phase: 'idle',
+              errorMessage: null,
+            };
+          }
+
+          const nextMessages: AssistantMessage[] = sessionState.messages.map(
+            (message) => {
+              if (message.id !== sessionState.activeStreamingMessageId) {
+                return message;
+              }
+
+              return {
+                ...message,
+                status: 'completed',
+              };
+            },
+          );
+
+          return {
+            ...sessionState,
+            messages: nextMessages,
+            phase: 'idle',
+            errorMessage: null,
+            activeStreamingMessageId: null,
+          };
+        },
+      ),
+    }));
+  },
+
+  failAssistantMessage: (attemptId: string, errorMessage: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => {
+          if (!sessionState.activeStreamingMessageId) {
+            return {
+              ...sessionState,
+              messages: [
+                ...sessionState.messages,
+                createSystemErrorMessage(errorMessage),
+              ],
+              phase: 'error',
+              errorMessage,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const activeAssistantMessage = sessionState.messages.find(
+            (message) => message.id === sessionState.activeStreamingMessageId,
+          );
+
+          if (!activeAssistantMessage) {
+            return {
+              ...sessionState,
+              messages: [
+                ...sessionState.messages,
+                createSystemErrorMessage(errorMessage),
+              ],
+              phase: 'error',
+              errorMessage,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const hasPartialAssistantContent =
+            activeAssistantMessage.content.trim().length > 0;
+
+          if (hasPartialAssistantContent) {
+            const nextMessages: AssistantMessage[] = sessionState.messages.map(
+              (message) => {
+                if (message.id !== sessionState.activeStreamingMessageId) {
+                  return message;
+                }
+
+                return {
+                  ...message,
+                  status: 'interrupted',
+                };
+              },
+            );
+
+            return {
+              ...sessionState,
+              messages: [...nextMessages, createSystemErrorMessage(errorMessage)],
+              phase: 'error',
+              errorMessage,
+              activeStreamingMessageId: null,
+              hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+            };
+          }
+
+          const nextMessages: AssistantMessage[] = sessionState.messages.map(
+            (message) => {
+              if (message.id !== sessionState.activeStreamingMessageId) {
+                return message;
+              }
+
+              return {
+                ...message,
+                content: errorMessage,
+                status: 'failed',
+              };
+            },
+          );
+
+          return {
+            ...sessionState,
+            messages: nextMessages,
+            phase: 'error',
+            errorMessage,
+            activeStreamingMessageId: null,
+            hasUnreadAssistantDelta: sessionState.autoScrollMode === 'detached',
+          };
+        },
+      ),
+    }));
+  },
+
+  // UI state
+  setAutoScrollMode: (
+    attemptId: string,
+    autoScrollMode: AssistantAutoScrollMode,
+  ): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          autoScrollMode,
+          hasUnreadAssistantDelta:
+            autoScrollMode === 'sticky-bottom'
+              ? false
+              : sessionState.hasUnreadAssistantDelta,
+        }),
+      ),
+    }));
+  },
+
+  clearError: (attemptId: string): void => {
+    set((state) => ({
+      sessionsByAttemptId: updateSessionState(
+        state.sessionsByAttemptId,
+        attemptId,
+        (sessionState) => ({
+          ...sessionState,
+          phase: sessionState.activeStreamingMessageId ? sessionState.phase : 'idle',
+          errorMessage: null,
+        }),
+      ),
+    }));
+  },
+}));

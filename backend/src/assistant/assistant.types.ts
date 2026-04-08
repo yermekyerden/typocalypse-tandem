@@ -1,3 +1,7 @@
+import type { AssistantConversationRole } from './history/assistant-chat-history.types';
+
+export type AssistantLocale = 'en' | 'kk' | 'ru';
+
 export type AssistantChatRole = 'system' | 'user' | 'assistant';
 
 export type AssistantChatMessage = {
@@ -42,11 +46,18 @@ export type AssistantAttemptStepContext = {
 
 export type AssistantAttemptStatus = 'in_progress' | 'completed' | 'abandoned';
 
+export type AssistantConversationContextMessage = {
+  role: AssistantConversationRole;
+  content: string;
+};
+
 export type BuildAssistantMessagesContext = {
   mission: AssistantMissionContext;
   currentWorkingDirectory: string;
   attemptStatus: AssistantAttemptStatus;
   steps: AssistantAttemptStepContext[];
+  recentConversationMessages: AssistantConversationContextMessage[];
+  locale: AssistantLocale;
   question: string;
 };
 
@@ -69,4 +80,16 @@ export type AssistantCompletionResult = {
   answer: string;
   model: string;
   usage: AssistantUsage | null;
+};
+
+export type AssistantHistoryMessageView = {
+  id: string;
+  role: AssistantConversationRole;
+  content: string;
+  createdAtIso: string;
+};
+
+export type AssistantHistoryResponse = {
+  attemptId: string;
+  messages: AssistantHistoryMessageView[];
 };

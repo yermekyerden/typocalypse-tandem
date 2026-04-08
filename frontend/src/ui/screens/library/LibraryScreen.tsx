@@ -8,6 +8,7 @@ import type {
 import { useI18n } from '@/i18n/useI18n';
 import { useTerminalSession } from '@/store/terminalSession';
 
+import { LibraryAssistantOverlay } from './sections/LibraryAssistantOverlay';
 import { LibraryCompletionModal } from './sections/LibraryCompletionModal';
 import { LibraryLessonDetails } from './sections/LibraryLessonDetails';
 import { LibraryTerminalSection } from './sections/LibraryTerminalSection';
@@ -68,6 +69,7 @@ export function LibraryScreen() {
   const modules = useTerminalSession((s) => s.modules);
   const lessonDetailsById = useTerminalSession((s) => s.lessonDetailsById);
   const activeLessonId = useTerminalSession((s) => s.activeLessonId);
+  const activeAttemptId = useTerminalSession((s) => s.activeAttempt?.attemptId ?? null);
   const initialize = useTerminalSession((s) => s.initialize);
   const setActiveLesson = useTerminalSession((s) => s.setActiveLesson);
   const completedModuleId = useTerminalSession((s) => s.completedModuleId);
@@ -102,12 +104,12 @@ export function LibraryScreen() {
   return (
     <section
       aria-label={t('library.pageAriaLabel')}
-      className="flex h-full min-h-0 flex-1 flex-col gap-4 overflow-visible bg-mist-950 text-yellow-50 lg:gap-6 lg:overflow-hidden"
+      className="flex h-full min-h-0 flex-1 flex-col gap-4 overflow-visible bg-mist-950 text-yellow-50 lg:gap-6 lg:overflow-hidden dark:bg-mist-200"
     >
       {apiError ? (
         <div
           role="alert"
-          className="rounded border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100"
+          className="rounded border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100 dark:text-red-900"
         >
           {apiError}
         </div>
@@ -126,11 +128,14 @@ export function LibraryScreen() {
         <section
           role="status"
           aria-live="polite"
-          className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80"
+          className="rounded border border-yellow-400/20 bg-white/5 px-4 py-6 text-sm text-yellow-100/80 dark:bg-none dark:bg-mist-300 dark:border-mist-300 dark:text-mist-900"
         >
           {t('library.noLessonDetails')}
         </section>
       ) : null}
+
+      <LibraryAssistantOverlay lessonId={currentLessonId} attemptId={activeAttemptId} />
+
       <LibraryCompletionModal
         module={completedModule}
         onAcknowledge={acknowledgeModuleCompletion}

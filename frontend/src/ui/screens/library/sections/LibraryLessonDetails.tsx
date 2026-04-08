@@ -1,7 +1,8 @@
+import { useId, useState } from 'react';
+
 import { type LearningLessonView } from '@/features/learning/types';
 import { useI18n } from '@/i18n/useI18n';
 import { AchievementStars } from '@/ui/components/AchievementStars';
-import { AiAssistant } from '@/ui/components/AiAssistant';
 
 type LibraryLessonDetailsProps = {
   lesson: LearningLessonView;
@@ -18,18 +19,20 @@ export function LibraryLessonDetails({
   progress,
 }: LibraryLessonDetailsProps) {
   const { t } = useI18n();
+  const [areHintsVisible, setAreHintsVisible] = useState(false);
   const theoryTitleId = 'library-lesson-theory-title';
   const taskTitleId = 'library-lesson-task-title';
   const hintsTitleId = 'library-lesson-hints-title';
+  const hintsContentId = useId();
 
   return (
     <section
       aria-labelledby="library-lesson-title"
-      className="flex min-h-[220px] shrink-0 flex-col overflow-auto rounded-xl border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg scrollbar-thin max-lg:max-h-[240px] sm:p-5 lg:max-h-[320px]"
+      className="flex min-h-[220px] shrink-0 flex-col overflow-auto rounded-xl border border-yellow-400/25 bg-gradient-to-b from-mist-950 to-mist-900 p-4 shadow-lg scrollbar-thin max-lg:max-h-[240px] sm:p-5 lg:max-h-[320px] dark:bg-none dark:bg-mist-300 dark:border-mist-300"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-yellow-300/80 dark:text-mist-900">
             {moduleTitle}
           </p>
           <h2
@@ -79,15 +82,30 @@ export function LibraryLessonDetails({
             <h3 id={hintsTitleId} className="font-semibold text-yellow-100">
               {t('library.hints')}
             </h3>
-            <ul className="space-y-1 text-yellow-100/80">
-              {lesson.hints.map((hint) => (
-                <li key={hint}>{hint}</li>
-              ))}
-            </ul>
+            <div className="rounded-md border border-yellow-400/20 bg-white/5">
+              <button
+                type="button"
+                aria-expanded={areHintsVisible}
+                aria-controls={hintsContentId}
+                onClick={() => setAreHintsVisible((current) => !current)}
+                className="w-full cursor-pointer px-3 py-2 text-left text-sm font-medium text-yellow-100"
+              >
+                {t('library.hints')}
+              </button>
+              {areHintsVisible ? (
+                <ul
+                  id={hintsContentId}
+                  className="space-y-1 border-t border-yellow-400/15 px-3 py-3 text-yellow-100/80"
+                >
+                  {lesson.hints.map((hint) => (
+                    <li key={hint}>{hint}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>
-      <AiAssistant />
     </section>
   );
 }

@@ -84,6 +84,8 @@ backend/uploads/
 **/.env
 **/.env.*
 !**/.env.example
+# Production env bakes in the public EC2 API URL — no secrets, safe to commit
+!frontend/.env.production
 
 # =========================
 # OS

@@ -64,11 +64,6 @@ export const kk = {
     },
     totalLessons: 'Барлық сабақтар',
   },
-  assistant: {
-    title: 'AI Көмекші',
-    greeting: 'Қалай көмектесе аламын?',
-    placeholder: 'Хабарламаңызды жазыңыз...',
-  },
   profile: {
     userData: 'Пайдаланушы деректері',
     progress: 'Прогресс',
@@ -90,6 +85,28 @@ export const kk = {
   missionRun: {
     title: 'Миссияны орындау',
     missionId: 'missionId: {{missionId}}',
+  },
+  assistant: {
+    title: 'AI Assistant',
+    ready: 'Дайын',
+    loading: 'Жүктелуде...',
+    thinking: 'Ойланып жатыр...',
+    streaming: 'Жауап жазылып жатыр...',
+    send: 'Жіберу',
+    stop: 'Тоқтату',
+    stoppedByUser: 'Жауапты пайдаланушы тоқтатты.',
+    error: 'Қате орын алды.',
+    unavailable: 'Терминалда деңгейді бастағаннан кейін assistant қолжетімді болады.',
+    emptyState:
+      'Ағымдағы миссия, терминал шығысы немесе соңғы командаңыз туралы сұраңыз.',
+    loadingHistory: 'Assistant тарихы жүктелуде...',
+    placeholderReady: 'Миссия туралы сұраңыз...',
+    placeholderUnavailable: 'Алдымен деңгейді терминалда бастаңыз...',
+    retry: 'Қайталау',
+    jumpToLatest: 'Соңғысына өту',
+    jumpToLatestNew: 'Соңғысына өту • Жаңа',
+    newBadge: 'Жаңа',
+    fallbackError: 'Assistant сұранысы сәтсіз аяқталды.',
   },
   replay: {
     title: 'Қайталау',
