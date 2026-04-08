@@ -26,9 +26,12 @@ describe('CORS (e2e)', () => {
         transform: true,
       }),
     );
+    const corsOrigin = process.env.CORS_ORIGIN
+      ? new URL(process.env.CORS_ORIGIN).origin
+      : undefined;
+
     app.enableCors({
-      origin: process.env.CORS_ORIGIN ? [process.env.CORS_ORIGIN] : undefined,
-      credentials: true,
+      origin: corsOrigin ? [corsOrigin] : undefined,
     });
     await app.init();
   });
@@ -38,7 +41,7 @@ describe('CORS (e2e)', () => {
     await app.close();
   });
 
-  it('OPTIONS preflight from allowed origin returns Access-Control-Allow-Origin', async () => {
+  it('OPTIONS preflight from allowed origin returns Access-Control-Allow-Origin and Vary: Origin', async () => {
     await request(app.getHttpServer())
       .options('/auth/login')
       .set('Origin', ALLOWED_ORIGIN)
@@ -46,6 +49,18 @@ describe('CORS (e2e)', () => {
       .set('Access-Control-Request-Headers', 'Content-Type,Authorization')
       .expect((res) => {
         expect(res.headers['access-control-allow-origin']).toBe(ALLOWED_ORIGIN);
+        expect(res.headers['vary']).toContain('Origin');
+      });
+  });
+
+  it('OPTIONS preflight from untrusted origin does not receive Access-Control-Allow-Origin header', async () => {
+    await request(app.getHttpServer())
+      .options('/auth/login')
+      .set('Origin', UNTRUSTED_ORIGIN)
+      .set('Access-Control-Request-Method', 'POST')
+      .set('Access-Control-Request-Headers', 'Content-Type,Authorization')
+      .expect((res) => {
+        expect(res.headers['access-control-allow-origin']).toBeUndefined();
       });
   });
 
