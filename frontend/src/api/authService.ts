@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/authStore';
+import { getApiBaseUrl } from './client';
 
 interface AuthResponse {
   user: {
@@ -26,7 +27,10 @@ interface RegisterCredentials {
 }
 
 class AuthService {
-  private baseUrl = '/api';
+  private get baseUrl() {
+    return getApiBaseUrl();
+  }
+
   private isRefreshing = false;
   private refreshPromise: Promise<void> | null = null;
 
@@ -37,7 +41,6 @@ class AuthService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(credentials),
-      credentials: 'include',
     });
 
     if (!response.ok) {
