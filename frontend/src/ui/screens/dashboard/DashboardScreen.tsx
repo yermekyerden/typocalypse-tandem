@@ -72,11 +72,11 @@ export function DashboardScreen() {
 
             return (
               <AccordionItem key={item.id} value={item.title}>
-                <AccordionTrigger className="cursor-pointer hover:text-yellow-400">
+                <AccordionTrigger className="cursor-pointer text-yellow-50 hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900">
                   <div className="flex flex-col gap-2 w-full">
-                    <h2>{item.title}</h2>
+                    <h2 className="dark:text-mist-900">{item.title}</h2>
                     <Progress
-                      className="mb-1.5 [&>div]:bg-yellow-400 h-3"
+                      className="mb-1.5 h-3 [&>div]:bg-yellow-400 dark:bg-mist-100 dark:[&>div]:bg-indigo-400"
                       value={progressValue}
                     />
                   </div>
@@ -84,8 +84,11 @@ export function DashboardScreen() {
                 <AccordionContent>
                   {item.lessons.map((lesson) => {
                     return (
-                      <div key={lesson.id} className="flex justify-between mb-2">
-                        <span>{lesson.title}</span>
+                      <div
+                        key={lesson.id}
+                        className="mb-2 flex justify-between text-yellow-50 dark:text-mist-900"
+                      >
+                        <span className="dark:text-mist-900">{lesson.title}</span>
                         {getStatus(lesson.status, t)}
                       </div>
                     );
@@ -97,8 +100,8 @@ export function DashboardScreen() {
         </Accordion>
       </div>
       <div className="w-80 flex-shrink-0">
-        <div className="sticky top-6 bg-[#2c2c2c] rounded-lg border border-yellow-400 p-6">
-          <h3 className="text-lg font-semibold mb-4 text-center">
+        <div className="sticky top-6 rounded-lg border border-yellow-400 bg-[#2c2c2c] p-6 dark:border-indigo-300 dark:bg-mist-100 dark:text-mist-900">
+          <h3 className="mb-4 text-center text-lg font-semibold dark:text-mist-900">
             {t('profile.progress')}
           </h3>
 
@@ -106,7 +109,7 @@ export function DashboardScreen() {
             <>
               <ChartContainer
                 config={chartConfig}
-                className="mx-auto aspect-square w-full max-w-[240px]"
+                className="mx-auto aspect-square w-full max-w-[240px] dark:text-mist-900"
               >
                 <PieChart>
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -132,14 +135,14 @@ export function DashboardScreen() {
                               <tspan
                                 x={viewBox.cx}
                                 y={viewBox.cy}
-                                className="fill-white text-2xl font-bold"
+                                className="fill-white text-2xl font-bold dark:fill-slate-900"
                               >
                                 {overallStats.progressPercent}%
                               </tspan>
                               <tspan
                                 x={viewBox.cx}
                                 y={(viewBox.cy || 0) + 24}
-                                className="fill-muted-foreground text-xs"
+                                className="fill-muted-foreground text-xs dark:fill-slate-600"
                               >
                                 {t('library.status.completed')}
                               </tspan>
@@ -152,36 +155,42 @@ export function DashboardScreen() {
                 </PieChart>
               </ChartContainer>
 
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-sm">
+              <div className="mt-4 space-y-2 dark:text-mist-900">
+                <div className="flex justify-between text-sm dark:text-mist-900">
                   <span className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-emerald-500" />
                     {t('library.status.completed')}:
                   </span>
-                  <span className="font-medium">{overallStats.completed}</span>
+                  <span className="font-medium dark:text-mist-900">
+                    {overallStats.completed}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm dark:text-mist-900">
                   <span className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-amber-500" />
                     {t('library.status.active')}:
                   </span>
-                  <span className="font-medium">{overallStats.active}</span>
+                  <span className="font-medium dark:text-mist-900">
+                    {overallStats.active}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm dark:text-mist-900">
                   <span className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-gray-400" />
                     {t('library.status.locked')}:
                   </span>
-                  <span className="font-medium">{overallStats.locked}</span>
+                  <span className="font-medium dark:text-mist-900">
+                    {overallStats.locked}
+                  </span>
                 </div>
-                <div className="border-t pt-2 mt-2 flex justify-between text-sm font-semibold">
+                <div className="mt-2 flex justify-between border-t pt-2 text-sm font-semibold dark:border-mist-300 dark:text-mist-900">
                   <span>{t('library.totalLessons')}::</span>
                   <span>{overallStats.total}</span>
                 </div>
               </div>
             </>
           ) : (
-            <div className="text-center text-muted-foreground py-8">
+            <div className="py-8 text-center text-muted-foreground dark:text-slate-600">
               {t('library.noLessonDetails')}
             </div>
           )}
