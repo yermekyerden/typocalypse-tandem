@@ -32,8 +32,8 @@ export function AchievementStars({ total, completed, size = 20, className = '' }
             viewBox="0 0 24 24"
             className={`transition-all duration-300 ${
               isFilled
-                ? 'text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.45)]'
-                : 'text-slate-500/70'
+                ? 'text-amber-300 drop-shadow-[0_0_10px_rgba(251,191,36,0.45)] dark:text-indigo-400 dark:drop-shadow-[0_0_10px_rgba(129,140,248,0.35)]'
+                : 'text-slate-500/70 dark:text-slate-400/70'
             } ${isNew ? 'scale-110' : ''}`}
             fill={isFilled ? 'currentColor' : 'none'}
             stroke="currentColor"
