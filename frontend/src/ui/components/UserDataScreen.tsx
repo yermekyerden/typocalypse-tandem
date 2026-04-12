@@ -6,8 +6,47 @@ import { authService } from '@/api/authService';
 import { PRESET_AVATARS } from '../screens/profile/constants';
 import { useState } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { EditIcon } from './EditIcon';
+import { AvatarPicker } from './AvatarPicker';
 
 type EditableField = 'username' | 'firstName' | 'lastName' | 'email' | 'password' | null;
+
+type User = ReturnType<typeof useAuthStore.getState>['user'];
+type TranslationKey = Parameters<ReturnType<typeof useI18n>['t']>[0];
+
+type ProfileField = {
+  key: Exclude<EditableField, 'password' | null>;
+  labelKey: TranslationKey;
+  editable: boolean;
+  getValue: (user: User) => string | undefined;
+};
+
+const profileFields: ProfileField[] = [
+  {
+    key: 'username',
+    labelKey: 'profile.username',
+    editable: false,
+    getValue: (user) => user?.username,
+  },
+  {
+    key: 'firstName',
+    labelKey: 'profile.firstName',
+    editable: true,
+    getValue: (user) => user?.firstName,
+  },
+  {
+    key: 'lastName',
+    labelKey: 'profile.lastName',
+    editable: true,
+    getValue: (user) => user?.lastName,
+  },
+  {
+    key: 'email',
+    labelKey: 'profile.email',
+    editable: false,
+    getValue: (user) => user?.email,
+  },
+];
 
 export function UserDataScreen() {
   const { t } = useI18n();
@@ -18,7 +57,6 @@ export function UserDataScreen() {
   const [newPasswordInput, setNewPasswordInput] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [avatarPickerTab, setAvatarPickerTab] = useState<'preset' | 'upload'>('preset');
 
   const fetchProfile = useAuthStore((s) => s.fetchProfile);
 
@@ -104,6 +142,17 @@ export function UserDataScreen() {
       console.error(e);
     }
   }
+
+  async function handleRemoveAvatar() {
+    try {
+      await authService.removeAvatar();
+      await fetchProfile();
+      setShowAvatarPicker(false);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   return (
     <>
       <h1 className="mb-8 text-4xl font-bold text-yellow-400 dark:text-mist-900">
@@ -140,283 +189,73 @@ export function UserDataScreen() {
         </div>
       </div>
 
-      {showAvatarPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-          <div className="bg-[#2c2c2c] rounded-2xl p-6 flex flex-col gap-4 shadow-xl w-full max-w-sm max-h-[90vh]">
-            <div className="flex gap-2 border-b border-white/10 shrink-0">
-              <button
-                type="button"
-                onClick={() => setAvatarPickerTab('preset')}
-                className={cn(
-                  'pb-2 px-2 text-sm font-medium transition-colors cursor-pointer',
-                  avatarPickerTab === 'preset'
-                    ? 'text-yellow-400 border-b-2 border-yellow-400'
-                    : 'text-white/60 hover:text-white',
-                )}
-              >
-                Preset avatars
-              </button>
-              <button
-                type="button"
-                onClick={() => setAvatarPickerTab('upload')}
-                className={cn(
-                  'pb-2 px-2 text-sm font-medium transition-colors cursor-pointer',
-                  avatarPickerTab === 'upload'
-                    ? 'text-yellow-400 border-b-2 border-yellow-400'
-                    : 'text-white/60 hover:text-white',
-                )}
-              >
-                Upload photo
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1">
-              {avatarPickerTab === 'preset' ? (
-                <div className="grid grid-cols-3 gap-3 pt-1 pb-1">
-                  {PRESET_AVATARS.map((src) => (
-                    <button
-                      key={src}
-                      type="button"
-                      onClick={() => handleSelectAvatar(src)}
-                      className={cn(
-                        'h-20 w-20 mx-auto rounded-full overflow-hidden ring-2 transition focus:outline-none cursor-pointer',
-                        user?.avatarUrl === src
-                          ? 'ring-yellow-400'
-                          : 'ring-transparent hover:ring-yellow-400/50',
-                      )}
-                    >
-                      <img src={src} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-4 py-8">
-                  <label
-                    htmlFor="avatar-upload"
-                    className={cn(
-                      'cursor-pointer bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg',
-                      'hover:bg-yellow-300 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400',
-                    )}
-                  >
-                    Choose file
-                  </label>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                  />
-                  <p className="text-white/60 text-sm text-center">
-                    Supported formats: JPG, PNG, GIF
-                    <br />
-                    Max file size: 5MB
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between shrink-0 pt-2 border-t border-white/10">
-              {user?.avatarUrl && (
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await authService.removeAvatar();
-                      await fetchProfile();
-                      setShowAvatarPicker(false);
-                    } catch (e) {
-                      console.error(e);
-                    }
-                  }}
-                  className="text-red-400 hover:text-red-300 text-sm focus:outline-none cursor-pointer"
-                >
-                  Remove avatar
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowAvatarPicker(false)}
-                className="text-white/60 hover:text-white text-sm focus:outline-none cursor-pointer ml-auto"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AvatarPicker
+        isOpen={showAvatarPicker}
+        currentAvatarUrl={user?.avatarUrl}
+        presetAvatars={PRESET_AVATARS}
+        onSelectAvatar={handleSelectAvatar}
+        onUploadAvatar={handleFileUpload}
+        onRemoveAvatar={handleRemoveAvatar}
+        onClose={() => setShowAvatarPicker(false)}
+      />
 
       <div className="space-y-6">
-        <div
-          className={cn(
-            'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
-            'md:flex-row md:items-center max-w-150 w-full',
-          )}
-        >
-          <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
-            {t('profile.username')}
-          </span>
-          {editingField === 'username' ? (
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
-              autoFocus
-            />
-          ) : (
-            <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
-              {user?.username}
-            </span>
-          )}
-        </div>
+        {profileFields.map((field) => {
+          const isEditing = editingField === field.key;
 
-        <div
-          className={cn(
-            'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
-            'md:flex-row md:items-center max-w-150 w-full',
-          )}
-        >
-          <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
-            {t('profile.firstName')}
-          </span>
-          {editingField === 'firstName' ? (
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
-              autoFocus
-            />
-          ) : (
-            <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
-              {user?.firstName || '—'}
-            </span>
-          )}
-          {editingField === 'firstName' ? (
-            <button
-              type="button"
-              className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              <span>{isSaving ? t('common.saving') : t('common.save')}</span>
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
-              onClick={() => handleEditClick('firstName', user?.firstName || '')}
-            >
-              <span>{t('common.edit')}</span>
-              <svg
-                width="21"
-                height="20"
-                viewBox="0 0 21 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clip-path="url(#clip0_236_4)">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
-                    fill="currentColor"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_236_4">
-                    <rect width="21" height="20" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </button>
-          )}
-        </div>
+          const rawValue = field.getValue(user);
 
-        <div
-          className={cn(
-            'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
-            'md:flex-row md:items-center max-w-150 w-full',
-          )}
-        >
-          <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
-            {t('profile.lastName')}
-          </span>
-          {editingField === 'lastName' ? (
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
-              autoFocus
-            />
-          ) : (
-            <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
-              {user?.lastName || t('common.notSet')}
-            </span>
-          )}
-          {editingField === 'lastName' ? (
-            <button
-              className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              <span>{isSaving ? t('common.saving') : t('common.save')}</span>
-            </button>
-          ) : (
-            <button
-              className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
-              onClick={() => handleEditClick('lastName', user?.lastName || '')}
-            >
-              <span>{t('common.edit')}</span>
-              <svg
-                width="21"
-                height="20"
-                viewBox="0 0 21 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clip-path="url(#clip0_236_4)">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
-                    fill="currentColor"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_236_4">
-                    <rect width="21" height="20" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
-            </button>
-          )}
-        </div>
+          const value = rawValue ?? (field.key === 'lastName' ? t('common.notSet') : '—');
 
-        <div
-          className={cn(
-            'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
-            'md:flex-row md:items-center max-w-150 w-full',
-          )}
-        >
-          <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
-            {t('profile.email')}
-          </span>
-          {editingField === 'email' ? (
-            <input
-              type="text"
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
-              autoFocus
-            />
-          ) : (
-            <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
-              {user?.email}
-            </span>
-          )}
-        </div>
+          return (
+            <div
+              key={field.key}
+              className={cn(
+                'flex flex-col gap-4 rounded-lg p-4 border-b dark:border-mist-400',
+                'md:flex-row md:items-center max-w-150 w-full',
+              )}
+            >
+              <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
+                {t(field.labelKey)}
+              </span>
+
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
+                  autoFocus
+                />
+              ) : (
+                <span className="text-lg text-yellow-400 ml-auto dark:text-mist-900">
+                  {value}
+                </span>
+              )}
+
+              {field.editable &&
+                (isEditing ? (
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
+                  >
+                    <span>{isSaving ? t('common.saving') : t('common.save')}</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleEditClick(field.key, rawValue ?? '')}
+                    className="flex justify-center items-center cursor-pointer gap-1 px-2 py-1.5 rounded-sm bg-[#3f4044] w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
+                  >
+                    <span>{t('common.edit')}</span>
+                    <EditIcon />
+                  </button>
+                ))}
+            </div>
+          );
+        })}
 
         <div
           className={cn(
@@ -471,27 +310,7 @@ export function UserDataScreen() {
               className="flex items-center gap-1 px-2 py-1 bg-[#3f4044] rounded cursor-pointer w-fit focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 dark:text-mist-900 dark:bg-mist-200"
             >
               {t('common.edit')}
-              <svg
-                width="21"
-                height="20"
-                viewBox="0 0 21 20"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <g clip-path="url(#clip0_236_4)">
-                  <path
-                    fill-rule="evenodd"
-                    clip-rule="evenodd"
-                    d="M11.8535 18.291L8.02441 20.001L7.29297 15.8711L11.8535 18.291ZM5.70215 19.998H0V18.7021H5.70215V19.998ZM19.6475 4.45508L12.7227 17.5059L7.45703 14.7119L14.3818 1.66113L19.6475 4.45508ZM20.5283 2.79492L20.0732 3.65332L14.8066 0.858398L15.2617 0L20.5283 2.79492Z"
-                    fill="currentColor"
-                  />
-                </g>
-                <defs>
-                  <clipPath id="clip0_236_4">
-                    <rect width="21" height="20" fill="white" />
-                  </clipPath>
-                </defs>
-              </svg>
+              <EditIcon />
             </button>
           )}
         </div>
