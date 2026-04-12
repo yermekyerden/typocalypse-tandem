@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
@@ -17,6 +17,34 @@ const COLORS: Record<'stdout' | 'stderr' | 'system', string> = {
   system: '\u001b[96m',
 };
 
+function getTerminalTheme(isLightTheme: boolean) {
+  if (isLightTheme) {
+    return {
+      background: '#f8fafc',
+      foreground: '#0f172a',
+      cursor: '#475569',
+      black: '#e2e8f0',
+      green: '#166534',
+      red: '#b91c1c',
+      yellow: '#a16207',
+      blue: '#1d4ed8',
+      magenta: '#7c3aed',
+      cyan: '#0f766e',
+      white: '#0f172a',
+      brightBlack: '#94a3b8',
+      brightWhite: '#020617',
+    };
+  }
+
+  return {
+    background: '#000000',
+    foreground: '#f8f6e5',
+    cursor: '#facc15',
+    black: '#000000',
+    green: '#bbf7d0',
+  };
+}
+
 function formatPromptPath(cwd: string) {
   const home = '/home/student';
   if (cwd === home) return '~';
@@ -31,17 +59,26 @@ export function TerminalWindow({ height, className }: Props) {
   const cwd = useTerminalSession((s) => s.cwd);
   const runCommand = useTerminalSession((s) => s.runCommand);
   const history = useTerminalSession((s) => s.history);
+  const isTerminalBusy = useTerminalSession((s) => s.isTerminalBusy);
+  const [isLightTheme, setIsLightTheme] = useState(() =>
+    typeof document !== 'undefined'
+      ? document.documentElement.classList.contains('dark')
+      : false,
+  );
 
   const prompt = useMemo(() => `student@dojo:${formatPromptPath(cwd)}$ `, [cwd]);
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const termRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
   const inputRef = useRef('');
+  const cursorIndexRef = useRef(0);
   const historyIndexRef = useRef<number | null>(null);
   const historyRef = useRef<string[]>(history);
   const runCommandRef = useRef(runCommand);
   const promptRef = useRef(prompt);
+  const isTerminalBusyRef = useRef(isTerminalBusy);
   const lastOutputIndexRef = useRef(0);
   const lastSubmittedCommandRef = useRef<string | null>(null);
 
@@ -54,28 +91,61 @@ export function TerminalWindow({ height, className }: Props) {
   }, [runCommand]);
 
   useEffect(() => {
+    isTerminalBusyRef.current = isTerminalBusy;
+  }, [isTerminalBusy]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const syncTheme = () => {
+      setIsLightTheme(document.documentElement.classList.contains('dark'));
+    };
+
+    syncTheme();
+
+    const observer =
+      typeof MutationObserver === 'undefined'
+        ? null
+        : new MutationObserver(() => {
+            syncTheme();
+          });
+
+    observer?.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer?.disconnect();
+  }, []);
+
+  useEffect(() => {
     promptRef.current = prompt;
     const term = termRef.current;
     if (!term) return;
     term.write('\r');
     term.write('\u001b[2K');
     term.write(`${promptRef.current}${inputRef.current}`);
+    const moveLeft = inputRef.current.length - cursorIndexRef.current;
+    if (moveLeft > 0) {
+      term.write(`\u001b[${moveLeft}D`);
+    }
   }, [prompt]);
 
   useEffect(() => {
+    const initialIsLightTheme =
+      typeof document !== 'undefined'
+        ? document.documentElement.classList.contains('dark')
+        : false;
+
     const term = new Terminal({
       convertEol: true,
       cursorBlink: true,
       fontFamily: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
       fontSize: 14,
       rows: 24,
-      theme: {
-        background: '#000000',
-        foreground: '#f8f6e5',
-        cursor: '#facc15',
-        black: '#000000',
-        green: '#bbf7d0',
-      },
+      theme: getTerminalTheme(initialIsLightTheme),
     });
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
@@ -86,20 +156,42 @@ export function TerminalWindow({ height, className }: Props) {
     fitAddon.fit();
     term.focus();
 
-    const handleResize = () => fitAddon.fit();
+    const fitTerminal = () => {
+      window.requestAnimationFrame(() => {
+        fitAddon.fit();
+      });
+    };
+    const handleResize = () => fitTerminal();
     window.addEventListener('resize', handleResize);
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            fitTerminal();
+          });
+
+    if (resizeObserver && rootRef.current) {
+      resizeObserver.observe(rootRef.current);
+    }
+    if (resizeObserver && containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
     const renderPrompt = () => {
       term.write('\r');
       term.write('\u001b[2K');
       term.write(`${promptRef.current}${inputRef.current}`);
+      const moveLeft = inputRef.current.length - cursorIndexRef.current;
+      if (moveLeft > 0) {
+        term.write(`\u001b[${moveLeft}D`);
+      }
     };
 
     const applyInput = (value: string) => {
       inputRef.current = value;
-      term.write('\r');
-      term.write('\u001b[2K');
-      term.write(`${promptRef.current}${value}`);
+      cursorIndexRef.current = value.length;
+      renderPrompt();
     };
 
     const handleHistory = (direction: 'up' | 'down') => {
@@ -127,9 +219,14 @@ export function TerminalWindow({ height, className }: Props) {
     };
 
     const handleData = (data: string) => {
+      if (isTerminalBusyRef.current) {
+        return;
+      }
+
       if (data === '\u0003') {
         term.writeln('^C');
         inputRef.current = '';
+        cursorIndexRef.current = 0;
         historyIndexRef.current = null;
         renderPrompt();
         return;
@@ -140,9 +237,10 @@ export function TerminalWindow({ height, className }: Props) {
         term.writeln('');
         historyIndexRef.current = null;
         inputRef.current = '';
+        cursorIndexRef.current = 0;
         if (raw.trim().length > 0) {
           lastSubmittedCommandRef.current = raw;
-          runCommandRef.current(raw);
+          void runCommandRef.current(raw);
         } else {
           renderPrompt();
         }
@@ -150,9 +248,13 @@ export function TerminalWindow({ height, className }: Props) {
       }
 
       if (data === '\u007f') {
-        if (inputRef.current.length > 0) {
-          inputRef.current = inputRef.current.slice(0, -1);
-          term.write('\b \b');
+        if (cursorIndexRef.current > 0) {
+          const value = inputRef.current;
+          const nextCursorIndex = cursorIndexRef.current - 1;
+          inputRef.current =
+            value.slice(0, nextCursorIndex) + value.slice(cursorIndexRef.current);
+          cursorIndexRef.current = nextCursorIndex;
+          renderPrompt();
         }
         return;
       }
@@ -165,13 +267,30 @@ export function TerminalWindow({ height, className }: Props) {
         handleHistory('down');
         return;
       }
+      if (data === '\u001b[D') {
+        if (cursorIndexRef.current > 0) {
+          cursorIndexRef.current -= 1;
+          term.write('\u001b[D');
+        }
+        return;
+      }
+      if (data === '\u001b[C') {
+        if (cursorIndexRef.current < inputRef.current.length) {
+          cursorIndexRef.current += 1;
+          term.write('\u001b[C');
+        }
+        return;
+      }
 
       if (data.startsWith('\u001b')) {
         return;
       }
 
-      inputRef.current += data;
-      term.write(data);
+      const value = inputRef.current;
+      const cursorIndex = cursorIndexRef.current;
+      inputRef.current = value.slice(0, cursorIndex) + data + value.slice(cursorIndex);
+      cursorIndexRef.current = cursorIndex + data.length;
+      renderPrompt();
     };
 
     const dataDisposable = term.onData(handleData);
@@ -180,6 +299,7 @@ export function TerminalWindow({ height, className }: Props) {
     return () => {
       dataDisposable.dispose();
       window.removeEventListener('resize', handleResize);
+      resizeObserver?.disconnect();
       term.dispose();
       termRef.current = null;
       fitAddonRef.current = null;
@@ -190,10 +310,22 @@ export function TerminalWindow({ height, className }: Props) {
     const term = termRef.current;
     if (!term) return;
 
+    if (!('options' in term) || typeof term.options === 'undefined') {
+      return;
+    }
+
+    term.options.theme = getTerminalTheme(isLightTheme);
+  }, [isLightTheme]);
+
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+
     if (lastOutputIndexRef.current > output.length) {
       term.clear();
       lastOutputIndexRef.current = 0;
       inputRef.current = '';
+      cursorIndexRef.current = 0;
       historyIndexRef.current = null;
       lastSubmittedCommandRef.current = null;
     }
@@ -220,6 +352,10 @@ export function TerminalWindow({ height, className }: Props) {
     term.write('\r');
     term.write('\u001b[2K');
     term.write(`${promptRef.current}${inputRef.current}`);
+    const moveLeft = inputRef.current.length - cursorIndexRef.current;
+    if (moveLeft > 0) {
+      term.write(`\u001b[${moveLeft}D`);
+    }
   }, [output]);
 
   useEffect(() => {
@@ -230,10 +366,11 @@ export function TerminalWindow({ height, className }: Props) {
 
   return (
     <div
-      className={`flex flex-col rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm overflow-hidden min-h-0 max-h-full ${className ?? ''}`}
+      ref={rootRef}
+      className={`flex min-h-0 max-h-full flex-col overflow-hidden rounded-lg border border-yellow-400/25 bg-mist-950/80 shadow-lg backdrop-blur-sm dark:border-mist-300 dark:bg-mist-100 ${className ?? ''}`}
       style={height ? { height } : undefined}
     >
-      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80">
+      <div className="flex items-center gap-2 border-b border-yellow-400/15 px-3 py-2 text-[11px] uppercase tracking-[0.08em] text-yellow-200/80 dark:text-mist-900 dark:border-mist-300">
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
         terminal dojo
       </div>
@@ -241,7 +378,7 @@ export function TerminalWindow({ height, className }: Props) {
       <div className="flex-1 min-h-0 max-h-full px-3 py-3 scrollbar-thin">
         <div
           ref={containerRef}
-          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner"
+          className="h-full w-full rounded-md border border-yellow-400/20 bg-[radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.08),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.07),transparent_40%),#0b0f19] shadow-inner dark:border-mist-300 dark:bg-[linear-gradient(180deg,#ffffff_0%,#eef2f6_100%)]"
         />
       </div>
     </div>

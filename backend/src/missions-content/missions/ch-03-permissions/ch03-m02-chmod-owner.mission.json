@@ -1,0 +1,58 @@
+{
+  "id": "ch03-m02-chmod-owner",
+  "version": 1,
+  "chapterId": "ch-03-permissions",
+  "title": "Change file permissions",
+  "difficulty": "easy",
+  "estimatedMinutes": 3,
+  "shortDescription": "Make script.sh executable with chmod 755.",
+  "descriptionMd": "## chmod\n\n`chmod <mode> <file>` changes permissions. Mode `755` grants owner full access and group/others read+execute.",
+  "goalMd": "Run `chmod 755 script.sh`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "script.sh",
+                  "content": "#!/bin/bash\necho hello\n",
+                  "permissions": "644"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "path_exists",
+      "path": "/home/dojo/script.sh"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `chmod 755 script.sh`."
+    }
+  ],
+  "allowedCommands": ["chmod", "ls", "help"]
+}

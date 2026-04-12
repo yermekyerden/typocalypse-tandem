@@ -2,15 +2,20 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/co
 import {
   ApiBearerAuth,
   ApiConflictResponse,
+  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiTags,
+  ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { buildOkResponse } from '../common/response.helper';
+import { ApiOkEnvelopeOf } from '../common/api-ok-envelope.dto';
 import { AttemptsService } from './attempts.service';
 import { CreateAttemptDto } from './dto/create-attempt.dto';
+import { CreateAttemptResponseDto } from './dto/create-attempt-response.dto';
 import { SubmitCommandDto } from './dto/submit-command.dto';
 
 @ApiTags('attempts')
@@ -21,10 +26,12 @@ export class AttemptsController {
   constructor(private readonly attemptsService: AttemptsService) {}
 
   @Post()
-  @ApiOkResponse({ description: 'Creates a new in-progress attempt.' })
+  @ApiCreatedResponse({ type: ApiOkEnvelopeOf(CreateAttemptResponseDto) })
+  @ApiNotFoundResponse({ description: 'Lesson not found.' })
+  @ApiUnprocessableEntityResponse({ description: 'Lesson exists but has no mission mapping.' })
   async createAttempt(@CurrentUser() user: { id: string }, @Body() dto: CreateAttemptDto) {
     const data = await this.attemptsService.createAttempt(user.id, dto);
-    return { ok: true, data };
+    return buildOkResponse(data);
   }
 
   @Get(':id')
@@ -33,7 +40,7 @@ export class AttemptsController {
   @ApiForbiddenResponse({ description: 'Attempt belongs to another user.' })
   async getAttempt(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     const data = await this.attemptsService.getAttempt(user.id, id);
-    return { ok: true, data };
+    return buildOkResponse(data);
   }
 
   @Patch(':id/command')
@@ -46,7 +53,7 @@ export class AttemptsController {
     @Body() dto: SubmitCommandDto,
   ) {
     const data = await this.attemptsService.submitCommand(user.id, id, dto);
-    return { ok: true, data };
+    return buildOkResponse(data);
   }
 
   @Patch(':id/abandon')
@@ -55,6 +62,6 @@ export class AttemptsController {
   @ApiConflictResponse({ description: 'Attempt is already finished.' })
   async abandonAttempt(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     const data = await this.attemptsService.abandonAttempt(user.id, id);
-    return { ok: true, data };
+    return buildOkResponse(data);
   }
 }

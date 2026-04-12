@@ -1,0 +1,58 @@
+{
+  "id": "ch04-m05-cat-rsschool-journey",
+  "version": 1,
+  "chapterId": "ch-04-file-ops",
+  "title": "Read your journey file",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Display the contents of journey.txt.",
+  "descriptionMd": "## Verify your work\n\nUse `cat journey.txt` to confirm the file contains the expected content.",
+  "goalMd": "Run `cat journey.txt`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "journey.txt",
+                  "content": "My RS School journey begins here.\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "journey"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cat journey.txt`."
+    }
+  ],
+  "allowedCommands": ["cat", "ls", "help"]
+}

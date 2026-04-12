@@ -1,0 +1,56 @@
+{
+  "id": "ch01-m09-touch-first-task",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Create your first file",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use touch to create an empty file.",
+  "descriptionMd": "## Creating files\n\n`touch <filename>` creates an empty file. It is commonly used to create placeholder files.",
+  "goalMd": "Run `touch first.txt` to create the file.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "path_exists",
+      "path": "/home/dojo/first.txt",
+      "expectedKind": "file"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `touch first.txt` and press Enter."
+    }
+  ],
+  "allowedCommands": [
+    "touch",
+    "ls",
+    "help"
+  ]
+}

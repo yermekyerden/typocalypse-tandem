@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/authStore';
+import { getApiBaseUrl } from './client';
 
 interface AuthResponse {
   user: {
@@ -26,7 +27,10 @@ interface RegisterCredentials {
 }
 
 class AuthService {
-  private baseUrl = '/api';
+  private get baseUrl() {
+    return getApiBaseUrl();
+  }
+
   private isRefreshing = false;
   private refreshPromise: Promise<void> | null = null;
 
@@ -37,7 +41,6 @@ class AuthService {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(credentials),
-      credentials: 'include',
     });
 
     if (!response.ok) {
@@ -180,6 +183,23 @@ class AuthService {
       const data = await response.json().catch(() => null);
       throw new Error(data?.message || 'Failed to change password');
     }
+  }
+
+  async updateAvatar(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const response = await this.fetchWithAuth(`${this.baseUrl}/profile/me/avatar`, {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) throw new Error('Failed to update avatar');
+  }
+
+  async removeAvatar(): Promise<void> {
+    const response = await this.fetchWithAuth(`${this.baseUrl}/profile/me/avatar`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) throw new Error('Failed to remove avatar');
   }
 }
 

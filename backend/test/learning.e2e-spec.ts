@@ -30,9 +30,19 @@ function toRecord(value: unknown): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function assertApiOkEnvelope(body: unknown): Record<string, unknown> {
+  const root = toRecord(body);
+  if (root['ok'] !== true) throw new Error('Expected ok: true');
+  if (typeof root['contractsVersion'] !== 'string')
+    throw new Error('Expected contractsVersion string');
+  if (typeof root['serverTimeUtc'] !== 'string') throw new Error('Expected serverTimeUtc string');
+  return toRecord(root['data']);
+}
+
 function asModules(value: unknown): ModuleOverview[] {
-  const root = toRecord(value);
-  const modules = root.modules;
+  // Unwrap ApiOk<T> envelope: value is the full response body
+  const data = assertApiOkEnvelope(value);
+  const modules = data.modules;
   if (!Array.isArray(modules)) {
     throw new Error('Expected modules array');
   }
@@ -105,11 +115,17 @@ describe('Learning API (e2e)', () => {
     await request(app.getHttpServer()).get('/learning/overview').expect(401);
   });
 
-  it('GET /learning/overview returns ordered modules with default heuristic statuses', async () => {
+  it('GET /learning/overview returns ApiOk envelope with ordered modules and statuses', async () => {
     const response = await request(app.getHttpServer())
       .get('/learning/overview')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
+
+    // Assert envelope presence
+    const body = toRecord(response.body as unknown);
+    expect(body['ok']).toBe(true);
+    expect(typeof body['contractsVersion']).toBe('string');
+    expect(typeof body['serverTimeUtc']).toBe('string');
 
     const modules = asModules(response.body as unknown);
     expect(modules.length).toBeGreaterThan(0);
@@ -138,7 +154,13 @@ describe('Learning API (e2e)', () => {
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200);
 
-    const lesson = toRecord(toRecord(response.body as unknown).lesson);
+    // Assert full ApiOk<T> envelope
+    const body = toRecord(response.body as unknown);
+    expect(body['ok']).toBe(true);
+    expect(typeof body['contractsVersion']).toBe('string');
+    expect(typeof body['serverTimeUtc']).toBe('string');
+
+    const lesson = toRecord(toRecord(body['data'])['lesson']);
     expect(lesson).toEqual(
       expect.objectContaining({
         id: firstLessonId,
@@ -152,8 +174,9 @@ describe('Learning API (e2e)', () => {
         /* eslint-enable @typescript-eslint/no-unsafe-assignment */
       }),
     );
-    expect(lesson.expectedCommand).toBeUndefined();
-    expect(lesson.runtime).toBeUndefined();
+    expect(lesson['expectedCommand']).toBeUndefined();
+    expect(lesson['runtime']).toBeUndefined();
+    expect(lesson['missionId']).toBeUndefined();
   });
 
   it('GET /lessons/:id returns 404 for unknown lesson', async () => {

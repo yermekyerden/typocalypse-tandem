@@ -1,18 +1,21 @@
 import GitHubLogo from '@/assets/icons/GitHub.png';
+import { useI18n } from '@/i18n/useI18n';
 
 export function Footer() {
+  const { t } = useI18n();
+
   return (
-    <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3">
+    <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3 dark:bg-none dark:bg-mist-300">
       <div className="mx-auto flex items-center justify-between max-w-8xl px-4">
-        <p className="text-sm">&copy; 2026 Terminal Dojo</p>
+        <p className="text-sm dark:text-mist-900">&copy; 2026 {t('common.appName')}</p>
 
         <a
           href="https://rs.school/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm hover:text-yellow-400"
+          className="text-sm hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900"
         >
-          The Rolling Scopes School
+          {t('footer.school')}
         </a>
 
         <a
@@ -20,9 +23,13 @@ export function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm hover:text-yellow-400"
-          aria-label="Go to GitHub repository"
+          aria-label={t('navigation.githubRepository')}
         >
-          <img src={GitHubLogo} alt="" className="h-6 w-6" />
+          <img
+            src={GitHubLogo}
+            alt=""
+            className="h-6 w-6 dark:drop-shadow-[0_0_10px_rgba(99,102,241,0.9)]"
+          />
         </a>
       </div>
     </footer>

@@ -1,0 +1,62 @@
+{
+  "id": "ch01-m06-cd-training",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Change directory",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use cd to navigate into the projects directory.",
+  "descriptionMd": "## Moving around\n\n`cd <directory>` changes your current working directory. Navigate into a subdirectory by name.",
+  "goalMd": "Run `cd projects` to enter the projects directory.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "dir",
+                  "name": "projects",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo/projects"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `cd projects` to enter the projects directory."
+    }
+  ],
+  "allowedCommands": [
+    "cd",
+    "ls",
+    "pwd",
+    "help"
+  ]
+}

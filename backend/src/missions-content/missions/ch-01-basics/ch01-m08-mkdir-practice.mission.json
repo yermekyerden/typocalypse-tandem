@@ -1,0 +1,63 @@
+{
+  "id": "ch01-m08-mkdir-practice",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Make a directory",
+  "difficulty": "easy",
+  "estimatedMinutes": 3,
+  "shortDescription": "Create practice_arena and navigate into it.",
+  "descriptionMd": "## Create and enter a directory\n\n`mkdir <name>` creates a directory. Chain commands with `&&` to run the next only if the first succeeds.",
+  "goalMd": "Run `mkdir practice_arena && cd practice_arena`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "cwd_is",
+      "expectedPath": "/home/dojo/practice_arena"
+    },
+    {
+      "id": "check-03",
+      "type": "path_exists",
+      "path": "/home/dojo/practice_arena",
+      "expectedKind": "dir"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `mkdir practice_arena && cd practice_arena`."
+    }
+  ],
+  "allowedCommands": [
+    "mkdir",
+    "cd",
+    "ls",
+    "pwd",
+    "help"
+  ]
+}

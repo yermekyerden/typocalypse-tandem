@@ -1,0 +1,62 @@
+{
+  "id": "ch01-m04-cat-hidden",
+  "version": 1,
+  "chapterId": "ch-01-basics",
+  "title": "Read a hidden file",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Use cat to read the hidden .profile file.",
+  "descriptionMd": "## Hidden files are just files\n\nA hidden file (starting with `.`) is read the same way as any other file — just use `cat .profile`.",
+  "goalMd": "Run `cat .profile` to display its contents.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": ".profile",
+                  "content": "export PATH=$PATH:/usr/local/bin\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "PATH"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Type `cat .profile` including the leading dot."
+    }
+  ],
+  "allowedCommands": [
+    "cat",
+    "ls",
+    "help"
+  ]
+}

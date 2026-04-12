@@ -1,0 +1,53 @@
+{
+  "id": "ch03-m03-cat-protected",
+  "version": 1,
+  "chapterId": "ch-03-permissions",
+  "title": "Read a protected file",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Observe the permission denied error when reading a 000-permission file.",
+  "descriptionMd": "## Permission denied\n\nA file with permissions `000` cannot be read by anyone. Attempting `cat` on it shows the error. Understanding errors is part of learning.",
+  "goalMd": "Run `cat protected.txt` — observe the Permission denied error.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "protected.txt",
+                  "content": "top secret content\n",
+                  "permissions": "000"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 1
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Just run `cat protected.txt` and observe the output."
+    }
+  ],
+  "allowedCommands": ["cat", "ls", "help"]
+}

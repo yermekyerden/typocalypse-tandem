@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { useI18n } from '@/i18n/useI18n';
 import { AuthForm } from './AuthForm';
 import { AuthSubmitButton } from './AuthSubmitButton';
 import { AuthTabs } from './AuthTabs';
@@ -23,6 +24,7 @@ export function AuthScreen() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>('login');
   const [values, setValues] = useState<AuthFormValues>(initialValues);
+  const { t } = useI18n();
 
   const login = useAuthStore((state) => state.login);
   const register = useAuthStore((state) => state.register);
@@ -69,13 +71,15 @@ export function AuthScreen() {
 
   return (
     <>
-      <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 min-h-dvh">
+      <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 min-h-dvh dark:bg-none dark:bg-mist-200">
         <div className="mx-auto h-full flex items-center justify-center">
-          <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md">
+          <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm w-full max-w-md dark:bg-none dark:bg-mist-300">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-bold text-yellow-400">Terminal Dojo</h1>
-              <p className="text-white/60 mt-2">
-                {mode === 'login' ? 'Welcome back' : 'Create an account'}
+              <h1 className="text-4xl font-bold text-yellow-400 dark:text-mist-900">
+                {t('common.appName')}
+              </h1>
+              <p className="text-white/60 mt-2 dark:text-mist-900">
+                {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
               </p>
             </div>
 

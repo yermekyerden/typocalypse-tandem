@@ -1,0 +1,58 @@
+{
+  "id": "ch04-m02-cat-rsschool-notes",
+  "version": 1,
+  "chapterId": "ch-04-file-ops",
+  "title": "Display your notes",
+  "difficulty": "easy",
+  "estimatedMinutes": 2,
+  "shortDescription": "Read notes.txt with cat.",
+  "descriptionMd": "## Read your notes\n\nUse `cat notes.txt` to display the pre-seeded notes content.",
+  "goalMd": "Run `cat notes.txt`.",
+  "initialCwd": "/home/dojo",
+  "initialFs": {
+    "root": {
+      "type": "dir",
+      "name": "",
+      "children": [
+        {
+          "type": "dir",
+          "name": "home",
+          "children": [
+            {
+              "type": "dir",
+              "name": "dojo",
+              "children": [
+                {
+                  "type": "file",
+                  "name": "notes.txt",
+                  "content": "RS School Node.js course notes\nStarted: today\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "check-01",
+      "type": "exit_code_is",
+      "expectedExitCode": 0
+    },
+    {
+      "id": "check-02",
+      "type": "output_contains",
+      "stream": "stdout",
+      "text": "RS School"
+    }
+  ],
+  "hints": [
+    {
+      "id": "hint-01",
+      "order": 1,
+      "textMd": "Use `cat notes.txt`."
+    }
+  ],
+  "allowedCommands": ["cat", "ls", "help"]
+}

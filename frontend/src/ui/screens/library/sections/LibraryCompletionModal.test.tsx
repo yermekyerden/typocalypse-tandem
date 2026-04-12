@@ -34,18 +34,17 @@ describe('LibraryCompletionModal', () => {
       <LibraryCompletionModal
         module={{
           id: 'module-1',
+          slug: 'module-1',
           title: 'Command Line Basics',
           description: 'Intro module',
           order: 1,
           lessons: [
             {
               id: 'lesson-1',
+              slug: 'lesson-1',
               title: 'First lesson',
               order: 1,
               status: 'completed',
-              theory: 'Theory',
-              task: 'Task',
-              expectedCommand: 'ls',
             },
           ],
         }}

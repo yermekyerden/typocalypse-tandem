@@ -496,7 +496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LearningOverviewResponseDto"
+                  "$ref": "#/components/schemas/ApiOkEnvelope_LearningOverviewResponseDto"
                 }
               }
             }
@@ -510,7 +510,7 @@
             "access-token": []
           }
         ],
-        "summary": "Get module and lesson overview for the curriculum",
+        "summary": "Get module and lesson overview with per-user lesson statuses",
         "tags": [
           "Learning"
         ]
@@ -535,7 +535,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LearningLessonDetailResponseDto"
+                  "$ref": "#/components/schemas/ApiOkEnvelope_LearningLessonDetailResponseDto"
                 }
               }
             }
@@ -613,8 +613,21 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Creates a new in-progress attempt."
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiOkEnvelope_CreateAttemptResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lesson not found."
+          },
+          "422": {
+            "description": "Lesson exists but has no mission mapping."
           }
         },
         "security": [
@@ -755,6 +768,50 @@
         ],
         "tags": [
           "progress"
+        ]
+      }
+    },
+    "/assistant/attempts/{attemptId}": {
+      "post": {
+        "operationId": "AssistantController_askForAttempt",
+        "parameters": [
+          {
+            "name": "attemptId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskAssistantRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Returns an AI hint for the current attempt."
+          },
+          "404": {
+            "description": "Attempt or mission not found."
+          },
+          "409": {
+            "description": "Assistant is not available for completed or abandoned attempts."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "tags": [
+          "assistant"
         ]
       }
     }
@@ -1066,6 +1123,32 @@
           "modules"
         ]
       },
+      "ApiOkEnvelope_LearningOverviewResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
+            "type": "string",
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LearningOverviewResponseDto"
+          }
+        },
+        "required": [
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
+        ]
+      },
       "LessonDetailDto": {
         "type": "object",
         "properties": {
@@ -1128,16 +1211,92 @@
           "lesson"
         ]
       },
-      "CreateAttemptDto": {
+      "ApiOkEnvelope_LearningLessonDetailResponseDto": {
         "type": "object",
         "properties": {
-          "missionId": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
             "type": "string",
-            "description": "The mission to attempt."
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/LearningLessonDetailResponseDto"
           }
         },
         "required": [
-          "missionId"
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
+        ]
+      },
+      "CreateAttemptDto": {
+        "type": "object",
+        "properties": {
+          "lessonId": {
+            "type": "string",
+            "description": "The lesson to start. Must exist in the learning content."
+          }
+        },
+        "required": [
+          "lessonId"
+        ]
+      },
+      "CreateAttemptResponseDto": {
+        "type": "object",
+        "properties": {
+          "attemptId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "initialCwd": {
+            "type": "string",
+            "example": "/home"
+          },
+          "initialFs": {
+            "type": "object",
+            "description": "Initial virtual filesystem snapshot. Shape: { root: VfsDirNode }",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "attemptId",
+          "initialCwd",
+          "initialFs"
+        ]
+      },
+      "ApiOkEnvelope_CreateAttemptResponseDto": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "contractsVersion": {
+            "type": "string",
+            "example": "0.2.0"
+          },
+          "serverTimeUtc": {
+            "type": "string",
+            "example": "2026-03-30T12:00:00.000Z"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreateAttemptResponseDto"
+          }
+        },
+        "required": [
+          "ok",
+          "contractsVersion",
+          "serverTimeUtc",
+          "data"
         ]
       },
       "SubmitCommandDto": {
@@ -1155,6 +1314,19 @@
         "required": [
           "command",
           "clientCommandId"
+        ]
+      },
+      "AskAssistantRequestDto": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "description": "User question for the assistant.",
+            "example": "Give me a hint without solving the mission."
+          }
+        },
+        "required": [
+          "question"
         ]
       }
     }

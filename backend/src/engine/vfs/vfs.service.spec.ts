@@ -6,8 +6,9 @@ import {
   vfsTouch,
   vfsWriteFile,
   vfsRemoveFile,
+  vfsChmod,
 } from './vfs.service';
-import { VfsSnapshot } from '../engine.types';
+import { VfsDirNode, VfsFileNode, VfsSnapshot } from '../engine.types';
 
 function expectVfsSuccess(result: ReturnType<typeof vfsMkdir>): VfsSnapshot {
   expect('root' in result).toBe(true);
@@ -146,12 +147,13 @@ describe('VfsService', () => {
       expect(result.type).toBe('path_not_found');
     });
 
+    it('enforces maxNodes budget', () => {
       const snapshot: VfsSnapshot = {
         ...makeSnapshot(),
         budgets: { maxNodes: 3, maxDepth: 10, maxFileBytes: 65536 },
       };
       const result = vfsMkdir(snapshot, '/home/dojo/projects');
-      
+
       expect('root' in result).toBe(false);
       expect(result.type).toBe('budget_exceeded');
       expect(result.budget).toBe('max_vfs_nodes');
@@ -214,6 +216,98 @@ describe('VfsService', () => {
 
       expect(result.type).toBe('budget_exceeded');
       expect(result.budget).toBe('max_file_bytes');
+    });
+  });
+
+  describe('permissions defaults', () => {
+    it('vfsMkdir creates directory with default permissions "755"', () => {
+      const result = expectVfsSuccess(vfsMkdir(makeSnapshot(), '/home/dojo/projects'));
+      const node = vfsResolve(result, '/home/dojo/projects') as VfsDirNode;
+
+      expect(node.permissions).toBe('755');
+    });
+
+    it('vfsTouch creates file with default permissions "644"', () => {
+      const result = expectVfsSuccess(vfsTouch(makeSnapshot(), '/home/dojo/newfile.txt'));
+      const node = vfsResolve(result, '/home/dojo/newfile.txt') as VfsFileNode;
+
+      expect(node.permissions).toBe('644');
+    });
+
+    it('vfsWriteFile creates new file with default permissions "644"', () => {
+      const result = expectVfsSuccess(
+        vfsWriteFile(makeSnapshot(), '/home/dojo/new.txt', 'hello', false),
+      );
+      const node = vfsResolve(result, '/home/dojo/new.txt') as VfsFileNode;
+
+      expect(node.permissions).toBe('644');
+    });
+
+    it('vfsWriteFile overwrites preserve existing permissions', () => {
+      const snap: VfsSnapshot = {
+        root: {
+          type: 'dir',
+          name: '',
+          children: [
+            {
+              type: 'dir',
+              name: 'home',
+              children: [
+                {
+                  type: 'dir',
+                  name: 'dojo',
+                  children: [
+                    {
+                      type: 'file',
+                      name: 'readme.txt',
+                      content: 'hello\n',
+                      permissions: '600',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      };
+      const result = expectVfsSuccess(
+        vfsWriteFile(snap, '/home/dojo/readme.txt', 'new content', false),
+      );
+      const node = vfsResolve(result, '/home/dojo/readme.txt') as VfsFileNode;
+
+      expect(node.permissions).toBe('600');
+    });
+  });
+
+  describe('vfsChmod', () => {
+    it('sets permissions on an existing file', () => {
+      const result = expectVfsSuccess(vfsChmod(makeSnapshot(), '/home/dojo/readme.txt', '600'));
+      const node = vfsResolve(result, '/home/dojo/readme.txt') as VfsFileNode;
+
+      expect(node.permissions).toBe('600');
+    });
+
+    it('sets permissions on a directory', () => {
+      const result = expectVfsSuccess(vfsChmod(makeSnapshot(), '/home/dojo', '700'));
+      const node = vfsResolve(result, '/home/dojo') as VfsDirNode;
+
+      expect(node.permissions).toBe('700');
+    });
+
+    it('returns invalid_arguments for non-octal mode string', () => {
+      const result = vfsChmod(makeSnapshot(), '/home/dojo/readme.txt', 'abc');
+
+      expect('root' in result).toBe(false);
+      if ('root' in result) throw new Error('Expected error');
+      expect(result.type).toBe('invalid_arguments');
+    });
+
+    it('returns path_not_found for missing path', () => {
+      const result = vfsChmod(makeSnapshot(), '/home/dojo/ghost.txt', '644');
+
+      expect('root' in result).toBe(false);
+      if ('root' in result) throw new Error('Expected error');
+      expect(result.type).toBe('path_not_found');
     });
   });
 

@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { LibraryLessonDetails } from './LibraryLessonDetails';
@@ -23,12 +24,13 @@ describe('LibraryLessonDetails', () => {
         progress={{ completed: 0, total: 3 }}
         lesson={{
           id: 'lesson-1',
+          slug: 'lesson-1',
           title: 'List files',
           order: 1,
           status: 'active',
-          theory: '',
-          task: '',
-          expectedCommand: 'ls',
+          theoryMarkdown: '',
+          taskDescription: '',
+          hints: [],
         }}
       />,
     );
@@ -37,5 +39,32 @@ describe('LibraryLessonDetails', () => {
     expect(screen.getByRole('heading', { name: 'List files' })).toBeInTheDocument();
     expect(screen.getAllByText('—')).toHaveLength(2);
     expect(screen.getByText('0/3 steps')).toBeInTheDocument();
+  });
+
+  it('keeps hints hidden until the spoiler is expanded', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <LibraryLessonDetails
+        moduleTitle="Command Line Basics"
+        progress={{ completed: 1, total: 3 }}
+        lesson={{
+          id: 'lesson-2',
+          slug: 'lesson-2',
+          title: 'Read a file',
+          order: 2,
+          status: 'active',
+          theoryMarkdown: 'Use cat to print file content.',
+          taskDescription: 'Read mission.txt.',
+          hints: ['Try the cat command.'],
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('Try the cat command.')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Hints' }));
+
+    expect(screen.getByText('Try the cat command.')).toBeInTheDocument();
   });
 });

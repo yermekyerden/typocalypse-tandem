@@ -1,19 +1,19 @@
 import { create } from 'zustand';
 
-import { modules as modulesSource, type Lesson, type Module } from '@/mocks/modules';
+import { getLearningOverview, getLessonById } from '@/api/learning';
+import type {
+  LearningLessonDetail,
+  LearningLessonSummary,
+  LearningModule,
+} from '@/features/learning/types';
 import {
-  changeDirectory,
-  createInitialFs,
-  DEFAULT_CWD,
-  listDirectory,
-  makeDirectory,
-  readFile,
-  resolvePath,
-  setPermissions,
-  touchFile,
-  writeFileContent,
-  type VirtualFileSystem,
-} from '@/lib/virtualFs';
+  abandonAttempt,
+  createAttempt,
+  submitCommand,
+  type AttemptStatus,
+  type ValidationResult,
+} from '@/api/attempts';
+import { ApiError } from '@/api/client';
 
 export type OutputKind = 'stdout' | 'stderr' | 'system';
 
@@ -25,70 +25,34 @@ export type OutputLine = {
   timestamp: number;
 };
 
+type TerminalAttempt = {
+  attemptId: string;
+  lessonId: string;
+  status: AttemptStatus;
+};
+
 type TerminalState = {
-  modules: Module[];
+  modules: LearningModule[];
   activeModuleId: string | null;
   activeLessonId: string | null;
   expandedModuleId: string | null;
   completedModuleId: string | null;
+  lessonDetailsById: Record<string, LearningLessonDetail>;
+  apiError: string | null;
+  isBootstrapping: boolean;
+  isLessonLoading: boolean;
+  isTerminalBusy: boolean;
   cwd: string;
-  fs: VirtualFileSystem;
   history: string[];
   output: OutputLine[];
+  activeAttempt: TerminalAttempt | null;
+  initialize: () => Promise<void>;
   setExpandedModuleId: (moduleId: string | null) => void;
-  setActiveLesson: (lessonId: string) => void;
-  completeLesson: (lessonId: string) => void;
-  unlockNextLesson: (lessonId: string) => void;
-  pushOutput: (text: string, kind?: OutputKind, lessonId?: string) => void;
-  runCommand: (input: string) => void;
+  setActiveLesson: (lessonId: string) => Promise<void>;
+  runCommand: (input: string) => Promise<void>;
   acknowledgeModuleCompletion: () => void;
-  resetSession: () => void;
+  resetSession: () => Promise<void>;
 };
-
-function cloneModules(): Module[] {
-  return modulesSource.map((module) => ({
-    ...module,
-    lessons: module.lessons.map((lesson) => ({ ...lesson })),
-  }));
-}
-
-function normalizeModules(modules: Module[]): {
-  modules: Module[];
-  activeModuleId: string | null;
-  activeLessonId: string | null;
-} {
-  let activeFound = false;
-  let activeModuleId: string | null = null;
-  let activeLessonId: string | null = null;
-
-  const normalized: Module[] = modules.map((module) => {
-    const lessons: Lesson[] = module.lessons.map((lesson) => {
-      if (lesson.status === 'active') {
-        if (activeFound) {
-          return { ...lesson, status: 'locked' };
-        }
-        activeFound = true;
-        activeModuleId = module.id;
-        activeLessonId = lesson.id;
-        return lesson;
-      }
-      return lesson;
-    });
-    return { ...module, lessons };
-  });
-
-  if (!activeFound && normalized.length > 0) {
-    const firstModule = normalized[0];
-    const firstLesson = firstModule.lessons[0];
-    if (firstLesson) {
-      activeModuleId = firstModule.id;
-      activeLessonId = firstLesson.id;
-      firstLesson.status = 'active';
-    }
-  }
-
-  return { modules: normalized, activeModuleId, activeLessonId };
-}
 
 function createOutputLine(
   text: string,
@@ -104,560 +68,456 @@ function createOutputLine(
   };
 }
 
-function getNextLesson(
-  modules: Module[],
-  currentLessonId: string | null,
-): { lesson: Module['lessons'][number]; moduleId: string } | null {
-  for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex += 1) {
-    const module = modules[moduleIndex];
-    for (let i = 0; i < module.lessons.length; i += 1) {
-      const lesson = module.lessons[i];
-      if (lesson.id === currentLessonId) {
-        const nextLesson = module.lessons[i + 1];
-        if (nextLesson) {
-          return { lesson: nextLesson, moduleId: module.id };
-        }
-        const nextModule = modules[moduleIndex + 1];
-        const firstLessonOfNextModule = nextModule?.lessons[0];
-        if (nextModule && firstLessonOfNextModule) {
-          return { lesson: firstLessonOfNextModule, moduleId: nextModule.id };
-        }
-        return null;
+function appendOutputLines(
+  current: OutputLine[],
+  text: string,
+  kind: OutputKind,
+  lessonId?: string | null,
+) {
+  if (text.length === 0) {
+    return current;
+  }
+
+  const nextLines = text
+    .split('\n')
+    .map((line) => createOutputLine(line, kind, lessonId));
+  return [...current, ...nextLines];
+}
+
+function normalizeModules(modules: LearningModule[]) {
+  let activeModuleId: string | null = null;
+  let activeLessonId: string | null = null;
+  let activeFound = false;
+
+  const normalizedModules = modules.map((module) => ({
+    ...module,
+    lessons: module.lessons.map((lesson) => {
+      if (lesson.status === 'active' && !activeFound) {
+        activeFound = true;
+        activeModuleId = module.id;
+        activeLessonId = lesson.id;
+        return lesson;
       }
+
+      if (lesson.status === 'active') {
+        return { ...lesson, status: 'locked' as const };
+      }
+
+      return lesson;
+    }),
+  }));
+
+  return {
+    modules: normalizedModules,
+    activeModuleId,
+    activeLessonId,
+  };
+}
+
+function findLessonSummary(modules: LearningModule[], lessonId: string | null) {
+  if (!lessonId) {
+    return null;
+  }
+
+  for (const module of modules) {
+    const lesson = module.lessons.find((candidate) => candidate.id === lessonId);
+    if (lesson) {
+      return lesson;
     }
   }
+
   return null;
 }
 
-function normalizeCommand(value: string) {
-  // Collapse spaces and tabs but preserve newlines to allow multi-line input splitting
-  return value.trim().replace(/[ \t]+/g, ' ');
-}
+function findModuleByLessonId(modules: LearningModule[], lessonId: string | null) {
+  if (!lessonId) {
+    return null;
+  }
 
-function splitByAnd(value: string): string[] {
-  return value
-    .split(/(?:&&)|[\n;]/)
-    .map((chunk) => chunk.trim())
-    .filter(Boolean);
-}
-
-function parseArgs(command: string): string[] {
-  const matches = command.match(/"[^"]*"|>>|>|\S+/g);
-  if (!matches) return [];
-  return matches.map((token) =>
-    token.startsWith('"') && token.endsWith('"') ? token.slice(1, -1) : token,
+  return (
+    modules.find((module) => module.lessons.some((lesson) => lesson.id === lessonId)) ??
+    null
   );
 }
 
-function toPermissionString(octal: string, isDir: boolean): string | null {
-  if (!/^[0-7]{3}$/.test(octal)) return null;
-  const perms = ['---', '--x', '-w-', '-wx', 'r--', 'r-x', 'rw-', 'rwx'];
-  const chunks = octal.split('').map((d) => perms[Number(d)]);
-  return `${isDir ? 'd' : '-'}${chunks.join('')}`;
-}
-
-function commandsMatch(
-  expected: string | null,
-  actual: string,
-  expectedCwd?: string | null,
-  resultingCwd?: string,
-): boolean {
-  if (!expected) return true;
-  if (actual === expected) return true;
-  if (expected.startsWith('cd ') && actual.startsWith('cd ')) {
-    return expectedCwd ? resultingCwd === expectedCwd : false;
-  }
-  return false;
-}
-
-function hasReadPermission(node: { permissions?: string | null }) {
-  if (!node.permissions) return true;
-  return /r/.test(node.permissions);
-}
-
-function executeCommand(
-  args: string[],
-  fs: VirtualFileSystem,
-  cwd: string,
-): { lines: OutputLine[]; fs?: VirtualFileSystem; cwd?: string; clear?: boolean } {
-  const [command, ...rest] = args;
-  const lines: OutputLine[] = [];
-
-  const makeLine = (text: string, kind: OutputKind = 'stdout') =>
-    createOutputLine(text, kind);
-
-  switch (command) {
-    case 'pwd': {
-      lines.push(makeLine(cwd));
-      return { lines };
-    }
-
-    case 'ls': {
-      const flags = rest.filter((part) => part.startsWith('-'));
-      const includeHidden = flags.some((flag) => flag.includes('a'));
-      const target = rest.find((part) => !part.startsWith('-')) ?? '.';
-      const result = listDirectory(fs, cwd, target, includeHidden);
-      if (!result.ok) {
-        lines.push(makeLine(result.error.message, 'stderr'));
-        return { lines };
-      }
-      if (result.entries.length === 0) {
-        lines.push(makeLine('(no files)'));
-      } else {
-        // Render one entry per line for clarity
-        lines.push(makeLine(result.entries.join('\n')));
-      }
-      return { lines };
-    }
-
-    case 'cd': {
-      const target = rest[0] ?? '.';
-      const result = changeDirectory(fs, cwd, target);
-      if (!result.ok) {
-        lines.push(makeLine(result.error.message, 'stderr'));
-        return { lines };
-      }
-      return { lines, cwd: result.cwd };
-    }
-
-    case 'cat': {
-      const target = rest[0];
-      if (!target) {
-        lines.push(makeLine('cat: missing file operand', 'stderr'));
-        return { lines };
-      }
-      const result = readFile(fs, cwd, target);
-      if (!result.ok) {
-        if (result.error.kind === 'not-a-directory') {
-          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
-        } else if (result.error.kind === 'not-found') {
-          lines.push(makeLine(`${target}: No such file or directory`, 'stderr'));
-        } else if (result.error.kind === 'permission-denied') {
-          lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
-        } else {
-          lines.push(makeLine(result.error.message, 'stderr'));
-        }
-        return { lines };
-      }
-      if (!hasReadPermission(result)) {
-        lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
-        return { lines };
-      }
-      const content =
-        result.content.endsWith('\n') && result.content.length > 0
-          ? result.content.slice(0, -1)
-          : result.content;
-      lines.push(...content.split('\n').map((line) => makeLine(line)));
-      return { lines };
-    }
-
-    case 'wc': {
-      const flag = rest[0] === '-l' ? '-l' : null;
-      const target = flag ? rest[1] : rest[0];
-      if (!target) {
-        lines.push(makeLine('wc: missing file operand', 'stderr'));
-        return { lines };
-      }
-      const result = readFile(fs, cwd, target);
-      if (!result.ok) {
-        if (result.error.kind === 'not-a-directory') {
-          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
-        } else if (result.error.kind === 'not-found') {
-          lines.push(makeLine(`${target}: No such file or directory`, 'stderr'));
-        } else if (result.error.kind === 'permission-denied') {
-          lines.push(makeLine(`${target}: Permission denied`, 'stderr'));
-        } else {
-          lines.push(makeLine(result.error.message, 'stderr'));
-        }
-        return { lines };
-      }
-      const fileContent =
-        result.content.endsWith('\n') && result.content.length > 0
-          ? result.content.slice(0, -1)
-          : result.content;
-      const lineCount = fileContent === '' ? 0 : fileContent.split('\n').length;
-      lines.push(makeLine(`${lineCount} ${target}`));
-      return { lines };
-    }
-
-    case 'echo': {
-      if (rest.length === 0) {
-        lines.push(makeLine(''));
-        return { lines };
+function getNextLesson(
+  modules: LearningModule[],
+  currentLessonId: string,
+): { lesson: LearningLessonSummary; moduleId: string } | null {
+  for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex += 1) {
+    const module = modules[moduleIndex];
+    for (let lessonIndex = 0; lessonIndex < module.lessons.length; lessonIndex += 1) {
+      const lesson = module.lessons[lessonIndex];
+      if (lesson.id !== currentLessonId) {
+        continue;
       }
 
-      const redirectIdx = rest.findIndex((part) => part === '>' || part === '>>');
-      const messageParts =
-        redirectIdx === -1 ? rest : rest.slice(0, redirectIdx).filter(Boolean);
-      const message = messageParts.join(' ');
-
-      if (redirectIdx === -1) {
-        lines.push(makeLine(message));
-        return { lines };
+      const sameModuleNext = module.lessons[lessonIndex + 1];
+      if (sameModuleNext) {
+        return { lesson: sameModuleNext, moduleId: module.id };
       }
 
-      const operator = rest[redirectIdx];
-      const target = rest[redirectIdx + 1];
-      if (!target) {
-        lines.push(makeLine('echo: invalid syntax', 'stderr'));
-        return { lines };
+      const nextModule = modules[moduleIndex + 1];
+      const nextModuleLesson = nextModule?.lessons[0];
+      if (nextModule && nextModuleLesson) {
+        return { lesson: nextModuleLesson, moduleId: nextModule.id };
       }
 
-      const writeResult = writeFileContent(
-        fs,
-        cwd,
-        target,
-        message,
-        operator === '>>' ? 'append' : 'overwrite',
-      );
-
-      if (!writeResult.ok) {
-        if (writeResult.error.kind === 'not-a-directory') {
-          lines.push(makeLine(`${target}: Not a directory`, 'stderr'));
-        } else if (writeResult.error.kind === 'not-a-file') {
-          lines.push(makeLine(`${target}: Is a directory`, 'stderr'));
-        } else {
-          lines.push(makeLine(writeResult.error.message, 'stderr'));
-        }
-        return { lines };
-      }
-
-      return { lines, fs: writeResult.fs };
-    }
-
-    case 'mkdir': {
-      const target = rest[0];
-      if (!target) {
-        lines.push(makeLine('mkdir: missing operand', 'stderr'));
-        return { lines };
-      }
-      const result = makeDirectory(fs, cwd, target);
-      if (!result.ok) {
-        if (result.error.kind === 'already-exists') {
-          lines.push(
-            makeLine(`mkdir: cannot create directory '${target}': File exists`, 'stderr'),
-          );
-        } else {
-          lines.push(makeLine(result.error.message, 'stderr'));
-        }
-        return { lines };
-      }
-      return { lines, fs: result.fs };
-    }
-
-    case 'chmod': {
-      const mode = rest[0];
-      const target = rest[1];
-      if (!mode || !target) {
-        lines.push(makeLine('chmod: missing operand', 'stderr'));
-        return { lines };
-      }
-
-      const resolved = resolvePath(fs, cwd, target);
-      if (!resolved.ok) {
-        lines.push(makeLine(resolved.error.message, 'stderr'));
-        return { lines };
-      }
-
-      const permString = toPermissionString(mode, resolved.node.type === 'dir');
-      if (!permString) {
-        lines.push(makeLine(`chmod: invalid mode: ${mode}`, 'stderr'));
-        return { lines };
-      }
-
-      const result = setPermissions(fs, cwd, target, permString);
-      if (!result.ok) {
-        lines.push(makeLine(result.error.message, 'stderr'));
-        return { lines };
-      }
-      return { lines, fs: result.fs };
-    }
-
-    case 'touch': {
-      const target = rest[0];
-      if (!target) {
-        lines.push(makeLine('touch: missing file operand', 'stderr'));
-        return { lines };
-      }
-      const result = touchFile(fs, cwd, target);
-      if (!result.ok) {
-        lines.push(makeLine(result.error.message, 'stderr'));
-        return { lines };
-      }
-      return { lines, fs: result.fs };
-    }
-
-    case 'clear': {
-      return { lines: [], clear: true };
-    }
-
-    default: {
-      lines.push(makeLine(`${command}: command not found`, 'stderr'));
-      return { lines };
+      return null;
     }
   }
+
+  return null;
 }
 
-export const useTerminalSession = create<TerminalState>((set, get) => {
-  const { modules, activeLessonId, activeModuleId } = normalizeModules(cloneModules());
+function completeLesson(modules: LearningModule[], lessonId: string) {
+  let completedModuleId: string | null = null;
 
-  const initialData = {
-    modules,
-    activeModuleId,
-    activeLessonId,
-    expandedModuleId: activeModuleId,
-    completedModuleId: null,
-    cwd: DEFAULT_CWD,
-    fs: createInitialFs(),
-    history: [],
-    output: [],
-  };
+  const withCompleted = modules.map((module) => {
+    const lessons = module.lessons.map((lesson) =>
+      lesson.id === lessonId ? { ...lesson, status: 'completed' as const } : lesson,
+    );
+
+    if (lessons.some((lesson) => lesson.id === lessonId)) {
+      const allCompleted = lessons.every((lesson) => lesson.status === 'completed');
+      if (allCompleted) {
+        completedModuleId = module.id;
+      }
+    }
+
+    return { ...module, lessons };
+  });
+
+  const next = getNextLesson(withCompleted, lessonId);
+  const updatedModules = next
+    ? withCompleted.map((module) => ({
+        ...module,
+        lessons: module.lessons.map((lesson) =>
+          lesson.id === next.lesson.id && lesson.status === 'locked'
+            ? { ...lesson, status: 'active' as const }
+            : lesson,
+        ),
+      }))
+    : withCompleted;
 
   return {
-    ...initialData,
-    setExpandedModuleId: (moduleId: string | null) =>
-      set({
-        expandedModuleId: moduleId,
-      }),
+    modules: updatedModules,
+    nextLessonId: next?.lesson.id ?? null,
+    nextModuleId: next?.moduleId ?? null,
+    completedModuleId,
+  };
+}
 
-    setActiveLesson: (lessonId: string) =>
-      set((state) => {
-        const targetLesson = state.modules
-          .flatMap((module) => module.lessons)
-          .find((lesson) => lesson.id === lessonId);
+function getReadableError(error: unknown) {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
 
-        // Do not allow selecting locked lessons
-        if (!targetLesson || targetLesson.status === 'locked') {
-          return state;
-        }
+  if (error instanceof Error) {
+    return error.message;
+  }
 
-        const updatedModules: Module[] = state.modules.map((module) => ({
-          ...module,
-          lessons: module.lessons.map<Lesson>((lesson) => {
-            if (lesson.id === lessonId) {
-              return {
-                ...lesson,
-                status: lesson.status === 'completed' ? 'completed' : 'active',
-              };
-            }
-            if (lesson.status === 'active') {
-              return { ...lesson, status: 'locked' };
-            }
-            return lesson;
-          }),
-        }));
+  return 'Unexpected frontend error';
+}
 
-        const moduleOfLesson = updatedModules.find((mod) =>
-          mod.lessons.some((lesson) => lesson.id === lessonId),
-        );
+async function ensureLessonLoaded(lessonId: string) {
+  const existing = useTerminalSession.getState().lessonDetailsById[lessonId];
+  if (existing) {
+    return existing;
+  }
 
-        return {
-          modules: updatedModules,
-          activeLessonId: lessonId,
-          activeModuleId: moduleOfLesson?.id ?? state.activeModuleId,
-          expandedModuleId: moduleOfLesson?.id ?? state.expandedModuleId,
-        };
-      }),
+  useTerminalSession.setState({ isLessonLoading: true, apiError: null });
 
-    completeLesson: (lessonId: string) =>
-      set((state) => {
-        let nextLessonId: string | null = null;
-        let nextModuleId: string | null = null;
-        let updatedModules: Module[] = state.modules.map((module) => {
-          const lessons: Lesson[] = module.lessons.map((lesson, index) => {
-            if (lesson.id === lessonId) {
-              nextLessonId = module.lessons[index + 1]?.id ?? null;
-              nextModuleId = nextLessonId ? module.id : null;
-              return { ...lesson, status: 'completed' };
-            }
-            return lesson;
-          });
+  try {
+    const response = await getLessonById(lessonId);
+    useTerminalSession.setState((state) => ({
+      lessonDetailsById: {
+        ...state.lessonDetailsById,
+        [lessonId]: response.lesson,
+      },
+      isLessonLoading: false,
+    }));
+    return response.lesson;
+  } catch (error) {
+    useTerminalSession.setState({
+      isLessonLoading: false,
+      apiError: getReadableError(error),
+    });
+    throw error;
+  }
+}
 
-          if (nextLessonId) {
-            return {
-              ...module,
-              lessons: lessons.map((lesson) =>
-                lesson.id === nextLessonId ? { ...lesson, status: 'active' } : lesson,
-              ),
-            };
-          }
+async function ensureAttemptForLesson(lessonId: string) {
+  const state = useTerminalSession.getState();
 
-          return { ...module, lessons };
-        });
+  if (
+    state.activeAttempt &&
+    state.activeAttempt.lessonId === lessonId &&
+    state.activeAttempt.status === 'in_progress'
+  ) {
+    return state.activeAttempt;
+  }
 
-        if (!nextLessonId) {
-          const acrossModules = getNextLesson(updatedModules, lessonId);
-          nextLessonId = acrossModules?.lesson.id ?? null;
-          nextModuleId = acrossModules?.moduleId ?? nextModuleId;
+  const response = await createAttempt(lessonId);
+  const nextAttempt: TerminalAttempt = {
+    attemptId: response.attemptId,
+    lessonId,
+    status: 'in_progress',
+  };
 
-          if (nextLessonId) {
-            updatedModules = updatedModules.map((module) => ({
-              ...module,
-              lessons: module.lessons.map((lesson) =>
-                lesson.id === nextLessonId ? { ...lesson, status: 'active' } : lesson,
-              ),
-            }));
-          }
-        }
-
-        // Only mark module as completed if all lessons in that module are completed
-        const moduleOwner = updatedModules.find((module) =>
-          module.lessons.some((lesson) => lesson.id === lessonId),
-        );
-        const allLessonsCompleted =
-          moduleOwner?.lessons.every((lesson) => lesson.status === 'completed') ?? false;
-
-        return {
-          modules: updatedModules,
-          activeLessonId: nextLessonId ?? state.activeLessonId,
-          activeModuleId: nextModuleId ?? state.activeModuleId,
-          expandedModuleId: nextModuleId ?? state.expandedModuleId,
-          completedModuleId: allLessonsCompleted
-            ? (moduleOwner?.id ?? null)
-            : state.completedModuleId,
-        };
-      }),
-
-    unlockNextLesson: (lessonId: string) =>
-      set((state) => {
-        let activatedNext: string | null = null;
-        let activatedModule: string | null = null;
-        const updatedModules: Module[] = state.modules.map((module) => {
-          const currentIdx = module.lessons.findIndex((lesson) => lesson.id === lessonId);
-          const next = currentIdx >= 0 ? module.lessons[currentIdx + 1] : null;
-
-          if (next && next.status === 'locked') {
-            activatedNext = next.id;
-            activatedModule = module.id;
-            return {
-              ...module,
-              lessons: module.lessons.map<Lesson>((lesson) =>
-                lesson.id === next.id ? { ...lesson, status: 'active' } : lesson,
-              ),
-            };
-          }
-
-          return module;
-        });
-
-        return {
-          modules: updatedModules,
-          activeLessonId: activatedNext ?? state.activeLessonId,
-          activeModuleId: activatedModule ?? state.activeModuleId,
-          expandedModuleId: activatedModule ?? state.expandedModuleId,
-        };
-      }),
-
-    pushOutput: (text: string, kind: OutputKind = 'stdout', lessonId?: string) =>
-      set((state) => ({
-        output: [...state.output, createOutputLine(text, kind, lessonId)],
-      })),
-
-    runCommand: (input: string) => {
-      const state = get();
-      const lines: OutputLine[] = [];
-      const history = [...state.history, input];
-
-      const prevModuleId = state.activeModuleId;
-
-      const normalizedInput = normalizeCommand(input);
-      const activeLesson =
-        state.modules
-          .flatMap((module) => module.lessons)
-          .find((lesson) => lesson.id === state.activeLessonId) ?? null;
-      const expectedCommand = activeLesson
-        ? normalizeCommand(activeLesson.expectedCommand)
-        : null;
-
-      const commandChunks = splitByAnd(normalizedInput);
-
-      let nextFs = state.fs;
-      let nextCwd = state.cwd;
-      let shouldClear = false;
-
-      lines.push(createOutputLine(`$ ${input}`, 'stdout', state.activeLessonId));
-      for (const chunk of commandChunks) {
-        const parsed = parseArgs(chunk);
-        if (parsed.length === 0) continue;
-        const execResult = executeCommand(parsed, nextFs, nextCwd);
-        nextFs = execResult.fs ?? nextFs;
-        nextCwd = execResult.cwd ?? nextCwd;
-        shouldClear = shouldClear || Boolean(execResult.clear);
-        lines.push(
-          ...execResult.lines.map((l) => ({ ...l, lessonId: state.activeLessonId })),
-        );
-      }
-
-      const meetsCommand = commandsMatch(
-        expectedCommand,
-        normalizedInput,
-        activeLesson?.expectedCwd,
-        nextCwd,
-      );
-      const meetsCwd = activeLesson?.expectedCwd
-        ? nextCwd === activeLesson.expectedCwd
-        : true;
-      const shouldComplete = Boolean(activeLesson && meetsCommand && meetsCwd);
-      if (shouldComplete) {
-        const activeModule = state.modules.find((mod) => mod.id === state.activeModuleId);
-        const totalLessons = activeModule?.lessons.length ?? 0;
-        const alreadyCompleted =
-          activeModule?.lessons.filter((l) => l.status === 'completed').length ?? 0;
-        const completedAfter =
-          alreadyCompleted + (activeLesson?.status === 'completed' ? 0 : 1);
-
-        get().completeLesson(activeLesson!.id);
-        if (activeLesson?.sampleOutput) {
-          lines.push(
-            createOutputLine(activeLesson.sampleOutput, 'stdout', activeLesson.id),
-          );
-        }
-
-        if (totalLessons > 0) {
-          lines.push(
+  useTerminalSession.setState((current) => ({
+    activeAttempt: nextAttempt,
+    cwd: response.initialCwd,
+    output:
+      current.output.length > 0
+        ? current.output
+        : [
             createOutputLine(
-              `⭐ Progress: ${completedAfter}/${totalLessons}`,
+              `Connected lesson "${lessonId}" to backend terminal runtime.`,
               'system',
-              activeLesson?.id,
+              lessonId,
             ),
-          );
-        }
-      }
+          ],
+  }));
 
-      const nextModuleId = get().activeModuleId;
-      const moduleSwitched = shouldComplete && prevModuleId !== nextModuleId;
-      const resetEnvironment = moduleSwitched;
-      const shouldResetTerminal = resetEnvironment || shouldClear;
+  return nextAttempt;
+}
 
-      set((prev) => ({
-        history: shouldResetTerminal ? [] : history,
-        fs: resetEnvironment ? createInitialFs() : nextFs,
-        cwd: resetEnvironment ? DEFAULT_CWD : nextCwd,
-        output: shouldResetTerminal ? [] : [...prev.output, ...lines],
-        completedModuleId: prev.completedModuleId,
-      }));
-    },
+function formatValidationMessage(validation: ValidationResult) {
+  if (validation.type === 'validation_ok') {
+    return 'Mission completed. The next lesson is unlocked locally in the frontend.';
+  }
 
-    acknowledgeModuleCompletion: () =>
-      set((state) => ({
-        completedModuleId: null,
-        output: state.output,
-      })),
+  const failedReport = validation.reports.find(
+    (report) => report.checkId === validation.failedCheckId,
+  );
+  return (
+    failedReport?.message ?? 'Command executed, but mission checks are not satisfied yet.'
+  );
+}
 
-    resetSession: () => {
-      const fresh = normalizeModules(cloneModules());
+export const useTerminalSession = create<TerminalState>((set, get) => ({
+  modules: [],
+  activeModuleId: null,
+  activeLessonId: null,
+  expandedModuleId: null,
+  completedModuleId: null,
+  lessonDetailsById: {},
+  apiError: null,
+  isBootstrapping: false,
+  isLessonLoading: false,
+  isTerminalBusy: false,
+  cwd: '~',
+  history: [],
+  output: [],
+  activeAttempt: null,
+
+  initialize: async () => {
+    const state = get();
+    if (state.isBootstrapping || state.modules.length > 0) {
+      return;
+    }
+
+    set({
+      isBootstrapping: true,
+      apiError: null,
+    });
+
+    try {
+      const overviewResponse = await getLearningOverview();
+      const normalized = normalizeModules(overviewResponse.modules);
+
       set({
-        ...initialData,
-        modules: fresh.modules,
-        activeLessonId: fresh.activeLessonId,
-        activeModuleId: fresh.activeModuleId,
-        expandedModuleId: fresh.activeModuleId,
+        modules: normalized.modules,
+        activeModuleId: normalized.activeModuleId,
+        activeLessonId: normalized.activeLessonId,
+        expandedModuleId: normalized.activeModuleId,
         completedModuleId: null,
-        cwd: DEFAULT_CWD,
-        fs: createInitialFs(),
+        cwd: '~',
         history: [],
         output: [],
+        activeAttempt: null,
+        isBootstrapping: false,
       });
-    },
-  };
-});
+
+      if (normalized.activeLessonId) {
+        await ensureLessonLoaded(normalized.activeLessonId);
+      }
+    } catch (error) {
+      set({
+        isBootstrapping: false,
+        apiError: getReadableError(error),
+      });
+    }
+  },
+
+  setExpandedModuleId: (moduleId) => set({ expandedModuleId: moduleId }),
+
+  setActiveLesson: async (lessonId: string) => {
+    const state = get();
+    const targetLesson = findLessonSummary(state.modules, lessonId);
+    if (!targetLesson || targetLesson.status === 'locked') {
+      return;
+    }
+
+    const module = findModuleByLessonId(state.modules, lessonId);
+
+    set({
+      activeLessonId: lessonId,
+      activeModuleId: module?.id ?? state.activeModuleId,
+      expandedModuleId: module?.id ?? state.expandedModuleId,
+      cwd: '~',
+      history: [],
+      output: [],
+      activeAttempt: null,
+      apiError: null,
+    });
+
+    try {
+      await ensureLessonLoaded(lessonId);
+    } catch {
+      // Store already contains readable API error state.
+    }
+  },
+
+  runCommand: async (input: string) => {
+    const normalizedInput = input.trim();
+    if (normalizedInput.length === 0) {
+      return;
+    }
+
+    const state = get();
+    const activeLessonId = state.activeLessonId;
+
+    if (!activeLessonId) {
+      set((current) => ({
+        output: [
+          ...current.output,
+          createOutputLine(
+            'No active lesson selected.',
+            'system',
+            current.activeLessonId,
+          ),
+        ],
+      }));
+      return;
+    }
+
+    set((current) => ({
+      isTerminalBusy: true,
+      apiError: null,
+      history: [...current.history, input],
+      output: [
+        ...current.output,
+        createOutputLine(`$ ${input}`, 'stdout', activeLessonId),
+      ],
+    }));
+
+    try {
+      await ensureLessonLoaded(activeLessonId);
+      const attempt = await ensureAttemptForLesson(activeLessonId);
+      const response = await submitCommand(
+        attempt.attemptId,
+        normalizedInput,
+        crypto.randomUUID(),
+      );
+
+      set((current) => {
+        let output = current.output;
+
+        output = appendOutputLines(output, response.stdout, 'stdout', activeLessonId);
+        output = appendOutputLines(output, response.stderr, 'stderr', activeLessonId);
+
+        const validationMessage = formatValidationMessage(response.validation);
+        if (validationMessage) {
+          output = [
+            ...output,
+            createOutputLine(validationMessage, 'system', activeLessonId),
+          ];
+        }
+
+        let modules = current.modules;
+        let nextLessonId = current.activeLessonId;
+        let nextModuleId = current.activeModuleId;
+        let completedModuleId = current.completedModuleId;
+
+        if (response.validation.type === 'validation_ok') {
+          const completion = completeLesson(current.modules, activeLessonId);
+          modules = completion.modules;
+          nextLessonId = completion.nextLessonId ?? current.activeLessonId;
+          nextModuleId = completion.nextModuleId ?? current.activeModuleId;
+          completedModuleId = completion.completedModuleId ?? current.completedModuleId;
+        }
+
+        const autoAdvanced = nextLessonId !== null && nextLessonId !== activeLessonId;
+
+        return {
+          modules,
+          activeLessonId: nextLessonId,
+          activeModuleId: nextModuleId,
+          expandedModuleId: nextModuleId ?? current.expandedModuleId,
+          completedModuleId,
+          cwd: autoAdvanced ? '~' : response.cwdAfter,
+          history: autoAdvanced ? [] : current.history,
+          output: autoAdvanced ? [] : output,
+          isTerminalBusy: false,
+          activeAttempt: autoAdvanced
+            ? null
+            : {
+                ...attempt,
+                status: response.attemptStatus,
+              },
+        };
+      });
+
+      const nextActiveLessonId = useTerminalSession.getState().activeLessonId;
+      if (nextActiveLessonId && nextActiveLessonId !== activeLessonId) {
+        await ensureLessonLoaded(nextActiveLessonId);
+      }
+    } catch (error) {
+      const message = getReadableError(error);
+
+      set((current) => ({
+        isTerminalBusy: false,
+        apiError: message,
+        output: [
+          ...current.output,
+          createOutputLine(message, 'stderr', current.activeLessonId),
+        ],
+      }));
+    }
+  },
+
+  acknowledgeModuleCompletion: () => set({ completedModuleId: null }),
+
+  resetSession: async () => {
+    const state = get();
+
+    try {
+      if (state.activeAttempt?.status === 'in_progress') {
+        await abandonAttempt(state.activeAttempt.attemptId);
+      }
+    } catch {
+      // Reset should stay resilient even if abandon fails.
+    }
+
+    set({
+      modules: [],
+      activeModuleId: null,
+      activeLessonId: null,
+      expandedModuleId: null,
+      completedModuleId: null,
+      lessonDetailsById: {},
+      apiError: null,
+      isBootstrapping: false,
+      isLessonLoading: false,
+      isTerminalBusy: false,
+      cwd: '~',
+      history: [],
+      output: [],
+      activeAttempt: null,
+    });
+
+    await get().initialize();
+  },
+}));
