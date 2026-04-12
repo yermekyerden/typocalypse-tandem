@@ -37,7 +37,7 @@ export function LibraryLessonDetails({
           </p>
           <h2
             id="library-lesson-title"
-            className="text-xl font-semibold text-yellow-50 sm:text-2xl"
+            className="text-xl font-semibold text-yellow-50 sm:text-2xl dark:text-mist-900"
           >
             {lesson.title}
           </h2>
@@ -50,7 +50,7 @@ export function LibraryLessonDetails({
           />
           <span
             aria-live="polite"
-            className="text-[11px] uppercase tracking-[0.1em] text-amber-200/80"
+            className="text-[11px] uppercase tracking-[0.1em] text-amber-200/80 dark:text-mist-900/70"
           >
             {t('library.steps', {
               completed: progress.completed,
@@ -62,40 +62,49 @@ export function LibraryLessonDetails({
 
       <div className="mt-4 space-y-4 text-sm leading-relaxed">
         <div className="space-y-1.5" aria-labelledby={theoryTitleId}>
-          <h3 id={theoryTitleId} className="font-semibold text-yellow-100">
+          <h3
+            id={theoryTitleId}
+            className="font-semibold text-yellow-100 dark:text-mist-900"
+          >
             {t('library.theory')}
           </h3>
-          <p className="whitespace-pre-wrap text-yellow-100/80">
+          <p className="whitespace-pre-wrap text-yellow-100/80 dark:text-mist-900/85">
             {lesson.theoryMarkdown || t('common.notSet')}
           </p>
         </div>
         <div className="space-y-1.5" aria-labelledby={taskTitleId}>
-          <h3 id={taskTitleId} className="font-semibold text-yellow-100">
+          <h3
+            id={taskTitleId}
+            className="font-semibold text-yellow-100 dark:text-mist-900"
+          >
             {t('library.task')}
           </h3>
-          <p className="whitespace-pre-wrap text-yellow-100/80">
+          <p className="whitespace-pre-wrap text-yellow-100/80 dark:text-mist-900/85">
             {lesson.taskDescription || t('common.notSet')}
           </p>
         </div>
         {lesson.hints.length > 0 ? (
           <div className="space-y-1.5" aria-labelledby={hintsTitleId}>
-            <h3 id={hintsTitleId} className="font-semibold text-yellow-100">
+            <h3
+              id={hintsTitleId}
+              className="font-semibold text-yellow-100 dark:text-mist-900"
+            >
               {t('library.hints')}
             </h3>
-            <div className="rounded-md border border-yellow-400/20 bg-white/5">
+            <div className="rounded-md border border-yellow-400/20 bg-white/5 dark:border-mist-400 dark:bg-mist-100">
               <button
                 type="button"
                 aria-expanded={areHintsVisible}
                 aria-controls={hintsContentId}
                 onClick={() => setAreHintsVisible((current) => !current)}
-                className="w-full cursor-pointer px-3 py-2 text-left text-sm font-medium text-yellow-100"
+                className="w-full cursor-pointer px-3 py-2 text-left text-sm font-medium text-yellow-100 dark:text-mist-900"
               >
                 {t('library.hints')}
               </button>
               {areHintsVisible ? (
                 <ul
                   id={hintsContentId}
-                  className="space-y-1 border-t border-yellow-400/15 px-3 py-3 text-yellow-100/80"
+                  className="space-y-1 border-t border-yellow-400/15 px-3 py-3 text-yellow-100/80 dark:border-mist-400 dark:text-mist-900/85"
                 >
                   {lesson.hints.map((hint) => (
                     <li key={hint}>{hint}</li>
