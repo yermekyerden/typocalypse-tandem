@@ -134,13 +134,18 @@ export function TerminalWindow({ height, className }: Props) {
   }, [prompt]);
 
   useEffect(() => {
+    const initialIsLightTheme =
+      typeof document !== 'undefined'
+        ? document.documentElement.classList.contains('dark')
+        : false;
+
     const term = new Terminal({
       convertEol: true,
       cursorBlink: true,
       fontFamily: 'JetBrains Mono, SFMono-Regular, Menlo, monospace',
       fontSize: 14,
       rows: 24,
-      theme: getTerminalTheme(isLightTheme),
+      theme: getTerminalTheme(initialIsLightTheme),
     });
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
@@ -304,6 +309,10 @@ export function TerminalWindow({ height, className }: Props) {
   useEffect(() => {
     const term = termRef.current;
     if (!term) return;
+
+    if (!('options' in term) || typeof term.options === 'undefined') {
+      return;
+    }
 
     term.options.theme = getTerminalTheme(isLightTheme);
   }, [isLightTheme]);
