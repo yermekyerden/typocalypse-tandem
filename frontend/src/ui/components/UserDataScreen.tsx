@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/i18n/useI18n';
 import { User } from 'lucide-react';
-import { getInitials } from '../screens/profile/utils';
+import { buildAvatarUrl, getInitials } from '../screens/profile/utils';
 import { authService } from '@/api/authService';
 import { PRESET_AVATARS } from '../screens/profile/constants';
 import { useState } from 'react';
@@ -166,7 +166,7 @@ export function UserDataScreen() {
           <div className="h-24 w-24 rounded-full bg-gray-700 ring-4 ring-yellow-400/50 overflow-hidden flex items-center justify-center text-yellow-400 text-4xl theme-text dark:ring-mist-200">
             {user?.avatarUrl ? (
               <img
-                src={`/api${user.avatarUrl}`}
+                src={buildAvatarUrl(user.avatarUrl) ?? ''}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />
