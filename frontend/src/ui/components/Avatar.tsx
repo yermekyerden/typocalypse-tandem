@@ -1,4 +1,4 @@
-import { getInitials } from '../screens/profile/utils';
+import { buildAvatarUrl, getInitials } from '../screens/profile/utils';
 import { User } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 
@@ -19,7 +19,7 @@ export function Avatar({ onClick }: AvatarProps) {
     >
       {user?.avatarUrl ? (
         <img
-          src={`/api${user.avatarUrl}`}
+          src={buildAvatarUrl(user.avatarUrl) ?? undefined}
           alt="Avatar"
           className="w-full h-full object-cover rounded-full"
         />
@@ -27,7 +27,7 @@ export function Avatar({ onClick }: AvatarProps) {
         getInitials(user.firstName, user.lastName)
       ) : (
         <User size={20} className="dark:text-mist-900" />
-      )}{' '}
+      )}
     </button>
   );
 }

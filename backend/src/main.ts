@@ -8,6 +8,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads' });
+  // Exclude health from the prefix so the liveness probe stays at /health.
+  // Swagger is set up after this call and is unaffected by the global prefix.
+  app.setGlobalPrefix('api', { exclude: ['/health'] });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

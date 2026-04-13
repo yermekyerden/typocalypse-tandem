@@ -28,13 +28,13 @@ export function ProfileScreen() {
   return (
     <div className="px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 dark:bg-none dark:bg-mist-200">
       <div className="mx-auto h-full flex gap-3">
-        <div className="rounded-2xl bg-[#2c2c2c] h-full w-[25%] min-w-43.75 max-w-67.5 flex flex-col gap-2 px-2 py-2 dark:bg-mist-300">
+        <div className="flex min-h-90 flex-col overflow-hidden rounded-xl border border-yellow-400/25 bg-linear-to-b from-mist-950 to-mist-900 p-4 shadow-lg sm:min-h-[420px] sm:p-5 lg:min-h-0 lg:flex-1 dark:bg-none dark:bg-mist-300 dark:border-mist-300 w-[25%] min-w-43.75 max-w-67.5 gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('user-data')}
             className={cn(
-              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-mist-200',
-              'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
+              'flex flex-col text-left gap-2 rounded-lg bg-linear-to-b from-mist-950  to-mist-800 p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-none dark:bg-mist-200',
+              'md:flex-row md:items-center md:justify-between w-full cursor-pointer group border border-yellow-400/25 dark:border-mist-300',
             )}
           >
             <span
@@ -53,8 +53,8 @@ export function ProfileScreen() {
             type="button"
             onClick={() => setActiveTab('progress')}
             className={cn(
-              'flex flex-col text-left gap-2 rounded-lg bg-[#3f4044] p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-mist-200',
-              'md:flex-row md:items-center md:justify-between w-full cursor-pointer group',
+              'flex flex-col text-left gap-2 rounded-lg bg-linear-to-b from-mist-950  to-mist-800 p-4 focus-visible:ring-2 focus:outline-none focus-visible:ring-yellow-400 dark:bg-none dark:bg-mist-200',
+              'md:flex-row md:items-center md:justify-between w-full cursor-pointer group border border-yellow-400/25 dark:border-mist-300',
             )}
           >
             <span
@@ -70,7 +70,7 @@ export function ProfileScreen() {
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#2c2c2c] p-8 shadow-xl backdrop-blur-sm h-full w-full flex flex-col max-h-[80vh] overflow-y-auto md:justify-between dark;bg-none dark:bg-mist-300 scrollbar-thin">
+        <div className="flex min-h-90 flex-col overflow-hidden rounded-xl border border-yellow-400/25 bg-linear-to-b from-mist-950 to-mist-900 p-4 shadow-lg sm:min-h-[420px] sm:p-5 lg:min-h-0 lg:flex-1 dark:bg-none dark:bg-mist-300 dark:border-mist-300 h-full w-full  overflow-y-auto md:justify-between scrollbar-thin">
           {activeTab === 'user-data' && <UserDataScreen />}
           {activeTab === 'progress' && <DashboardScreen></DashboardScreen>}
         </div>

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/i18n/useI18n';
 import { User } from 'lucide-react';
-import { getInitials } from '../screens/profile/utils';
+import { buildAvatarUrl, getInitials } from '../screens/profile/utils';
 import { authService } from '@/api/authService';
 import { PRESET_AVATARS } from '../screens/profile/constants';
 import { useState } from 'react';
@@ -58,7 +58,7 @@ export function UserDataScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
 
-  const fetchProfile = useAuthStore((s) => s.fetchProfile);
+  const fetchProfile = useAuthStore((state) => state.fetchProfile);
 
   const user = useAuthStore((state) => state.user);
   const hasName = user?.firstName || user?.lastName;
@@ -87,8 +87,8 @@ export function UserDataScreen() {
       await fetchProfile();
       setEditingField(null);
       setEditValue('');
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     } finally {
       setIsSaving(false);
     }
@@ -96,7 +96,9 @@ export function UserDataScreen() {
 
   async function handleSavePassword() {
     if (!user || editingField !== 'password') return;
+
     setIsSaving(true);
+
     try {
       await authService.changePassword({
         currentPassword: currentPasswordInput,
@@ -107,9 +109,9 @@ export function UserDataScreen() {
       setCurrentPasswordInput('');
       setNewPasswordInput('');
       setPasswordErrors(null);
-    } catch (e: unknown) {
+    } catch (error: unknown) {
       const errorMessage =
-        e instanceof Error ? e.message : t('profile.changePasswordFailed');
+        error instanceof Error ? error.message : t('profile.changePasswordFailed');
       setPasswordErrors(errorMessage);
     } finally {
       setIsSaving(false);
@@ -118,15 +120,16 @@ export function UserDataScreen() {
 
   async function handleSelectAvatar(src: string) {
     try {
-      const res = await fetch(src);
-      const blob = await res.blob();
-      const ext = blob.type.split('/')[1] || 'png';
-      const file = new File([blob], `avatar.${ext}`, { type: blob.type });
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const extension = blob.type.split('/')[1] || 'png';
+      const file = new File([blob], `avatar.${extension}`, { type: blob.type });
+
       await authService.updateAvatar(file);
       await fetchProfile();
       setShowAvatarPicker(false);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -138,8 +141,8 @@ export function UserDataScreen() {
       await authService.updateAvatar(file);
       await fetchProfile();
       setShowAvatarPicker(false);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -148,8 +151,8 @@ export function UserDataScreen() {
       await authService.removeAvatar();
       await fetchProfile();
       setShowAvatarPicker(false);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -166,16 +169,17 @@ export function UserDataScreen() {
           <div className="h-24 w-24 rounded-full bg-gray-700 ring-4 ring-yellow-400/50 overflow-hidden flex items-center justify-center text-yellow-400 text-4xl theme-text dark:ring-mist-200">
             {user?.avatarUrl ? (
               <img
-                src={`/api${user.avatarUrl}`}
+                src={buildAvatarUrl(user.avatarUrl) ?? undefined}
                 alt="Avatar"
                 className="w-full h-full object-cover"
               />
             ) : hasName ? (
-              getInitials(user?.firstName || '', user?.lastName || '')
+              getInitials(user.firstName || '', user.lastName || '')
             ) : (
               <User size={40} />
             )}
           </div>
+
           <button
             type="button"
             onClick={() => setShowAvatarPicker(true)}
@@ -202,9 +206,7 @@ export function UserDataScreen() {
       <div className="space-y-6">
         {profileFields.map((field) => {
           const isEditing = editingField === field.key;
-
           const rawValue = field.getValue(user);
-
           const value = rawValue ?? (field.key === 'lastName' ? t('common.notSet') : '—');
 
           return (
@@ -223,7 +225,7 @@ export function UserDataScreen() {
                 <input
                   type="text"
                   value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
+                  onChange={(event) => setEditValue(event.target.value)}
                   className="text-lg bg-[#4f5054] text-yellow-400 ml-auto px-2 py-1 rounded-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 dark:bg-mist-200 dark:text-mist-900 dark:focus:ring-indigo-300"
                   autoFocus
                 />
@@ -266,32 +268,37 @@ export function UserDataScreen() {
           <span className="text-sm uppercase tracking-wider text-white flex-1 dark:text-mist-900">
             {t('profile.password')}
           </span>
+
           {editingField === 'password' ? (
             <div className="flex flex-col gap-2 w-full">
               <input
                 type="password"
                 placeholder={t('profile.currentPassword')}
                 value={currentPasswordInput}
-                onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                onChange={(event) => setCurrentPasswordInput(event.target.value)}
                 className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 autoFocus
               />
+
               <input
                 type="password"
                 placeholder={t('profile.newPassword')}
                 value={newPasswordInput}
-                onChange={(e) => setNewPasswordInput(e.target.value)}
+                onChange={(event) => setNewPasswordInput(event.target.value)}
                 className="bg-[#4f5054] text-yellow-400 px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-yellow-400"
               />
+
               {passwordErrors && (
                 <span className="text-red-500 text-sm">{passwordErrors}</span>
               )}
+
               <button
                 className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                 onClick={handleSavePassword}
               >
                 {isSaving ? t('common.saving') : t('common.save')}
               </button>
+
               <button
                 className="bg-[#3f4044] text-yellow-400 px-4 py-1 rounded mt-1 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                 onClick={() => {
