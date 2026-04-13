@@ -71,7 +71,8 @@ export class ProfileService {
       this.deleteAvatarFile(stored.avatarUrl);
     }
 
-    const avatarUrl = `/uploads/avatars/${filename}`;
+    const base = (process.env.BACKEND_PUBLIC_URL ?? '').replace(/\/+$/, '');
+    const avatarUrl = `${base}/uploads/avatars/${filename}`;
     const updated = this.usersStore.update(userId, {
       avatarUrl,
       updatedAt: new Date().toISOString(),
@@ -104,7 +105,9 @@ export class ProfileService {
   }
 
   private deleteAvatarFile(avatarUrl: string): void {
-    const relativePath = avatarUrl.startsWith('/') ? avatarUrl.slice(1) : avatarUrl;
+    // avatarUrl may be absolute (https://host/uploads/...) or relative (/uploads/...)
+    const urlPath = avatarUrl.startsWith('http') ? new URL(avatarUrl).pathname : avatarUrl;
+    const relativePath = urlPath.startsWith('/') ? urlPath.slice(1) : urlPath;
     const absolutePath = join(process.cwd(), relativePath);
     if (existsSync(absolutePath)) {
       unlinkSync(absolutePath);

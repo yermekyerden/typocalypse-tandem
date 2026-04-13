@@ -100,7 +100,7 @@ export function DashboardScreen() {
         </Accordion>
       </div>
       <div className="w-80 flex-shrink-0">
-        <div className="sticky top-6 rounded-lg border border-yellow-400 bg-[#2c2c2c] p-6 dark:border-indigo-300 dark:bg-mist-100 dark:text-mist-900">
+        <div className="sticky top-6 rounded-lg border border-yellow-400/25 px-4 py-6 bg-linear-to-b from-mist-950 to-mist-800 flex-1 dark:bg-none dark:bg-mist-200">
           <h3 className="mb-4 text-center text-lg font-semibold dark:text-mist-900">
             {t('profile.progress')}
           </h3>
