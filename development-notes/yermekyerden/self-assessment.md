@@ -2,7 +2,7 @@
 
 GitHub: [yermekyerden](https://github.com/yermekyerden)
 Role in the project: Team Lead, Frontend/Backend Contributor
-Self-assessment PR: [ADD PR LINK HERE](ADD_PR_LINK_HERE)
+Self-assessment PR: [PR #124](https://github.com/yermekyerden/typocalypse-tandem/pull/124)
 
 ## Personal Feature Table
 
