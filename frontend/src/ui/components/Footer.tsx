@@ -5,30 +5,30 @@ export function Footer() {
   const { t } = useI18n();
 
   return (
-    <footer className="bg-gradient-to-b from-mist-950 to-mist-800 text-yellow-50 p-3 dark:bg-none dark:bg-mist-300">
-      <div className="mx-auto flex items-center justify-between max-w-8xl px-4">
-        <p className="text-sm dark:text-mist-900">&copy; 2026 {t('common.appName')}</p>
+    <footer className="dark:bg-mist-300 bg-linear-to-b from-mist-950 to-mist-800 dark:bg-none p-3 text-yellow-50">
+      <div className="flex justify-between items-center mx-auto px-4 max-w-8xl">
+        <p className="dark:text-mist-900 text-sm">&copy; 2026 {t('common.appName')}</p>
 
         <a
           href="https://rs.school/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm hover:text-yellow-400 dark:text-mist-900 dark:hover:text-indigo-900"
+          className="hover:text-yellow-400 dark:hover:text-indigo-900 dark:text-mist-900 text-sm"
         >
           {t('footer.school')}
         </a>
 
         <a
-          href="https://github.com/yermekyerden/typocalypse-tandem"
+          href="https://github.com/house-of-typocalypse/typocalypse-tandem"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 text-sm hover:text-yellow-400"
+          className="flex items-center gap-2 hover:text-yellow-400 text-sm"
           aria-label={t('navigation.githubRepository')}
         >
           <img
             src={GitHubLogo}
             alt=""
-            className="h-6 w-6 dark:drop-shadow-[0_0_10px_rgba(99,102,241,0.9)]"
+            className="dark:drop-shadow-[0_0_10px_rgba(99,102,241,0.9)] w-6 h-6"
           />
         </a>
       </div>
