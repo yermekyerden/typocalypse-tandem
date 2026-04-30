@@ -35,23 +35,23 @@ We tried to make the app realistic enough to teach real CLI habits, while still 
 
 - **TL: Yermek Yerdenov**
   GitHub: https://github.com/yermekyerden
-  Diary: https://github.com/yermekyerden/typocalypse-tandem/tree/main/development-notes/yermekyerden
+  Diary: [development-notes/yermekyerden](development-notes/yermekyerden)
 
 - **Denis Nasonov**
   GitHub: https://github.com/JasonScriptLord
-  Diary: https://github.com/yermekyerden/typocalypse-tandem/tree/main/development-notes/JasonScriptLord
+  Diary: [development-notes/JasonScriptLord](development-notes/JasonScriptLord)
 
 - **Yesset Bimanov**
   GitHub: https://github.com/YessetHumanMan
-  Diary: https://github.com/yermekyerden/typocalypse-tandem/tree/main/development-notes/YessetHumanMan
+  Diary: [development-notes/YessetHumanMan](development-notes/YessetHumanMan)
 
 - **Alessya Tkachenko**
   GitHub: https://github.com/BerserkBat
-  Diary: https://github.com/yermekyerden/typocalypse-tandem/tree/main/development-notes/BerserkBat
+  Diary: [development-notes/BerserkBat](development-notes/BerserkBat)
 
 - **Roman Plis**
   GitHub: https://github.com/romanplis
-  Diary: https://github.com/yermekyerden/typocalypse-tandem/tree/main/development-notes/romanplis
+  Diary: [development-notes/romanplis](development-notes/romanplis)
 
 - **Mentor: Igor Moskalev**
   GitHub: https://github.com/ivmoskalev
@@ -117,10 +117,10 @@ So yes, the dojo already has walls, doors, scrolls, and a slightly overachieving
 Below are some of the most meaningful PRs in the project.
 We selected them because they include either substantial implementation scope, substantial review / follow-up discussion, or both.
 
-### 1. PR #82 — OpenRouter-backed attempt hint endpoint
-https://github.com/yermekyerden/typocalypse-tandem/pull/82
+### 1. [PR #82 — OpenRouter-backed attempt hint endpoint](/house-of-typocalypse/typocalypse-tandem/pull/82)
 
 A strong backend vertical slice for the AI assistant:
+
 - dedicated `AssistantModule`
 - authenticated attempt-based endpoint
 - OpenRouter integration behind the backend layer
@@ -129,10 +129,10 @@ A strong backend vertical slice for the AI assistant:
 
 This PR is also one of the best examples of meaningful technical review in the repository: it includes must-fix feedback on request timeout handling, service flow correctness, environment handling, lesson-attempt edge cases, and test coverage, followed by concrete fixes and re-review before approval.
 
-### 2. PR #41 — Module mocks and lesson selection sidebar
-https://github.com/yermekyerden/typocalypse-tandem/pull/41
+### 2. [PR #41 — Module mocks and lesson selection sidebar](/house-of-typocalypse/typocalypse-tandem/pull/41)
 
 A meaningful frontend PR that moved the learning UI forward:
+
 - mocked learning modules and lesson content
 - lesson selection state
 - modules sidebar
@@ -140,10 +140,10 @@ A meaningful frontend PR that moved the learning UI forward:
 
 This PR stands out because the review was not superficial: it included feedback on type safety, state updates during render, semantics and accessibility, build correctness, and active-state logic. It is a good example of practical frontend review improving both code quality and UI behavior.
 
-### 3. PR #95 — Lesson-centric API contracts and lesson-mission mapping
-https://github.com/yermekyerden/typocalypse-tandem/pull/95
+### 3. [PR #95 — Lesson-centric API contracts and lesson-mission mapping](/house-of-typocalypse/typocalypse-tandem/pull/95)
 
 An important backend/contracts PR that helped shape the lesson-based learning flow:
+
 - updated lesson-centric API contracts
 - added lesson-to-mission mapping as a source of truth
 - added startup validation for mapping correctness
@@ -151,10 +151,10 @@ An important backend/contracts PR that helped shape the lesson-based learning fl
 
 This PR is important because it affected the data foundation of the learning system, not just one isolated feature. It also had technical follow-up discussion around integration issues and environment consistency during backend verification.
 
-### 4. PR #107 — End-to-end contextual streaming assistant for library tasks
-https://github.com/yermekyerden/typocalypse-tandem/pull/107
+### 4. [PR #107 — End-to-end contextual streaming assistant for library tasks](/house-of-typocalypse/typocalypse-tandem/pull/107)
 
 One of the biggest product-level PRs in the repository:
+
 - frontend + backend assistant integration
 - streaming responses
 - transcript hydration
@@ -164,6 +164,8 @@ One of the biggest product-level PRs in the repository:
 - dev-only mock mode for QA
 
 This PR is included because it represents one of the strongest end-to-end feature slices in the project and shows how multiple layers of the system were connected into one coherent user-facing feature.
+
+---
 
 ## Tech Stack 🛠️
 
@@ -221,22 +223,22 @@ In short: this is a dojo, not a full operating system with anger issues. 😄
 ## Useful Links 🔗
 
 * 🚀 **Live demo** (GitHub Pages, deployed from `main`):
-  [https://yermekyerden.github.io/typocalypse-tandem/](https://yermekyerden.github.io/typocalypse-tandem/)
+  [https://house-of-typocalypse.github.io/typocalypse-tandem/](https://house-of-typocalypse.github.io/typocalypse-tandem/)
 
 * 📚 **Docs hub:**
-  `docs/README.md`
+  [docs/README.md](docs/README.md)
 
 * ⚡ **Quick Summary:**
-  `docs/00-quick-summary/README.md`
+  [docs/00-quick-summary/README.md](docs/00-quick-summary/README.md)
 
 * 🎯 **Vision:**
-  `docs/00-overview/vision.md`
+  [docs/00-overview/vision.md](docs/00-overview/vision.md)
 
 * 🏗️ **Architecture:**
-  `docs/02-architecture/system-overview.md`
+  [docs/02-architecture/system-overview.md](docs/02-architecture/system-overview.md)
 
 * 📄 **Contracts:**
-  `docs/02-architecture/data-contracts.md`
+  [docs/02-architecture/data-contracts.md](docs/02-architecture/data-contracts.md)
 
 * 🎨 **Design (Figma):**
   [https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1](https://www.figma.com/design/M8k8QQWPYbfbfTUdQdFSye/Terminal-Dojo?node-id=0-1&t=LA99qExkew468f47-1)
@@ -248,17 +250,17 @@ In short: this is a dojo, not a full operating system with anger issues. 😄
 
 ## Meeting Notes 🗓️
 
-* February 4, 2026 — [https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-04](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-04)
-* February 11, 2026 — [https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-11](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-11)
-* February 22, 2026 — [https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-22](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-22)
-* February 25, 2026 — [https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-25](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-02-25)
-* March 18, 2026 — [https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-03-18](https://github.com/yermekyerden/typocalypse-tandem/tree/main/meeting-notes/2026-03-18)
+* February 4, 2026 — [meeting-notes/2026-02-04](meeting-notes/2026-02-04)
+* February 11, 2026 — [meeting-notes/2026-02-11](meeting-notes/2026-02-11)
+* February 22, 2026 — [meeting-notes/2026-02-22](meeting-notes/2026-02-22)
+* February 25, 2026 — [meeting-notes/2026-02-25](meeting-notes/2026-02-25)
+* March 18, 2026 — [meeting-notes/2026-03-18](meeting-notes/2026-03-18)
 
 ---
 
 ## Requirements 📦
 
-* Node.js **22** (see `.nvmrc`)
+* Node.js **22** (see [.nvmrc](.nvmrc))
 
 ---
 
@@ -334,8 +336,8 @@ If something feels unclear in the codebase, the first question is:
 
 Start here:
 
-* `docs/README.md`
-* `docs/00-quick-summary/README.md`
+* [docs/README.md](docs/README.md)
+* [docs/00-quick-summary/README.md](docs/00-quick-summary/README.md)
 
 Because sometimes the fastest way to understand a system is not to guess — it is to read the map before walking into the dungeon. 🗺️
 
